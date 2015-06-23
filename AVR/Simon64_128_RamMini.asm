@@ -19,8 +19,8 @@
 
  .cseg ; Flash( code segement)
 	;The memory reserved with .db must be an even number of bytes. One or more of your strings must be an odd number of bytes,
-	;so the assembler padded it with an extra byte
-	; the 44*4 bytes of round keys
+	;so the assembler padded it with an extra byte if the number of bytes is not even
+	; the 44*4 bytes of round keys, the sub keys is from the original paper <<Simon and Speck>>
 	keys: .db 0,   1,   2,   3,   8,   9,   10,  11,  16,  17,  18,  19,  24,  25,  26,  27
 		  .db 195, 17,  160, 112, 73,  236, 112, 183, 53,  232, 227, 87,  66,  188, 151, 211
 		  .db 31,  248, 220, 148, 24,  95,  75,  191, 185, 171, 93,  142, 99,  168, 244, 219
@@ -40,10 +40,27 @@
 	; move the address of plaintext to register X
 	ldi r26, low(plainText) ; 1 cycle
 	ldi r27, high(plainText) ;  1 cycle
-	;ldi r27, 0x01;
-	ldi r30, low(keys) ; z is the current address of keys
-	ldi r31, high(keys) ;
-
+	; load the text plaintext: 656b696c 20646e75(0x,from the paper)
+	; the cipher text should be: 44c8fc20 b9dfa07a
+	ldi r0, 0x65;
+	st x+, r0;
+	ldi r1, 0x6b;
+	st x+, r1;
+	ldi r2, 0x69;
+	st x+, r2;
+	ldi r3, 0x6c;
+	st x+, r3;
+	ldi r4, 0x20;
+	st x+, r4;
+	ldi r5, 0x64;
+	st x+, r5;
+	ldi r6, 0x6e;
+	st x+, r6;
+	ldi r7, 0x75;
+	st x+, r7;
+	
+	ldi r26, low(plainText) ; 1 cycle
+	ldi r27, high(plainText) ;  1 cycle
 	; load the plaintext from RAM to registers [r7,...,r0], X = [r7, r6, r5, r4], Y = [r3, r2, r1, r0]
 	ld r0, x+ ; the lowest byte
 	ld r1, x+ ;
@@ -53,6 +70,9 @@
 	ld r5, x+ ;
 	ld r6, x+ ;
 	ld r7, x+ ;
+	
+	ldi r30, low(keys) ; z is the current address of keys
+	ldi r31, high(keys) ;
 
 loop:
 	; get the sub key k

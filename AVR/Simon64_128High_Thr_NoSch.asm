@@ -1,5 +1,5 @@
 /*
- * Simon64_128High_Througtput_NoKeySchedule.asm
+ * Simon64_128High_Thr_NoSch.asm
  *
  *  Created: 2015/6/20 11:52:17
  *   Author: LuoPeng
@@ -33,18 +33,47 @@
 		  .db 112, 157, 73,  225, 255, 210, 228, 76,  239, 235, 183, 50,  193, 5,   117, 196
 		  .db 232, 41,  233, 208, 185, 132, 228, 143, 238, 75,  5,   66,  226, 186, 119, 175
 		  .db 2,   156, 25,  24,  28,  63,  158, 113, 147, 247, 28,  12,  150, 70,  223, 21
+		  
  encryption:
-  	; initialize before encryption
-	clr currentRound ; set 0, have done rounds ; 1 cycle
-	ldi totalRound, 11; the total rounds ; 1 cycle
-	clr zero; 1 cycle
+ 
 	; move the address of plaintext to register X
+	ldi r26, low(plainText) ;
+	ldi r27, high(plainText) ;
+	; the plaintext is : 00010203 08090a0b(0x)
+	; the ciphertext should be: 231,124,58,2,167,182,169,182
+	ldi r0, 0x00;
+	st x+, r0;
+	ldi r1, 0x01;
+	st x+, r1;
+	ldi r2, 0x02;
+	st x+, r2;
+	ldi r3, 0x03;
+	st x+, r3;
+	ldi r4, 0x08;
+	st x+, r4;
+	ldi r5, 0x09;
+	st x+, r5;
+	ldi r6, 0x0a;
+	st x+, r6;
+	ldi r7, 0x0b;
+	st x+, r7;
+
+	; transfer the keys from flash to RAM
+	ldi r30, low(keys) ;
+	ldi r31, high(keys) ;
+	ldi r29, low(keysRAM);
+	ldi r30, high(keysRAM);
+	clr currentRound ;
+	ldi totalRound, 176;
+transfer:
+	lpm r0, z+;
+	st y+, r0;
+	inc currentRound;
+	cp currentRound, totalRound;
+brne transfer;
+	
 	ldi r26, low(plainText) ; 1 cycle
 	ldi r27, high(plainText) ;  1 cycle
-	;ldi r27, 0x01;
-	ldi r30, low(keysRAM) ; z is the current address of keys
-	ldi r31, high(keysRAM) ;
-
 	; load the plaintext from RAM to registers [r7,...,r0], X = [r7, r6, r5, r4], Y = [r3, r2, r1, r0]
 	ld r0, x+ ; the lowest byte
 	ld r1, x+ ;
@@ -54,13 +83,19 @@
 	ld r5, x+ ;
 	ld r6, x+ ;
 	ld r7, x+ ;
+	
+	clr currentRound ; set 0, have done rounds ; 1 cycle
+	ldi totalRound, 11; the total rounds ; 1 cycle
+	clr zero; 1 cycle
+	ldi r29, low(keysRAM) ; y is the current address of keys
+	ldi r30, high(keysRAM) ;
 
 loop:
 	; get the sub key k
-	ld r8, z+ ; store the 4 bytes of sub key to K = [r11, r10, r9, r8]
- 	ld r9, z+ ;
-	ld r10, z+ ;
-	ld r11, z+ ;
+	ld r8, y+ ; store the 4 bytes of sub key to K = [r11, r10, r9, r8]
+ 	ld r9, y+ ;
+	ld r10, y+ ;
+	ld r11, y+ ;
 	; k = k eor y
 	eor r8, r0;
 	eor r9, r1;
@@ -101,10 +136,10 @@ loop:
 	eor r7, r11;
 
 	// loop 2
-	ld r8, z+ ; store the 4 bytes of sub key to K = [r11, r10, r9, r8]
- 	ld r9, z+ ;
-	ld r10, z+ ;
-	ld r11, z+ ;
+	ld r8, y+ ; store the 4 bytes of sub key to K = [r11, r10, r9, r8]
+ 	ld r9, y+ ;
+	ld r10, y+ ;
+	ld r11, y+ ;
 	; k = k eor y
 	eor r8, r0;
 	eor r9, r1;
@@ -145,10 +180,10 @@ loop:
 	eor r7, r11;
 
 	// loop 3
-	ld r8, z+ ; store the 4 bytes of sub key to K = [r11, r10, r9, r8]
- 	ld r9, z+ ;
-	ld r10, z+ ;
-	ld r11, z+ ;
+	ld r8, y+ ; store the 4 bytes of sub key to K = [r11, r10, r9, r8]
+ 	ld r9, y+ ;
+	ld r10, y+ ;
+	ld r11, y+ ;
 	; k = k eor y
 	eor r8, r0;
 	eor r9, r1;
@@ -189,10 +224,10 @@ loop:
 	eor r7, r11;
 
 	// loop 4
-	ld r8, z+ ; store the 4 bytes of sub key to K = [r11, r10, r9, r8]
- 	ld r9, z+ ;
-	ld r10, z+ ;
-	ld r11, z+ ;
+	ld r8, y+ ; store the 4 bytes of sub key to K = [r11, r10, r9, r8]
+ 	ld r9, y+ ;
+	ld r10, y+ ;
+	ld r11, y+ ;
 	; k = k eor y
 	eor r8, r0;
 	eor r9, r1;
