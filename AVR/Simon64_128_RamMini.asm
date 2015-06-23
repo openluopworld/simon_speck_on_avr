@@ -42,22 +42,22 @@
 	ldi r27, high(plainText) ;  1 cycle
 	; load the text plaintext: 656b696c 20646e75(0x,from the paper)
 	; the cipher text should be: 44c8fc20 b9dfa07a
-	ldi r0, 0x65;
-	st x+, r0;
-	ldi r1, 0x6b;
-	st x+, r1;
-	ldi r2, 0x69;
-	st x+, r2;
-	ldi r3, 0x6c;
-	st x+, r3;
-	ldi r4, 0x20;
-	st x+, r4;
-	ldi r5, 0x64;
-	st x+, r5;
-	ldi r6, 0x6e;
-	st x+, r6;
-	ldi r7, 0x75;
-	st x+, r7;
+	ldi r16, 0x65;
+	st x+, r16;
+	ldi r16, 0x6b;
+	st x+, r16;
+	ldi r16, 0x69;
+	st x+, r16;
+	ldi r16, 0x6c;
+	st x+, r16;
+	ldi r16, 0x20;
+	st x+, r16;
+	ldi r16, 0x64;
+	st x+, r16;
+	ldi r16, 0x6e;
+	st x+, r16;
+	ldi r16, 0x75;
+	st x+, r16;
 	
 	ldi r26, low(plainText) ; 1 cycle
 	ldi r27, high(plainText) ;  1 cycle

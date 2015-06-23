@@ -41,28 +41,28 @@
 	ldi r27, high(plainText) ;
 	; the plaintext is : 00010203 08090a0b(0x)
 	; the ciphertext should be: 231,124,58,2,167,182,169,182
-	ldi r0, 0x00;
-	st x+, r0;
-	ldi r1, 0x01;
-	st x+, r1;
-	ldi r2, 0x02;
-	st x+, r2;
-	ldi r3, 0x03;
-	st x+, r3;
-	ldi r4, 0x08;
-	st x+, r4;
-	ldi r5, 0x09;
-	st x+, r5;
-	ldi r6, 0x0a;
-	st x+, r6;
-	ldi r7, 0x0b;
-	st x+, r7;
+	ldi r16, 0x00;
+	st x+, r16;
+	ldi r16, 0x01;
+	st x+, r16;
+	ldi r16, 0x02;
+	st x+, r16;
+	ldi r16, 0x03;
+	st x+, r16;
+	ldi r16, 0x08;
+	st x+, r16;
+	ldi r16, 0x09;
+	st x+, r16;
+	ldi r16, 0x0a;
+	st x+, r16;
+	ldi r16, 0x0b;
+	st x+, r16;
 
 	; transfer the keys from flash to RAM
 	ldi r30, low(keys) ;
 	ldi r31, high(keys) ;
-	ldi r29, low(keysRAM);
-	ldi r30, high(keysRAM);
+	ldi r28, low(keysRAM);
+	ldi r29, high(keysRAM);
 	clr currentRound ;
 	ldi totalRound, 176;
 transfer:
@@ -87,8 +87,8 @@ brne transfer;
 	clr currentRound ; set 0, have done rounds ; 1 cycle
 	ldi totalRound, 11; the total rounds ; 1 cycle
 	clr zero; 1 cycle
-	ldi r29, low(keysRAM) ; y is the current address of keys
-	ldi r30, high(keysRAM) ;
+	ldi r28, low(keysRAM) ; y is the current address of keys
+	ldi r29, high(keysRAM) ;
 
 loop:
 	; get the sub key k
