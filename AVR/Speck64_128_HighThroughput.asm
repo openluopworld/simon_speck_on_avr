@@ -14,10 +14,10 @@
 	 * 
 	 * The difference is that R0 and R1 should be used for mul instruction
 	 */
-.def currentRound = r16;
-.def totalRound = r17;
-.def zero = r18;
-.def eight = r19;
+.def currentRound = r20;
+.def totalRound = r21;
+.def zero = r22;
+.def eight = r23;
 
 .dseg
 	plainText: .byte 8 ; the 8 bytes of plaintext, from low byte to high byte.
@@ -56,14 +56,51 @@
 
 highThroughput:
 
-	clr currentRound; the default value is 0
-	ldi totalRound, 9;
-	clr zero; the default value is 0
-	ldi eight, 8;
-
+	; store the test plaintext
+	; plaintext: 3b726574 7475432d(0x)
+	; ciphertext shoud be:8c6fa548 454e028b(0x)
 	ldi r26, low(plainText);
 	ldi r27, high(plainText);
+	ldi r16, 0x3b;
+	st x+, r16;
+	ldi r16, 0x72;
+	st x+, r16;
+	ldi r16, 0x65;
+	st x+, r16;
+	ldi r16, 0x74;
+	st x+, r16;
+	ldi r16, 0x74;
+	st x+, r16;
+	ldi r16, 0x75;
+	st x+, r16;
+	ldi r16, 0x43;
+	st x+, r16;
+	ldi r16, 0x2d;
+	st x+, r16;
 
+	; transfer the sub keys from flash to RAM
+	ldi r28, low(keysRAM);
+	ldi r29, high(keysRAM);
+	ldi r30, low(keys);
+	ldi r31, high(keys);
+	clr currentRound;
+	ldi totalRound, 27;
+transfer:
+	lpm r0, z+;
+	st y+, r0;
+	lpm r0, z+;
+	st y+, r0;
+	lpm r0, z+;
+	st y+, r0;
+	lpm r0, z+;
+	st y+, r0;
+	inc currentRound;
+	cp currentRound, totalRound;
+brne transfer;
+
+	; load the plaintext from RAM to registers
+	ldi r26, low(plainText);
+	ldi r27, high(plainText);
 	ld r4, x+;
 	ld r5, x+;
 	ld r6, x+;
@@ -73,16 +110,21 @@ highThroughput:
 	ld r10, x+;
 	ld r11, x+;
 
-	ldi r30, low(keysRAM);
-	ldi r31, high(keysRAM);
+	; prepare for encryption
+	clr currentRound; the default value is 0
+	ldi totalRound, 9;
+	clr zero; the default value is 0
+	ldi eight, 8;
+	ldi r28, low(keysRAM);
+	ldi r29, high(keysRAM);
 loop:
 	// loop 1
 	; load k: [r15, r14, r13, r12], r12 is the lowest byte
 	; one round: 
-	ld r12, z+;
-	ld r13, z+;
-	ld r14, z+;
-	ld r15, z+;
+	ld r12, y+;
+	ld r13, y+;
+	ld r14, y+;
+	ld r15, y+;
 	; x = S(8)( S(-8)(x) + y)
 	; addition modulo 2^n
 	add r9, r4; x1 = x1 + y0
@@ -119,10 +161,10 @@ loop:
 	; // X = [r15, r14, r13, r12]
 	; // Y = [r11, r10, r9, r8]
 	; // K = [r7, r6, r5, r4]
-	ld r4, z+;
-	ld r5, z+;
-	ld r6, z+;
-	ld r7, z+;
+	ld r4, y+;
+	ld r5, y+;
+	ld r6, y+;
+	ld r7, y+;
 	; x = S(8)( S(-8)(x) + y)
 	; addition modulo 2^n
 	add r13, r8; x1 = x1 + y0
@@ -154,10 +196,10 @@ loop:
 	; // Y = [r15, r14, r13, r12]
 	; // K = [r11, r10, r9, r8]
 	; // X = [r7, r6, r5, r4]
-	ld r8, z+;
-	ld r9, z+;
-	ld r10, z+;
-	ld r11, z+;
+	ld r8, y+;
+	ld r9, y+;
+	ld r10, y+;
+	ld r11, y+;
 	; x = S(8)( S(-8)(x) + y)
 	; addition modulo 2^n
 	add r5, r12; x1 = x1 + y0
@@ -202,5 +244,3 @@ end:
 	st x+, r6;
 	st x+, r7;
 	ret;
-
-

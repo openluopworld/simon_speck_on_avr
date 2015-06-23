@@ -61,6 +61,28 @@ main:
 	ldi totalRound, 13;
 	clr zero; the default value is 0
 
+	; store the test plaintext
+	; plaintext: 3b726574 7475432d(0x)
+	; ciphertext shoud be:8c6fa548 454e028b(0x)
+	ldi r26, low(plainText);
+	ldi r27, high(plainText);
+	ldi r16, 0x3b;
+	st x+, r16;
+	ldi r16, 0x72;
+	st x+, r16;
+	ldi r16, 0x65;
+	st x+, r16;
+	ldi r16, 0x74;
+	st x+, r16;
+	ldi r16, 0x74;
+	st x+, r16;
+	ldi r16, 0x75;
+	st x+, r16;
+	ldi r16, 0x43;
+	st x+, r16;
+	ldi r16, 0x2d;
+	st x+, r16;
+
 	; load plainText
 	ldi r26, low(plainText);
 	ldi r27, high(plainText);

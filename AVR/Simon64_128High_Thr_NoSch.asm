@@ -72,6 +72,7 @@ transfer:
 	cp currentRound, totalRound;
 brne transfer;
 	
+	; load the plaintext from RAM to registers
 	ldi r26, low(plainText) ; 1 cycle
 	ldi r27, high(plainText) ;  1 cycle
 	; load the plaintext from RAM to registers [r7,...,r0], X = [r7, r6, r5, r4], Y = [r3, r2, r1, r0]
@@ -282,5 +283,3 @@ storecipher:
 	st x+, r6;
 	st x+, r7;
 	ret;
-
-
