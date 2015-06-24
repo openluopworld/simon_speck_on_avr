@@ -55,6 +55,7 @@ loadInitialKeys:
 	inc currentRound;
 	cp currentRound, sixteen
 	brne loadInitialKeys;
+	sub r26, sixteen;
 
 	; the const value of c
 	ldi constC0, 0xfc;
@@ -83,7 +84,6 @@ loadInitialKeys:
 	st y+, currentRound;
 	sub r28, sixteen;
 	ld currentZ, y+;
-	sub r26, sixteen;
 	clr currentRound;
 
 keysExtend:
@@ -177,18 +177,34 @@ continue:
 	cp currentRound, totalRound;
 	breq encryption;
 	jmp keysExtend;
+	nop;
 ;	ret;
 
 encryption:
-	; initialize before encryption
-	clr currentRound ; set 0, have done rounds
-	ldi totalRound, 11 ; the total rounds
-	; move the address of plaintext to register X
+
+	; initialze the plaintext
+	ldi r26, low(plainText) ; r26 is the low byte of X
+	ldi r27, high(plainText) ; r27 is the high byte of X
+	ldi r28, 0x65; suppose the plaintext is 0x656b696c 20646e75;
+	st x+, r28;	
+	ldi r28, 0x6b;
+	st x+, r28;
+	ldi r28, 0x69;
+	st x+, r28;
+	ldi r28, 0x6c;
+	st x+, r28;
+	ldi r28, 0x20;
+	st x+, r28;
+	ldi r28, 0x64;
+	st x+, r28;
+	ldi r28, 0x6e;
+	st x+, r28;
+	ldi r28, 0x75;
+	st x+, r28;
+
+	; load the plaintext from RAM to registers [r7,...,r0], X = [r7, r6, r5, r4], Y = [r3, r2, r1, r0]
 	ldi r26, low(plainText) ;
 	ldi r27, high(plainText) ;
-	ldi r30, low(keys) ; z is the current address of keys
-	ldi r31, high(keys) ;
-	; load the plaintext from RAM to registers [r7,...,r0], X = [r7, r6, r5, r4], Y = [r3, r2, r1, r0]
 	ld r0, x+ ; the lowest byte
 	ld r1, x+ ;
 	ld r2, x+ ;
@@ -197,7 +213,12 @@ encryption:
 	ld r5, x+ ;
 	ld r6, x+ ;
 	ld r7, x+ ;
-	; encryption
+
+	ldi r30, low(keys) ; z is the current address of keys
+	ldi r31, high(keys) ;
+	; initialize before encryption
+	clr currentRound ; set 0, have done rounds
+	ldi totalRound, 11 ; the total rounds
 loop:
 	; get the sub key k
 	ld r8, z+ ; store the 4 bytes of sub key to K = [r11, r10, r9, r8]
