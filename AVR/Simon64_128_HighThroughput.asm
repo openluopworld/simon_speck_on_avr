@@ -35,15 +35,9 @@
 
 start:
 
-	clr zero;
-	clr remain8;
-	clr currentRound; the current round number
-	ldi totalRound, 40; the total loop times, it is 40 other than 44 because the first 4 is initialized
-	ldi eight, 8;
-	ldi four, 4;
-	ldi sixteen, 16; one round after key generation, X point should sub 16(from k(i+5) to k(i+1))
-	clr bitofz;initialize the value to 0
-
+	; load the initial keys from Flash to RAM
+	clr currentRound;
+	ldi sixteen, 16;
 	// load the initial keys
 	ldi r26, low(keys);
 	ldi r27, high(keys);
@@ -55,7 +49,6 @@ loadInitialKeys:
 	inc currentRound;
 	cp currentRound, sixteen
 	brne loadInitialKeys;
-	sub r26, sixteen;
 
 	; the const value of c
 	ldi constC0, 0xfc;
@@ -82,9 +75,21 @@ loadInitialKeys:
 	st y+, currentRound;
 	ldi currentRound, 0x3c; 0011 1100
 	st y+, currentRound;
-	sub r28, sixteen;
+
+	ldi r26, low(keys);
+	ldi r27, high(keys);
+	ldi r28, low(constZ);
+	ldi r29, high(constZ);
 	ld currentZ, y+;
-	clr currentRound;
+
+	clr zero;
+	clr remain8;
+	clr currentRound; the current round number
+	ldi totalRound, 40; the total loop times, it is 40 other than 44 because the first 4 is initialized
+	ldi eight, 8;
+	ldi four, 4;
+	ldi sixteen, 16; one round after key generation, X point should sub 16(from k(i+5) to k(i+1))
+	clr bitofz;initialize the value to 0
 
 keysExtend:
 ;	rcall getOneKey;without the subroutine, there is an error named "Relative branch out of reach"
