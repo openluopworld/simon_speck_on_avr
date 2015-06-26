@@ -26,23 +26,20 @@
 
  .DSEG ; RAM( data segment)
 	plainText: .byte 8 ; the 8 bytes of plaintext, from low byte to high byte.
-	cipherText: .byte 8 ; the 8 bytes of ciphertext, from low byte to high byte.
-	constZ: .byte 8; 
+	cipherText: .byte 8 ; the 8 bytes of ciphertext, from low byte to high byte
 	keys: .byte 176 ; the 44*4 bytes of round keys
 
  .CSEG ; Flash( code segement)
-	initialKeys: .db 0x00, 0x01, 0x02, 0x03, 0x08, 0x09, 0x0a, 0x0b, 0x10, 0x11, 0x12, 0x13, 0x18, 0x19, 0x1a, 0x1b;
 
-start:
+main:
 
 	; load the initial keys from Flash to RAM
 	clr currentRound;
 	ldi sixteen, 16;
-	// load the initial keys
 	ldi r26, low(keys);
 	ldi r27, high(keys);
-	ldi r30, low(initialKeys);
-	ldi r31, high(initialKeys);
+	ldi r30, low(initialKeys<<1);
+	ldi r31, high(initialKeys<<1);
 loadInitialKeys:
 	lpm r0, z+;
 	st x+, r0;
@@ -56,40 +53,20 @@ loadInitialKeys:
 	ldi constC2, 0xff;
 	ldi constC3, 0xff;
 
-	// load const z
-	ldi r28, low(constZ);
-	ldi r29, high(constZ);
-	ldi currentRound, 0xdb; 1101 1011
-	st y+, currentRound;
-	ldi currentRound, 0xac; 1010 1100
-	st y+, currentRound;
-	ldi currentRound, 0x65; 0110 0101
-	st y+, currentRound;
-	ldi currentRound, 0xe0; 1110 0000
-	st y+, currentRound;
-	ldi currentRound, 0x48; 0100 1000
-	st y+, currentRound;
-	ldi currentRound, 0xa7; 1010 0111
-	st y+, currentRound;
-	ldi currentRound, 0x34; 0011 0100
-	st y+, currentRound;
-	ldi currentRound, 0x3c; 0011 1100
-	st y+, currentRound;
-
 	ldi r26, low(keys);
 	ldi r27, high(keys);
-	ldi r28, low(constZ);
-	ldi r29, high(constZ);
-	ld currentZ, y+;
+	ldi r30, low(constZ<<1);
+	ldi r31, high(constZ<<1);
+	lpm currentZ, z+;
 
 	clr zero;
 	clr remain8;
-	clr currentRound; the current round number
-	ldi totalRound, 40; the total loop times, it is 40 other than 44 because the first 4 is initialized
+	clr currentRound     ; the current round number
+	ldi totalRound, 40   ; the total loop times, it is 40 other than 44 because the first 4 is initialized
 	ldi eight, 8;
 	ldi four, 4;
-	ldi sixteen, 16; one round after key generation, X point should sub 16(from k(i+5) to k(i+1))
-	clr bitofz;initialize the value to 0
+	ldi sixteen, 16      ; one round after key generation, X point should sub 16(from k(i+5) to k(i+1))
+	clr bitofz           ;initialize the value to 0
 
 keysExtend:
 ;	rcall getOneKey;without the subroutine, there is an error named "Relative branch out of reach"
@@ -178,7 +155,7 @@ keysExtend:
 	jmp keysExtend;
 continue:
 	clr remain8; start with 0 again
-	ld currentZ,y+;
+	lpm currentZ,z+;
 	cp currentRound, totalRound;
 	breq encryption;
 	jmp keysExtend;
@@ -210,26 +187,26 @@ encryption:
 	; load the plaintext from RAM to registers [r7,...,r0], X = [r7, r6, r5, r4], Y = [r3, r2, r1, r0]
 	ldi r26, low(plainText) ;
 	ldi r27, high(plainText) ;
-	ld r0, x+ ; the lowest byte
-	ld r1, x+ ;
-	ld r2, x+ ;
-	ld r3, x+ ;
-	ld r4, x+ ;
-	ld r5, x+ ;
-	ld r6, x+ ;
 	ld r7, x+ ;
+	ld r6, x+ ;
+	ld r5, x+ ;
+	ld r4, x+ ;
+	ld r3, x+ ;
+	ld r2, x+ ;
+	ld r1, x+ ;
+	ld r0, x+ ;
 
-	ldi r30, low(keys) ; z is the current address of keys
-	ldi r31, high(keys) ;
+	ldi r28, low(keys) ; y is the current address of keys
+	ldi r29, high(keys) ;
 	; initialize before encryption
 	clr currentRound ; set 0, have done rounds
 	ldi totalRound, 11 ; the total rounds
 loop:
 	; get the sub key k
-	ld r8, z+ ; store the 4 bytes of sub key to K = [r11, r10, r9, r8]
- 	ld r9, z+ ;
-	ld r10, z+ ;
-	ld r11, z+ ;
+	ld r8, y+ ; store the 4 bytes of sub key to K = [r11, r10, r9, r8]
+ 	ld r9, y+ ;
+	ld r10, y+ ;
+	ld r11, y+ ;
 	; k = k eor y
 	eor r8, r0;
 	eor r9, r1;
@@ -271,10 +248,10 @@ loop:
 	
 	// loop 2
 	; get the sub key k
-	ld r8, z+ ; store the 4 bytes of sub key to K = [r11, r10, r9, r8]
- 	ld r9, z+ ;
-	ld r10, z+ ;
-	ld r11, z+ ;
+	ld r8, y+ ; store the 4 bytes of sub key to K = [r11, r10, r9, r8]
+ 	ld r9, y+ ;
+	ld r10, y+ ;
+	ld r11, y+ ;
 	; k = k eor y
 	eor r8, r0;
 	eor r9, r1;
@@ -316,10 +293,10 @@ loop:
 
 	// loop 3
 	; get the sub key k
-	ld r8, z+ ; store the 4 bytes of sub key to K = [r11, r10, r9, r8]
- 	ld r9, z+ ;
-	ld r10, z+ ;
-	ld r11, z+ ;
+	ld r8, y+ ; store the 4 bytes of sub key to K = [r11, r10, r9, r8]
+ 	ld r9, y+ ;
+	ld r10, y+ ;
+	ld r11, y+ ;
 	; k = k eor y
 	eor r8, r0;
 	eor r9, r1;
@@ -361,10 +338,10 @@ loop:
 
 	// loop 4
 	; get the sub key k
-	ld r8, z+ ; store the 4 bytes of sub key to K = [r11, r10, r9, r8]
- 	ld r9, z+ ;
-	ld r10, z+ ;
-	ld r11, z+ ;
+	ld r8, y+ ; store the 4 bytes of sub key to K = [r11, r10, r9, r8]
+ 	ld r9, y+ ;
+	ld r10, y+ ;
+	ld r11, y+ ;
 	; k = k eor y
 	eor r8, r0;
 	eor r9, r1;
@@ -411,12 +388,19 @@ loop:
 	jmp loop; if currentRound is not equal to totalRound, encryption again
 storeCipher:
 	; load the ciphertext from RAM to registers [r7,...,r0]
-	st x+, r0; the lowest byte
-	st x+, r1;
-	st x+, r2;
-	st x+, r3;
-	st x+, r4;
-	st x+, r5;
-	st x+, r6;
 	st x+, r7;
+	st x+, r6;
+	st x+, r5;
+	st x+, r4;
+	st x+, r3;
+	st x+, r2;
+	st x+, r1;
+	st x+, r0;
 	ret;
+
+initialKeys: 
+.db 0x00, 0x01, 0x02, 0x03, 0x08, 0x09, 0x0a, 0x0b, 0x10, 0x11, 0x12, 0x13, 0x18, 0x19, 0x1a, 0x1b;
+
+; 1101 1011, 1010 1100, 0110 0101, 1110 0000, 0100 1000, 1010 0111, 0011 0100, 0011 1100
+constZ: 
+.db 0xdb, 0xac, 0x65, 0xe0, 0x48, 0xa7, 0x34, 0x3c ;
