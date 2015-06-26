@@ -5,26 +5,26 @@
  *   Author: LuoPeng
  */ 
 
-.def zero = r14; the adc operation
-.def remain8 = r15; currentRound % 8
-.def eight = r16; control when to load a new z to register
-.def four = r17; from k(i+1) to k(i+3), the register should add 4
+.def zero = r14;
+.def remain8 = r15;      currentRound % 8
+.def four = r16;         control when to load a new z to register
+.def eight = r17;        from k(i+1) to k(i+3), the register should add 4
 
-.def currentRound = r18; the current round [0,39]
-.def totalRound = r19; total round, is 40 (in key generation ) or 44 (in encryption)
-.def currentZ = r20; the current byte value of z, the 62 bits of z is stored in 8 bytes
-.def bitofz = r0; one bit of z is store in the register
+.def currentRound = r18;
+.def totalRound = r19;   total round, is 40 (in key generation ) or 44 (in encryption)
+.def currentZ = r20;     the current byte value of z, the 62 bits of z is stored in 8 bytes
 .def sixteen = r21;
+.def bitofz = r0;        one bit of z is store in the register
 
-.def constC0 = r22; the lowest byte const value c
+.def constC0 = r22;      the lowest byte const value c
 .def constC1 = r23;
 .def constC2 = r24;
-.def constC3 = r25; the highest byte const value c
+.def constC3 = r25;      the highest byte const value c
 
  .DSEG ; RAM( data segment)
 	plainText: .byte 8 ; the 8 bytes of plaintext, from low byte to high byte.
-	cipherText: .byte 8 ; the 8 bytes of ciphertext, from low byte to high byte
-	keys: .byte 176 ; the 44*4 bytes of round keys
+	cipherText: .byte 8; the 8 bytes of ciphertext, from low byte to high byte
+	keys: .byte 176 ;    the 44*4 bytes of round keys
 
  .CSEG ; Flash( code segement)
 	/*
@@ -44,7 +44,6 @@ loadInitialKeys:
 	inc currentRound;
 	cp currentRound, sixteen
 	brne loadInitialKeys;
-	nop;
 
 	; the const value of c
 	ldi constC0, 0xfc;
@@ -54,33 +53,11 @@ loadInitialKeys:
 
 	nop;
 	rcall keySchedule;
-	nop;
-
-	ldi r26, low(plainText) ; r26 is the low byte of X
-	ldi r27, high(plainText) ; r27 is the high byte of X
-	ldi r28, 0x65; suppose the plaintext is 0x656b696c 20646e75;
-	st x+, r28;	
-	ldi r28, 0x6b;
-	st x+, r28;
-	ldi r28, 0x69;
-	st x+, r28;
-	ldi r28, 0x6c;
-	st x+, r28;
-	ldi r28, 0x20;
-	st x+, r28;
-	ldi r28, 0x64;
-	st x+, r28;
-	ldi r28, 0x6e;
-	st x+, r28;
-	ldi r28, 0x75;
-	st x+, r28;
-
-	nop;
-	rcall encryption;
 	ret;
 
 	/*
-	 *
+	 * Subroutine: keySchedule
+	 * Function:   compute the sub keys.
 	 */
 keySchedule:
 	ldi r26, low(keys);
@@ -99,7 +76,6 @@ keySchedule:
 	clr bitofz           ;initialize the value to 0
 
 keysExtend:
-;	rcall getOneKey;without the subroutine, there is an error named "Relative branch out of reach"
 	; load k(i)
 	ld r2, x+;
 	ld r3, x+;
@@ -112,7 +88,7 @@ keysExtend:
 	ld r13, x+;
 	; S(-3)k(i+3)
 	add r26, four;
-	;adc r27, zero; the total byte is 200, so the value of r26 can not be bigger than 256
+	adc r27, zero; 
 	ld r6, x+;
 	ld r7, x+;
 	ld r8, x+;
@@ -187,232 +163,9 @@ continue:
 	clr remain8; start with 0 again
 	lpm currentZ,z+;
 	cp currentRound, totalRound;
-	breq encryption;
+	breq end;
 	jmp keysExtend;
-	nop;
-	ret;
-
-	/*
-	 * Subrontine: encryption
-	 * Function:   A High-Throughput/ Low-Energy Implementation with key schedule of SIMON64/128
-	 *
-	 * Keys are stored in RAM, unroll 4 rounds.
-	 */
-encryption:
-	; initialize before encryption
-	clr currentRound ; set 0, have done rounds
-	ldi totalRound, 11 ; the total rounds
-	clr zero;
-
-	; load the plaintext from RAM to registers [r7,...,r0], X = [r7, r6, r5, r4], Y = [r3, r2, r1, r0]
-	ldi r26, low(plainText) ;
-	ldi r27, high(plainText) ;
-	ld r7, x+ ;
-	ld r6, x+ ;
-	ld r5, x+ ;
-	ld r4, x+ ;
-	ld r3, x+ ;
-	ld r2, x+ ;
-	ld r1, x+ ;
-	ld r0, x+ ;
-
-	ldi r28, low(keys) ; y is the current address of keys
-	ldi r29, high(keys) ;
-loop:
-	; get the sub key k
-	ld r8, y+ ; store the 4 bytes of sub key to K = [r11, r10, r9, r8]
- 	ld r9, y+ ;
-	ld r10, y+ ;
-	ld r11, y+ ;
-	; k = k eor y
-	eor r8, r0;
-	eor r9, r1;
-	eor r10, r2;
-	eor r11, r3 ;
-	; move x to y 
-	movw r0, r4; the index must be even ( R1:R0 = R5:R4)
-	movw r2, r6; ( R3:R2 : R7:R6 )
-	; rotate x by left with 1 bit
-	lsl r4; logical shift left: bit 0 is cleared, bit 7 is loaded into the C flag of the SREG
-	rol r5; rotate left through carry: the C flag in shifted into bit 0, bit 7 is shifted into the C flag
-	rol r6;
-	rol r7;
-	adc r4, zero;
-	; move x to t, t stands for [r25, r24, r23, r22]
-	movw r22, r4;
-	movw r24, r6;
-	; t & S8(y)
-	and r22, r3;
-	and r23, r0;
-	and r24, r1;
-	and r25, r2;
-	; x = S2(x)
-	lsl r4;
-	rol r5;
-	rol r6;
-	rol r7;
-	adc r4, zero;
-	; x = x eor t
-	eor r4, r22;
-	eor r5, r23;
-	eor r6, r24;
-	eor r7, r25;
-	; x = x eor k
-	eor r4, r8;
-	eor r5, r9;
-	eor r6, r10;
-	eor r7, r11;
-	
-	// loop 2
-	; get the sub key k
-	ld r8, y+ ; store the 4 bytes of sub key to K = [r11, r10, r9, r8]
- 	ld r9, y+ ;
-	ld r10, y+ ;
-	ld r11, y+ ;
-	; k = k eor y
-	eor r8, r0;
-	eor r9, r1;
-	eor r10, r2;
-	eor r11, r3 ;
-	; move x to y 
-	movw r0, r4; the index must be even ( R1:R0 = R5:R4)
-	movw r2, r6; ( R3:R2 : R7:R6 )
-	; rotate x by left with 1 bit
-	lsl r4; logical shift left: bit 0 is cleared, bit 7 is loaded into the C flag of the SREG
-	rol r5; rotate left through carry: the C flag in shifted into bit 0, bit 7 is shifted into the C flag
-	rol r6;
-	rol r7;
-	adc r4, zero;
-	; move x to t, t stands for [r25, r24, r23, r22]
-	movw r22, r4;
-	movw r24, r6;
-	; t & S8(y)
-	and r22, r3;
-	and r23, r0;
-	and r24, r1;
-	and r25, r2;
-	; x = S2(x)
-	lsl r4;
-	rol r5;
-	rol r6;
-	rol r7;
-	adc r4, zero;
-	; x = x eor t
-	eor r4, r22;
-	eor r5, r23;
-	eor r6, r24;
-	eor r7, r25;
-	; x = x eor k
-	eor r4, r8;
-	eor r5, r9;
-	eor r6, r10;
-	eor r7, r11;
-
-	// loop 3
-	; get the sub key k
-	ld r8, y+ ; store the 4 bytes of sub key to K = [r11, r10, r9, r8]
- 	ld r9, y+ ;
-	ld r10, y+ ;
-	ld r11, y+ ;
-	; k = k eor y
-	eor r8, r0;
-	eor r9, r1;
-	eor r10, r2;
-	eor r11, r3 ;
-	; move x to y 
-	movw r0, r4; the index must be even ( R1:R0 = R5:R4)
-	movw r2, r6; ( R3:R2 : R7:R6 )
-	; rotate x by left with 1 bit
-	lsl r4; logical shift left: bit 0 is cleared, bit 7 is loaded into the C flag of the SREG
-	rol r5; rotate left through carry: the C flag in shifted into bit 0, bit 7 is shifted into the C flag
-	rol r6;
-	rol r7;
-	adc r4, zero;
-	; move x to t, t stands for [r25, r24, r23, r22]
-	movw r22, r4;
-	movw r24, r6;
-	; t & S8(y)
-	and r22, r3;
-	and r23, r0;
-	and r24, r1;
-	and r25, r2;
-	; x = S2(x)
-	lsl r4;
-	rol r5;
-	rol r6;
-	rol r7;
-	adc r4, zero;
-	; x = x eor t
-	eor r4, r22;
-	eor r5, r23;
-	eor r6, r24;
-	eor r7, r25;
-	; x = x eor k
-	eor r4, r8;
-	eor r5, r9;
-	eor r6, r10;
-	eor r7, r11;
-
-	// loop 4
-	; get the sub key k
-	ld r8, y+ ; store the 4 bytes of sub key to K = [r11, r10, r9, r8]
- 	ld r9, y+ ;
-	ld r10, y+ ;
-	ld r11, y+ ;
-	; k = k eor y
-	eor r8, r0;
-	eor r9, r1;
-	eor r10, r2;
-	eor r11, r3 ;
-	; move x to y 
-	movw r0, r4; the index must be even ( R1:R0 = R5:R4)
-	movw r2, r6; ( R3:R2 : R7:R6 )
-	; rotate x by left with 1 bit
-	lsl r4; logical shift left: bit 0 is cleared, bit 7 is loaded into the C flag of the SREG
-	rol r5; rotate left through carry: the C flag in shifted into bit 0, bit 7 is shifted into the C flag
-	rol r6;
-	rol r7;
-	adc r4, zero;
-	; move x to t, t stands for [r25, r24, r23, r22]
-	movw r22, r4;
-	movw r24, r6;
-	; t & S8(y)
-	and r22, r3;
-	and r23, r0;
-	and r24, r1;
-	and r25, r2;
-	; x = S2(x)
-	lsl r4;
-	rol r5;
-	rol r6;
-	rol r7;
-	adc r4, zero;
-	; x = x eor t
-	eor r4, r22;
-	eor r5, r23;
-	eor r6, r24;
-	eor r7, r25;
-	; x = x eor k
-	eor r4, r8;
-	eor r5, r9;
-	eor r6, r10;
-	eor r7, r11;
-
-	; have finished?
-	inc currentRound;
-	cp currentRound, totalRound;
-	breq storeCipher;
-	jmp loop; if currentRound is not equal to totalRound, encryption again
-storeCipher:
-	; load the ciphertext from RAM to registers [r7,...,r0]
-	st x+, r7;
-	st x+, r6;
-	st x+, r5;
-	st x+, r4;
-	st x+, r3;
-	st x+, r2;
-	st x+, r1;
-	st x+, r0;
+end:
 	ret;
 
 initialKeys: 
