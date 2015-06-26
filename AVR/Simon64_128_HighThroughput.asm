@@ -14,7 +14,6 @@
 .def totalRound = r19;   total round, is 40 (in key generation ) or 44 (in encryption)
 .def currentZ = r20;     the current byte value of z, the 62 bits of z is stored in 8 bytes
 .def sixteen = r21;
-.def bitofz = r0;        one bit of z is store in the register
 
 .def constC0 = r22;      the lowest byte const value c
 .def constC1 = r23;
@@ -73,9 +72,9 @@ keySchedule:
 	ldi eight, 8;
 	ldi four, 4;
 	ldi sixteen, 16      ; one round after key generation, X point should sub 16(from k(i+5) to k(i+1))
-	clr bitofz           ;initialize the value to 0
 
 keysExtend:
+// this code is a must
 	; load k(i)
 	ld r2, x+;
 	ld r3, x+;
@@ -88,7 +87,7 @@ keysExtend:
 	ld r13, x+;
 	; S(-3)k(i+3)
 	add r26, four;
-	adc r27, zero; 
+	;adc r27, zero; the address of data in RAM in begin with 0, the size of keys is 176, so r26 can be bigge than 255
 	ld r6, x+;
 	ld r7, x+;
 	ld r8, x+;
@@ -135,16 +134,15 @@ keysExtend:
 	eor r3, r7;
 	eor r4, r8;
 	eor r5, r9;
-	; k(i) eor (I eor S(-1)) ( k(i+1) eor S(-3)k(i+3) ) eor c
+	;k(i) = k(i) + k(i+1) + S(-1)k(i+1) + S(-4)k(i+3) + S(-3)k(i+3) + c + z(i)
+	bld currentZ, 7;
+	bst constC0, 0;
+	lsl currentZ;
 	eor r2, constC0;
 	eor r3, constC1;
 	eor r4, constC2;
 	eor r5, constC3;
-	;k(i) = k(i) + k(i+1) + S(-1)k(i+1) + S(-4)k(i+3) + S(-3)k(i+3) + c + z(i)
-	lsl currentZ;
-	adc bitofz, zero; the highest bit of currentZ is in flag
-	eor r2, bitofz;
-	clr bitofz; set bitofz to 0, it will be used next round
+// until here, if you want reduce, you can only reduce the S(-3) by some other skills
 	;k(i+4), is just [r3,r2,r1,r0]
 	st x+, r2;
 	st x+, r3;
