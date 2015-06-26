@@ -5,6 +5,7 @@
  *   Author: LuoPeng
  */ 
 
+
 .def currentRound = r16;
 .def totalRound = r17;
 .def zero = r18;
@@ -14,8 +15,10 @@
 	cipherText: .byte 8 ; the 8 bytes of ciphertext, from high byte to low byte.
 
 .cseg
+	/*
+	 * the main function
+	 */
 main:
-	; store the test plaintext
 	; plaintext: 3b726574 7475432d(0x)
 	; ciphertext shoud be:8c6fa548 454e028b(0x)
 	ldi r26, low(plainText);
@@ -37,11 +40,24 @@ main:
 	ldi r16, 0x2d;
 	st x+, r16;
 
-	clr currentRound; the default value is 0
-	ldi totalRound, 27;
-	clr zero; the default value is 0
+	rcall encryption;
+	ret;
 
-	; load plainText
+	/*
+	 * Subroutine: encryption
+	 * Function:   The low RAM implementation of Speck64/128
+	 * 
+	 * The round keys have been pre-expanded and stored in flash.
+	 * When a round key k is required, it is loaded from flash directly into a register
+	 */
+encryption:
+	clr currentRound;   the initial value is 0
+	ldi totalRound, 27;
+	clr zero;           the initial value is 0
+
+	/*
+	 * load ptelainText from RAM to registers, r7 stores the highest byte, r0 stores the lowest byte.
+	 */
 	ldi r26, low(plainText);
 	ldi r27, high(plainText);
 	ld r7, x+;
@@ -53,11 +69,6 @@ main:
 	ld r1, x+;
 	ld r0, x+;
 
-	/*
-	 * 
-	 * The round keys have been pre-expanded and stored in flash.
-     * When a round key k is required, it is loaded from flash directly into a register
-	 */
 	ldi r30, low(keys<<1);
 	ldi r31, high(keys<<1);
 loop:
@@ -105,9 +116,7 @@ loop:
 	cp currentRound, totalRound;
 brne loop;
 
-	; store cipherText
-	;ldi r26, low(plainText);
-	;ldi r27, high(plainText);
+	; store cipherText from registers to RAM
 	st x+, r7;
 	st x+, r6;
 	st x+, r5;

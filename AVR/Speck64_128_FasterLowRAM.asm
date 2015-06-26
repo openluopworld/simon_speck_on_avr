@@ -5,12 +5,6 @@
  *   Author: LuoPeng
  */ 
 
-	/*
-	 * A Fashter Low-RAM SPECK implementation
-	 *
-	 * The round keys are also in flash.
-	 * Two rounds can be implemented without the use of the Move instruction at the final.
-	 */
 .def currentRound = r16;
 .def totalRound = r17;
 .def zero = r18;
@@ -20,8 +14,10 @@
 	cipherText: .byte 8 ; the 8 bytes of ciphertext, from high byte to low byte.
 
 .cseg
+	/*
+	 * the main function
+	 */
 main:
-	; store the test plaintext
 	; plaintext: 3b726574 7475432d(0x)
 	; ciphertext shoud be:8c6fa548 454e028b(0x)
 	ldi r26, low(plainText);
@@ -43,11 +39,23 @@ main:
 	ldi r16, 0x2d;
 	st x+, r16;
 
-	clr currentRound; the default value is 0
-	ldi totalRound, 13;
-	clr zero; the default value is 0
+	call encryption;
+	ret;
 
-	; load plainText
+	/*
+	 * Subroutine: encryption
+	 * Function:   the faster low RAM implementation of Speck64/128
+	 *
+	 * The round keys are also in flash.
+	 * Two rounds can be implemented without the use of the Move instruction at the final.
+	 */
+encryption:
+
+	clr currentRound;   the initial value is 0
+	ldi totalRound, 13; two rounds were done every time. So, loop count is 13(27/2) and a final loop is needed.
+	clr zero;           the initial value is 0
+	
+	; load plainText fromr RAM to registers.
 	ldi r26, low(plainText);
 	ldi r27, high(plainText);
 	ld r7, x+;
@@ -59,14 +67,10 @@ main:
 	ld r1, x+;
 	ld r0, x+;
 
-	/*
-	 * 
-	 * The round keys have been pre-expanded and stored in flash.
-     * When a round key k is required, it is loaded from flash directly into a register
-	 */
 	ldi r30, low(keys<<1);
 	ldi r31, high(keys<<1);
 loop:
+	// loop1
 	; load k: [r15, r14, r13, r12], r12 is the lowest byte
 	lpm r12, z+;
 	lpm r13, z+;
@@ -136,13 +140,17 @@ loop:
 	eor r1, r5;
 	eor r2, r6;
 	eor r3, r7;
+
 	; finished?
 	inc currentRound;
 	cp currentRound, totalRound;
-	jmp loop;
 	breq lastRound; 
-lastRound:
+	jmp loop;
 
+lastRound:
+	/*
+	 * the last round
+	 */
 	; load k: [r15, r14, r13, r12], r12 is the lowest byte
 	lpm r12, z+;
 	lpm r13, z+;

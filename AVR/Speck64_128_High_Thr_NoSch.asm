@@ -1,19 +1,10 @@
 /*
- * Speck64_128_High_Thr_NoSch.asm
+ * Speck64_128_HighThroughput.asm
  *
  *  Created: 2015/6/10 21:33:05
  *   Author: LuoPeng
  */ 
 
-	/*
-	 * A High-Throughput/Low-RAM SPECK implementation
-	 *
-	 * The round keys are in RAM.
-	 * But the 3-bit rotation is implementated in 14 cycels ( not 15 cycles of before ) using 20 bytes of flash
-	 *	 ( not 30 bytes of before ) with the AVR mul instruction
-	 * 
-	 * The difference is that R0 and R1 should be used for mul instruction
-	 */
 .def currentRound = r20;
 .def totalRound = r21;
 .def zero = r22;
@@ -25,8 +16,7 @@
 	keysRAM: .byte 108; the 27*4 bytes of round keys
 
 .cseg
-highThroughput:
-	; store the test plaintext
+main:
 	; plaintext: 3b726574 7475432d(0x)
 	; ciphertext shoud be:8c6fa548 454e028b(0x)
 	ldi r26, low(plainText);
@@ -67,7 +57,23 @@ transfer:
 	inc currentRound;
 	cp currentRound, totalRound;
 brne transfer;
+	
+	nop;
+	rcall highThroughput;
+	ret;
 
+	/*
+	 * Subrountine: highThroughput
+	 * Function£º   A High-Throughput/Low-RAM implementation of Speck64/128
+	 *
+	 * The round keys are in RAM.
+	 * But the 3-bit rotation is implementated in 14 cycels ( not 15 cycles of before ) using 20 bytes of flash
+	 *   ( not 30 bytes of before ) with the AVR mul instruction
+	 *
+	 * R0 and R1 must be used for mul instruction. 
+	 * 3 rounds must be extended because the result with mul instruction is not in the original registers.
+	 */
+highThroughput:
 	; load the plaintext from RAM to registers
 	ldi r26, low(plainText);
 	ldi r27, high(plainText);
@@ -199,12 +205,11 @@ loop:
 	eor r7, r11;
 	inc currentRound;
 	cp currentRound, totalRound;
-	jmp loop;
 	breq end;
+	jmp loop;
+	
 end:
 	; store cipherText
-	;ldi r26, low(plainText);
-	;ldi r27, high(plainText);
 	st x+, r11;
 	st x+, r10;
 	st x+, r9;
