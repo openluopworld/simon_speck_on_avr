@@ -5,10 +5,6 @@
  *   Author: LuoPeng
  */ 
 
-  /*
-  * A minimal RAM Implementation of SIMON
-  */
-
  .def currentRound = r20; the current round
  .def totalRound = r21; total round, is 40 (in key generation ) or 44 (in encryption)
  .def zero = r22; value is 0 all the time
@@ -19,9 +15,10 @@
 	keysRAM: .byte 176;
 
  .cseg ; Flash( code segement)
-		  
+	/*
+	 * the main function
+	 */ 
  main:
- 
 	; the plaintext is : 00010203 08090a0b(0x)
 	; the ciphertext should be: 231,124,58,2,167,182,169,182
 	ldi r26, low(plainText) ;
@@ -56,10 +53,21 @@ transfer:
 	inc currentRound;
 	cp currentRound, totalRound;
 brne transfer;
-	
-	; load the plaintext from RAM to registers
-	ldi r26, low(plainText) ; 1 cycle
-	ldi r27, high(plainText) ;  1 cycle
+
+	nop;
+	rcall encryption;
+	ret;
+
+	/*
+	 * Subroutine: encryption
+	 * Function:   A minimal RAM Implementation without key schedule of SIMON64/128
+	 * 
+	 * The sub keys are stored in Flash. The sub keys are transferred to RAM before encryption
+	 * Unroll four rounds
+	 */
+encryption:
+	ldi r26, low(plainText) ;
+	ldi r27, high(plainText) ;
 	; load the plaintext from RAM to registers [r7,...,r0], X = [r7, r6, r5, r4], Y = [r3, r2, r1, r0]
 	ld r7, x+ ;
 	ld r6, x+ ;

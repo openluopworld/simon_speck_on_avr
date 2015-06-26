@@ -1,9 +1,6 @@
 /*
  * Simon64_128_HighThroughput.asm
  *
- * A High-Throughput/ Low-Energy Implementation of SIMON
- * Keys are stored in RAM, unroll 4 rounds.
- *
  *  Created: 2015/6/2 23:24:09
  *   Author: LuoPeng
  */ 
@@ -30,9 +27,10 @@
 	keys: .byte 176 ; the 44*4 bytes of round keys
 
  .CSEG ; Flash( code segement)
-
+	/*
+	 * the main function
+	 */
 main:
-
 	; load the initial keys from Flash to RAM
 	clr currentRound;
 	ldi sixteen, 16;
@@ -46,6 +44,7 @@ loadInitialKeys:
 	inc currentRound;
 	cp currentRound, sixteen
 	brne loadInitialKeys;
+	nop;
 
 	; the const value of c
 	ldi constC0, 0xfc;
@@ -53,6 +52,37 @@ loadInitialKeys:
 	ldi constC2, 0xff;
 	ldi constC3, 0xff;
 
+	nop;
+	rcall keySchedule;
+	nop;
+
+	ldi r26, low(plainText) ; r26 is the low byte of X
+	ldi r27, high(plainText) ; r27 is the high byte of X
+	ldi r28, 0x65; suppose the plaintext is 0x656b696c 20646e75;
+	st x+, r28;	
+	ldi r28, 0x6b;
+	st x+, r28;
+	ldi r28, 0x69;
+	st x+, r28;
+	ldi r28, 0x6c;
+	st x+, r28;
+	ldi r28, 0x20;
+	st x+, r28;
+	ldi r28, 0x64;
+	st x+, r28;
+	ldi r28, 0x6e;
+	st x+, r28;
+	ldi r28, 0x75;
+	st x+, r28;
+
+	nop;
+	rcall encryption;
+	ret;
+
+	/*
+	 *
+	 */
+keySchedule:
 	ldi r26, low(keys);
 	ldi r27, high(keys);
 	ldi r30, low(constZ<<1);
@@ -146,7 +176,7 @@ keysExtend:
 	st x+, r5;
 	; set x to the position of k(i+1),should sub 16 not 12 
 	sub r26, sixteen; if r26 < 16, the C bit will be 1
-	;sbc r27, zero; R27 = R27 - zero - C, because r16 can not be smaller than 16
+	sbc r27, zero; R27 = R27 - zero - C, because r16 can not be smaller than 16
 	;have finished?
 	inc currentRound;
 	inc remain8;
@@ -160,29 +190,19 @@ continue:
 	breq encryption;
 	jmp keysExtend;
 	nop;
-;	ret;
+	ret;
 
+	/*
+	 * Subrontine: encryption
+	 * Function:   A High-Throughput/ Low-Energy Implementation with key schedule of SIMON64/128
+	 *
+	 * Keys are stored in RAM, unroll 4 rounds.
+	 */
 encryption:
-
-	; initialze the plaintext
-	ldi r26, low(plainText) ; r26 is the low byte of X
-	ldi r27, high(plainText) ; r27 is the high byte of X
-	ldi r28, 0x65; suppose the plaintext is 0x656b696c 20646e75;
-	st x+, r28;	
-	ldi r28, 0x6b;
-	st x+, r28;
-	ldi r28, 0x69;
-	st x+, r28;
-	ldi r28, 0x6c;
-	st x+, r28;
-	ldi r28, 0x20;
-	st x+, r28;
-	ldi r28, 0x64;
-	st x+, r28;
-	ldi r28, 0x6e;
-	st x+, r28;
-	ldi r28, 0x75;
-	st x+, r28;
+	; initialize before encryption
+	clr currentRound ; set 0, have done rounds
+	ldi totalRound, 11 ; the total rounds
+	clr zero;
 
 	; load the plaintext from RAM to registers [r7,...,r0], X = [r7, r6, r5, r4], Y = [r3, r2, r1, r0]
 	ldi r26, low(plainText) ;
@@ -198,9 +218,6 @@ encryption:
 
 	ldi r28, low(keys) ; y is the current address of keys
 	ldi r29, high(keys) ;
-	; initialize before encryption
-	clr currentRound ; set 0, have done rounds
-	ldi totalRound, 11 ; the total rounds
 loop:
 	; get the sub key k
 	ld r8, y+ ; store the 4 bytes of sub key to K = [r11, r10, r9, r8]

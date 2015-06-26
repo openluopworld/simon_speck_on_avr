@@ -19,12 +19,10 @@
 
  .cseg ; Flash( code segement)
 
- encryption:
-  	; initialize before encryption
-	clr currentRound ; set 0, have done rounds ; 1 cycle
-	ldi totalRound, 44; the total rounds ; 1 cycle
-	clr zero; 1 cycle
-
+	/*
+	 * main function
+	 */
+ main:
 	; load the text plaintext: 656b696c 20646e75(0x,from the paper)
 	; the cipher text should be: 44c8fc20 b9dfa07a
 	ldi r26, low(plainText) ; 1 cycle
@@ -46,7 +44,20 @@
 	ldi r16, 0x75;
 	st x+, r16;
 
-	nop;
+	rcall encryption;
+	ret;
+
+	/*
+	 * Subroutine: encryption
+	 * Function:   the minimal RAM implementation of Simon64/128
+	 *
+	 * the sub keys are stored in Flash
+	 */
+ encryption:
+	clr currentRound ; set 0, have done rounds ; 1 cycle
+	ldi totalRound, 44; the total rounds ; 1 cycle
+	clr zero; 1 cycle
+
 	ldi r26, low(plainText) ; 1 cycle
 	ldi r27, high(plainText) ;  1 cycle
 	; load the plaintext from RAM to registers [r7,...,r0], X = [r7, r6, r5, r4], Y = [r3, r2, r1, r0]
