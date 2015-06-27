@@ -74,7 +74,6 @@ keySchedule:
 	ldi sixteen, 16      ; one round after key generation, X point should sub 16(from k(i+5) to k(i+1))
 
 keysExtend:
-// this code is a must
 	; load k(i)
 	ld r2, x+;
 	ld r3, x+;
@@ -87,7 +86,7 @@ keysExtend:
 	ld r13, x+;
 	; S(-3)k(i+3)
 	add r26, four;
-	;adc r27, zero; the address of data in RAM in begin with 0, the size of keys is 176, so r26 can be bigge than 255
+	adc r27, zero; the address of data in RAM in begin with 0, the size of keys is 176, so r26 can be bigge than 255
 	ld r6, x+;
 	ld r7, x+;
 	ld r8, x+;
@@ -115,26 +114,24 @@ keysExtend:
 	eor r7, r11;
 	eor r8, r12;
 	eor r9, r13;
-	;S(-1)( k(i+1) eor S(-3)k(i+3) ), T: shift right with 1 bit, not left
-	movw r10, r6;
-	movw r12, r8;
-	lsr r13;
-	ror r12;
-	ror r11;
-	bst r10, 0;
-	ror r10;
-	bld r13, 7;
-	; (I eor S(-1)) ( k(i+1) eor S(-3)k(i+3) )
-	eor r6, r10;
-	eor r7, r11;
-	eor r8, r12;
-	eor r9, r13;
-	; k(i) eor (I eor S(-1)) ( k(i+1) eor S(-3)k(i+3) )
+	; k(i) eor [k(i+1) eor S(-3)k(i+3)]
 	eor r2, r6;
 	eor r3, r7;
 	eor r4, r8;
 	eor r5, r9;
-	;k(i) = k(i) + k(i+1) + S(-1)k(i+1) + S(-4)k(i+3) + S(-3)k(i+3) + c + z(i)
+	; S(-1)[k(i+1) eor S(-3)k(i+3)]
+	lsr r9;
+	ror r8;
+	ror r7;
+	bst r6, 0;
+	ror r6;
+	bld r9, 7;
+	; k(i) eor [k(i+1) eor S(-3)k(i+3)] eor S(-1)[k(i+1) eor S(-3)k(i+3)]
+	eor r2, r6;
+	eor r3, r7;
+	eor r4, r8;
+	eor r5, r9;
+	; k(i) eor [k(i+1) eor S(-3)k(i+3)] eor S(-1)[k(i+1) eor S(-3)k(i+3)] + c + z(i)
 	bld currentZ, 7;
 	bst constC0, 0;
 	lsl currentZ;
@@ -142,7 +139,6 @@ keysExtend:
 	eor r3, constC1;
 	eor r4, constC2;
 	eor r5, constC3;
-// until here, if you want reduce, you can only reduce the S(-3) by some other skills
 	;k(i+4), is just [r3,r2,r1,r0]
 	st x+, r2;
 	st x+, r3;
