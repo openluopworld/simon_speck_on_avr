@@ -189,13 +189,17 @@ lastRound:
 	eor r3, r15;
 	; move the value to X
 	; can be deleted, so store cipher text directly from [r15,r14,r13,r12]
-	;movw r4, r12; r5:r4 = r13:r12
-	;movw r6, r14; r7:r6 = r15:r14
+	movw r4, r12; r5:r4 = r13:r12
+	movw r6, r14; r7:r6 = r15:r14
 
-	st x+, r15;
+	/*st x+, r15;
 	st x+, r14;
 	st x+, r13;
-	st x+, r12;
+	st x+, r12;*/
+	st x+, r7;
+	st x+, r6;
+	st x+, r5;
+	st x+, r4;
 	st x+, r3;
 	st x+, r2;
 	st x+, r1;

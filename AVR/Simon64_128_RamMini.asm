@@ -54,12 +54,13 @@
 	 * the sub keys are stored in Flash
 	 */
  encryption:
-	clr currentRound ; set 0, have done rounds ; 1 cycle
-	ldi totalRound, 44; the total rounds ; 1 cycle
-	clr zero; 1 cycle
+
+	clr currentRound ;        set 0, have done rounds ; 1 cycle
+	ldi totalRound, 44;       the total rounds ; 1 cycle
+	clr zero;                 1 cycle
 
 	ldi r26, low(plainText) ; 1 cycle
-	ldi r27, high(plainText) ;  1 cycle
+	ldi r27, high(plainText); 1 cycle
 	; load the plaintext from RAM to registers [r7,...,r0], X = [r7, r6, r5, r4], Y = [r3, r2, r1, r0]
 	ld r7, x+ ; the highest byte
 	ld r6, x+ ;
@@ -125,7 +126,6 @@ loop:
 	cp currentRound, totalRound;
 brne loop;
 
-	nop;
 	; load the ciphertext from registers [r7,...,r0] RAM
 	st x+, r7; the highest byte
 	st x+, r6;

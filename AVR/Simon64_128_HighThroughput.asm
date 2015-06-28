@@ -1,7 +1,7 @@
 /*
- * Simon64_128_HighThroughput.asm
+ * Simon64_128_HighThroughputWithKey.asm
  *
- *  Created: 2015/6/2 23:24:09
+ *  Created: 2015/6/28 21:31:01
  *   Author: LuoPeng
  */ 
 
@@ -31,7 +31,7 @@
 	 */
 main:
 	; load the initial keys from Flash to RAM
-	clr currentRound;
+/*	clr currentRound;
 	ldi sixteen, 16;
 	ldi r26, low(keys);
 	ldi r27, high(keys);
@@ -50,20 +50,11 @@ loadInitialKeys:
 	ldi constC2, 0xff;
 	ldi constC3, 0xff;
 
-	nop;
-	rcall keySchedule;
-	ret;
-
-	/*
-	 * Subroutine: keySchedule
-	 * Function:   compute the sub keys.
-	 */
-keySchedule:
 	ldi r26, low(keys);
 	ldi r27, high(keys);
 	ldi r30, low(constZ<<1);
 	ldi r31, high(constZ<<1);
-	lpm currentZ, z+;
+	lpm currentZ, z+;*/
 
 	clr zero;
 	clr remain8;
@@ -73,6 +64,46 @@ keySchedule:
 	ldi four, 4;
 	ldi sixteen, 16      ; one round after key generation, X point should sub 16(from k(i+5) to k(i+1))
 
+/*	nop;
+	rcall keySchedule;*/
+
+	ldi r26, low(plainText) ;
+	ldi r27, high(plainText) ;
+	; load the plaintext from RAM to registers [r7,...,r0], X = [r7, r6, r5, r4], Y = [r3, r2, r1, r0]
+	ld r7, x+ ;
+	ld r6, x+ ;
+	ld r5, x+ ;
+	ld r4, x+ ;
+	ld r3, x+ ;
+	ld r2, x+ ;
+	ld r1, x+ ;
+	ld r0, x+ ;
+	
+	clr currentRound ; set 0, have done rounds ; 1 cycle
+	ldi totalRound, 11; the total rounds ; 1 cycle
+	clr zero; 1 cycle
+	ldi r28, low(keys) ; y is the current address of keys
+	ldi r29, high(keys) ;
+
+	rcall encryption;
+
+	; load the ciphertext from registers [r7,...,r0] to RAM
+	st x+, r7;
+	st x+, r6;
+	st x+, r5;
+	st x+, r4;
+	st x+, r3;
+	st x+, r2;
+	st x+, r1;
+	st x+, r0;
+
+	ret;
+
+	/*
+	 * Subroutine: keySchedule
+	 * Function:   compute the sub keys.
+	 */
+/*keySchedule:
 keysExtend:
 	; load k(i)
 	ld r2, x+;
@@ -160,6 +191,198 @@ continue:
 	breq end;
 	jmp keysExtend;
 end:
+	ret;*/
+
+	/*
+	 * Subroutine: encryption
+	 * Function:   A minimal RAM Implementation without key schedule of SIMON64/128
+	 * 
+	 * The sub keys are stored in Flash. The sub keys are transferred to RAM before encryption
+	 * Unroll four rounds
+	 */
+encryption:
+loop:
+	; get the sub key k
+	ld r8, y+ ; store the 4 bytes of sub key to K = [r11, r10, r9, r8]
+ 	ld r9, y+ ;
+	ld r10, y+ ;
+	ld r11, y+ ;
+	; k = k eor y
+	eor r8, r0;
+	eor r9, r1;
+	eor r10, r2;
+	eor r11, r3 ;
+	; move x to y 
+	movw r0, r4; the index must be even ( R1:R0 = R5:R4)
+	movw r2, r6; ( R3:R2 : R7:R6 )
+	; rotate x by left with 1 bit
+	lsl r4; logical shift left: bit 0 is cleared, bit 7 is loaded into the C flag of the SREG
+	rol r5; rotate left through carry: the C flag in shifted into bit 0, bit 7 is shifted into the C flag
+	rol r6;
+	rol r7;
+	adc r4, zero;
+	; move x to t, t stands for [r15, r14, r13, r12]
+	movw r12, r4;
+	movw r14, r6;
+	; t & S8(y)
+	and r12, r3;
+	and r13, r0;
+	and r14, r1;
+	and r15, r2;
+	; x = S2(x)
+	lsl r4;
+	rol r5;
+	rol r6;
+	rol r7;
+	adc r4, zero;
+	; x = x eor t
+	eor r4, r12;
+	eor r5, r13;
+	eor r6, r14;
+	eor r7, r15;
+	; x = x eor k
+	eor r4, r8;
+	eor r5, r9;
+	eor r6, r10;
+	eor r7, r11;
+
+	// loop 2
+	ld r8, y+ ; store the 4 bytes of sub key to K = [r11, r10, r9, r8]
+ 	ld r9, y+ ;
+	ld r10, y+ ;
+	ld r11, y+ ;
+	; k = k eor y
+	eor r8, r0;
+	eor r9, r1;
+	eor r10, r2;
+	eor r11, r3 ;
+	; move x to y 
+	movw r0, r4; the index must be even ( R1:R0 = R5:R4)
+	movw r2, r6; ( R3:R2 : R7:R6 )
+	; rotate x by left with 1 bit
+	lsl r4; logical shift left: bit 0 is cleared, bit 7 is loaded into the C flag of the SREG
+	rol r5; rotate left through carry: the C flag in shifted into bit 0, bit 7 is shifted into the C flag
+	rol r6;
+	rol r7;
+	adc r4, zero;
+	; move x to t, t stands for [r15, r14, r13, r12]
+	movw r12, r4;
+	movw r14, r6;
+	; t & S8(y)
+	and r12, r3;
+	and r13, r0;
+	and r14, r1;
+	and r15, r2;
+	; x = S2(x)
+	lsl r4;
+	rol r5;
+	rol r6;
+	rol r7;
+	adc r4, zero;
+	; x = x eor t
+	eor r4, r12;
+	eor r5, r13;
+	eor r6, r14;
+	eor r7, r15;
+	; x = x eor k
+	eor r4, r8;
+	eor r5, r9;
+	eor r6, r10;
+	eor r7, r11;
+
+	// loop 3
+	ld r8, y+ ; store the 4 bytes of sub key to K = [r11, r10, r9, r8]
+ 	ld r9, y+ ;
+	ld r10, y+ ;
+	ld r11, y+ ;
+	; k = k eor y
+	eor r8, r0;
+	eor r9, r1;
+	eor r10, r2;
+	eor r11, r3 ;
+	; move x to y 
+	movw r0, r4; the index must be even ( R1:R0 = R5:R4)
+	movw r2, r6; ( R3:R2 : R7:R6 )
+	; rotate x by left with 1 bit
+	lsl r4; logical shift left: bit 0 is cleared, bit 7 is loaded into the C flag of the SREG
+	rol r5; rotate left through carry: the C flag in shifted into bit 0, bit 7 is shifted into the C flag
+	rol r6;
+	rol r7;
+	adc r4, zero;
+	; move x to t, t stands for [r15, r14, r13, r12]
+	movw r12, r4;
+	movw r14, r6;
+	; t & S8(y)
+	and r12, r3;
+	and r13, r0;
+	and r14, r1;
+	and r15, r2;
+	; x = S2(x)
+	lsl r4;
+	rol r5;
+	rol r6;
+	rol r7;
+	adc r4, zero;
+	; x = x eor t
+	eor r4, r12;
+	eor r5, r13;
+	eor r6, r14;
+	eor r7, r15;
+	; x = x eor k
+	eor r4, r8;
+	eor r5, r9;
+	eor r6, r10;
+	eor r7, r11;
+
+	// loop 4
+	ld r8, y+ ; store the 4 bytes of sub key to K = [r11, r10, r9, r8]
+ 	ld r9, y+ ;
+	ld r10, y+ ;
+	ld r11, y+ ;
+	; k = k eor y
+	eor r8, r0;
+	eor r9, r1;
+	eor r10, r2;
+	eor r11, r3 ;
+	; move x to y 
+	movw r0, r4; the index must be even ( R1:R0 = R5:R4)
+	movw r2, r6; ( R3:R2 : R7:R6 )
+	; rotate x by left with 1 bit
+	lsl r4; logical shift left: bit 0 is cleared, bit 7 is loaded into the C flag of the SREG
+	rol r5; rotate left through carry: the C flag in shifted into bit 0, bit 7 is shifted into the C flag
+	rol r6;
+	rol r7;
+	adc r4, zero;
+	; move x to t, t stands for [r15, r14, r13, r12]
+	movw r12, r4;
+	movw r14, r6;
+	; t & S8(y)
+	and r12, r3;
+	and r13, r0;
+	and r14, r1;
+	and r15, r2;
+	; x = S2(x)
+	lsl r4;
+	rol r5;
+	rol r6;
+	rol r7;
+	adc r4, zero;
+	; x = x eor t
+	eor r4, r12;
+	eor r5, r13;
+	eor r6, r14;
+	eor r7, r15;
+	; x = x eor k
+	eor r4, r8;
+	eor r5, r9;
+	eor r6, r10;
+	eor r7, r11;
+
+	inc currentRound;
+	cp currentRound, totalRound;
+	breq storecipher;
+	jmp loop;
+storecipher:
 	ret;
 
 initialKeys: 
