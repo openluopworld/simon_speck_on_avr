@@ -1,81 +1,208 @@
 
+#include<iostream>
 #include"enDecryption.h"
 #include"const.h"
+using namespace std;
 
 /*
- * Simon加密
+ * Simon加密：字大小为32
  * plainText：明文
  * keys：密钥
  */
-void encryptionSimon ( int * plainText, int ** keys ) {
+void encryptionSimon32 ( unsigned int * plainText, unsigned int * keys ) {
 	/*
 	 * 保存临时密文
 	 */
-	int * tempCipher = new int[SIMON_BLOCK_SIZE];
+	unsigned int tempCipherHigher = 0x0;
+	unsigned int tempCipherLower  = 0x0;
+
 
 	/*
 	 * 进行SIMON_ROUNDS轮加密
 	 */
-	int i, j;
-	for ( i = 0; i < SIMON_ROUNDS; i++ ) {
-		for ( j = 0; j < SIMON_WORD_SIZE; j++ ) {
-			tempCipher[j+SIMON_WORD_SIZE] = plainText[j];
-		}
-		for ( j = 0; j < SIMON_WORD_SIZE; j++ ) {
-			/*
-			 * 左移1位，则该位对应的数值加1，即(x+1)%32
-			 * 两个二进制数字相加再对2取整即为这两个数的与运算结果
-			 */
-			tempCipher[j] = ((plainText[(j+1)%SIMON_WORD_SIZE] + plainText[(j+8)%SIMON_WORD_SIZE])/2 +
-							plainText[j+SIMON_WORD_SIZE] +
-							plainText[(j+2)%SIMON_WORD_SIZE] +
-							keys[i][j]) % 2;
-		}
-
+	for ( int i = 0; i < SIMON_ROUNDS; i++ ) {
+		/*
+		 * 加密后的低32位是明文的高32位
+		 */
+		tempCipherLower  = plainText[0];
+		tempCipherHigher = plainText[1] ^ keys[i] ^ 
+						( ((plainText[0]<<1)|(plainText[0]>>(SIMON_WORD_SIZE-1))) & ((plainText[0]<<8)|(plainText[0]>>(SIMON_WORD_SIZE-8))) ) ^
+						((plainText[0]<<2)|(plainText[0]>>(SIMON_WORD_SIZE-2)));
 		/*
 		 * 重新将加密的结果复制到plainText中
 		 */
-		for ( j = 0; j < SIMON_BLOCK_SIZE; j++ ) {
-			plainText[j] = tempCipher[j];
-		}
+		plainText[0]     = tempCipherHigher;
+		plainText[1]     = tempCipherLower;
 	}
 	
-	/*
-	 * 释放内存
-	 */
-	delete tempCipher;
 }
 
 /*
- * Simon解密
+ * Simon解密：字大小为32
  * cipherText：密文
  * keys：密钥
  */
-void decryptionSimon ( int * cipherText, int ** keys ) {
+void decryptionSimon32 ( unsigned int * cipherText, unsigned int * keys ) {
 	/*
-	 * 保存临时解密的明文
+	 * 保存临时明文
 	 */
-	int * tempPlain = new int[SIMON_BLOCK_SIZE];       
+	unsigned int tempPlainHigher = 0x0;
+	unsigned int tempPlainLower  = 0x0;     
 
-	int i, j;
+	int i;
 	/*
 	 * 解密与加密顺序相反，从最后一轮开始
 	 */
 	for ( i = SIMON_ROUNDS-1; i >= 0; i-- ) {
-		for ( j = 0; j < SIMON_WORD_SIZE; j++ ) {
-			tempPlain[j] = cipherText[j+SIMON_WORD_SIZE];
-		}
-		for ( j = SIMON_WORD_SIZE; j < SIMON_BLOCK_SIZE; j++ ) {
-			tempPlain[j] = ((cipherText[(j+1)%SIMON_WORD_SIZE+SIMON_WORD_SIZE] + cipherText[(j+8)%SIMON_WORD_SIZE+SIMON_WORD_SIZE])/2 +
-							cipherText[(j+2)%SIMON_WORD_SIZE+SIMON_WORD_SIZE] +
-							cipherText[j-SIMON_WORD_SIZE] +
-							keys[i][j-SIMON_WORD_SIZE]) % 2; 
-		}
-		for ( j = 0; j < SIMON_BLOCK_SIZE; j++ ) {
-			cipherText[j] = tempPlain[j];
-		}
+		tempPlainHigher = cipherText[1];
+		tempPlainLower  = cipherText[0] ^ keys[i] ^ 
+						( ((cipherText[1]<<1)|(cipherText[1]>>(SIMON_WORD_SIZE-1))) & ((cipherText[1]<<8)|(cipherText[1]>>(SIMON_WORD_SIZE-8))) ) ^
+						((cipherText[1]<<2)|(cipherText[1]>>(SIMON_WORD_SIZE-2)));
+		cipherText[0]   = tempPlainHigher;
+		cipherText[1]   = tempPlainLower;
+		
 	}
-	delete tempPlain;
+
+}
+
+/*
+ * Simon加密：字大小为32
+ * plainText：明文
+ * keys：密钥
+ */
+void encryptionSimon64 ( unsigned long long * plainText, unsigned long long * keys ) {
+	/*
+	 * 保存临时密文
+	 */
+	unsigned long long tempCipherHigher = 0x0;
+	unsigned long long tempCipherLower  = 0x0;
+
+
+	/*
+	 * 进行SIMON_ROUNDS轮加密
+	 */
+	for ( int i = 0; i < SIMON_ROUNDS; i++ ) {
+		/*
+		 * 加密后的低32位是明文的高32位
+		 */
+		tempCipherLower  = plainText[0];
+		tempCipherHigher = plainText[1] ^ keys[i] ^ 
+						( ((plainText[0]<<1)|(plainText[0]>>(SIMON_WORD_SIZE-1))) & ((plainText[0]<<8)|(plainText[0]>>(SIMON_WORD_SIZE-8))) ) ^
+						((plainText[0]<<2)|(plainText[0]>>(SIMON_WORD_SIZE-2)));
+		/*
+		 * 重新将加密的结果复制到plainText中
+		 */
+		plainText[0]     = tempCipherHigher;
+		plainText[1]     = tempCipherLower;
+	}
+}
+
+/*
+ * Simon解密：字大小为64
+ * cipherText：密文
+ * keys：密钥
+ */
+void decryptionSimon64 ( unsigned long long * cipherText, unsigned long long * keys ) {
+	/*
+	 * 保存临时密文
+	 */
+	unsigned long long tempPlainHigher = 0x0;
+	unsigned long long tempPlainLower  = 0x0;     
+
+	int i;
+	/*
+	 * 解密与加密顺序相反，从最后一轮开始
+	 */
+	for ( i = SIMON_ROUNDS-1; i >= 0; i-- ) {
+		tempPlainHigher = cipherText[1];
+		tempPlainLower  = cipherText[0] ^ keys[i] ^ 
+						( ((cipherText[1]<<1)|(cipherText[1]>>(SIMON_WORD_SIZE-1))) & ((cipherText[1]<<8)|(cipherText[1]>>(SIMON_WORD_SIZE-8))) ) ^
+						((cipherText[1]<<2)|(cipherText[1]>>(SIMON_WORD_SIZE-2)));
+		cipherText[0]   = tempPlainHigher;
+		cipherText[1]   = tempPlainLower;
+		
+	}
+}
+
+/*
+ * Speck加密：字32位
+ * plainText：明文
+ * keys：密钥
+ */
+void encryptionSpeck32 ( unsigned int * plainText, unsigned int * keys ) {
+	/*
+	 * 进行SPECK_ROUNDS轮加密
+	 */
+	unsigned int tempCipherHigher = 0x0; // 保存临时密文
+	unsigned int tempCipherLower  = 0x0;
+	unsigned int additionModulo   = 0x0; // 临时保存模2^n加法运算结果
+
+	for ( int i = 0; i < SPECK_ROUNDS; i++ ) {
+		additionModulo = ((plainText[0]>>SPECK_ROT_A)|(plainText[0]<<(SPECK_WORD_SIZE-SPECK_ROT_A))) + plainText[1];
+		/*
+		 * 前SPECK_WORD_SIZE位
+		 */
+		tempCipherHigher = additionModulo ^ keys[i];
+		/*
+		 * 后SPECK_WORD_SIZE位
+		 */
+		tempCipherLower  = ( (plainText[1]<<SPECK_ROT_B)|(plainText[1]>>(SPECK_WORD_SIZE-SPECK_ROT_B)) ) ^ additionModulo ^ keys[i];
+		/*
+		 * 重新将加密的结果复制到plainText中
+		 */
+		plainText[0] = tempCipherHigher;
+		plainText[1] = tempCipherLower;
+		//cout<<"加密"<<(i+1)<<":"<<plainText[0]<<","<<plainText[1]<<endl;
+	}
+
+}
+
+/*
+ * Speck解密：字32位
+ * cipherText：密文
+ * keys：密钥
+ */
+void decryptionSpeck32 ( unsigned int * cipherText, unsigned int * keys ) {
+	/*
+	 * 保存临时明文
+	 */
+	unsigned int tempPlainHigher = 0x0;
+	unsigned int tempPlainLower  = 0x0;       
+
+	/*
+	 * 进行SPECK_ROUNDS轮解密
+	 */
+	unsigned int temp  = 0x0;
+	for ( int i = SPECK_ROUNDS-1; i >= 0; i-- ) {
+		//cout<<"解密"<<(i+1)<<":"<<cipherText[0]<<","<<cipherText[1]<<endl;
+
+		/*
+		 * tempPlainLower = (cipherText[0]>>SPECK_ROT_B)|(cipherText[0]<<(SPECK_WORD_SIZE-SPECK_ROT_B)) ^
+		 *		(cipherText[1]>>SPECK_ROT_B)|(cipherText[1]<<(SPECK_WORD_SIZE-SPECK_ROT_B));
+		 * 肯能由于异或优先级高于或，所以先执行异或导致结果出错
+		 */
+		tempPlainLower = ( (cipherText[0]>>SPECK_ROT_B)|(cipherText[0]<<(SPECK_WORD_SIZE-SPECK_ROT_B)) ) ^
+				( (cipherText[1]>>SPECK_ROT_B)|(cipherText[1]<<(SPECK_WORD_SIZE-SPECK_ROT_B)) );
+		/*
+		 * 结果的前SPECK_WORD_SIZE位
+		 * 测试发现，在无符号的情况下，小数减大数结果仍为正，相当于借了一位，只是没有表示出来
+		 * 
+		 * unsigned int temp1 = 0x40000000;
+		 * unsigned int temp2 = 0x80000000;
+		 * cout<<temp1-temp2<<endl;
+		 * cout<<temp1<<endl;
+		 * cout<<temp2<<endl;
+		 */
+		temp = (cipherText[0] ^ keys[i]) - tempPlainLower;
+		tempPlainHigher = (temp<<SPECK_ROT_A)|(temp>>(SPECK_WORD_SIZE-SPECK_ROT_A));
+
+		/*
+		 * 重新将解密的结果复制到plainText中
+		 */
+		cipherText[0] = tempPlainHigher;
+		cipherText[1] = tempPlainLower;
+	}
+
 }
 
 /*
@@ -83,47 +210,31 @@ void decryptionSimon ( int * cipherText, int ** keys ) {
  * plainText：明文
  * keys：密钥
  */
-void encryptionSpeck ( int * plainText, int ** keys ) {
+void encryptionSpeck64 ( unsigned long long * plainText, unsigned long long  * keys ) {
 	/*
 	 * 进行SPECK_ROUNDS轮加密
 	 */
-	int i, j;
-	int * tempCipher = new int[SPECK_BLOCK_SIZE];        // 保存临时密文
-	int * additionModulo = new int[SPECK_WORD_SIZE];     // 临时保存模2^n加法运算结果
-	int jinwei;
+	unsigned long long tempCipherHigher = 0x0; // 保存临时密文
+	unsigned long long tempCipherLower  = 0x0;
+	unsigned long long additionModulo   = 0x0; // 临时保存模2^n加法运算结果
 
-	for ( i = 0; i < SPECK_ROUNDS; i++ ) {
-		jinwei = 0;
-		for ( j = SPECK_WORD_SIZE-1; j >= 0; j--) {
-			additionModulo[j] = ( plainText[(j-SPECK_ROT_A+SPECK_WORD_SIZE)%SPECK_WORD_SIZE] + plainText[j+SPECK_WORD_SIZE] + jinwei ) % 2;
-			jinwei = ( plainText[(j-SPECK_ROT_A+SPECK_WORD_SIZE)%SPECK_WORD_SIZE] + plainText[j+SPECK_WORD_SIZE] + jinwei ) / 2;
-		}
-
+	for ( int i = 0; i < SPECK_ROUNDS; i++ ) {
+		additionModulo = ((plainText[0]>>SPECK_ROT_A)|(plainText[0]<<(SPECK_WORD_SIZE-SPECK_ROT_A))) + plainText[1];
 		/*
 		 * 前SPECK_WORD_SIZE位
 		 */
-		for ( j = 0; j < SPECK_WORD_SIZE; j++ ) {
-			tempCipher[j] = ( additionModulo[j] + keys[i][j]) % 2;
-		}
-
+		tempCipherHigher = additionModulo ^ keys[i];
 		/*
 		 * 后SPECK_WORD_SIZE位
 		 */
-		for ( j = SPECK_WORD_SIZE; j < SPECK_BLOCK_SIZE; j++ ) {
-			tempCipher[j] = ( additionModulo[j-SPECK_WORD_SIZE] + 
-							keys[i][j-SPECK_WORD_SIZE] + 
-							plainText[(j+SPECK_ROT_B)%SPECK_WORD_SIZE+SPECK_WORD_SIZE]) % 2;
-		}
-
+		tempCipherLower  = ( (plainText[1]<<SPECK_ROT_B)|(plainText[1]>>(SPECK_WORD_SIZE-SPECK_ROT_B)) ) ^ additionModulo ^ keys[i];
 		/*
 		 * 重新将加密的结果复制到plainText中
 		 */
-		for ( j = 0; j < SPECK_BLOCK_SIZE; j++ ) {
-			plainText[j] = tempCipher[j];
-		}
+		plainText[0] = tempCipherHigher;
+		plainText[1] = tempCipherLower;
+		//cout<<"加密"<<(i+1)<<":"<<plainText[0]<<","<<plainText[1]<<endl;
 	}
-	delete additionModulo;
-	delete tempCipher;
 }
 
 /*
@@ -131,60 +242,27 @@ void encryptionSpeck ( int * plainText, int ** keys ) {
  * cipherText：密文
  * keys：密钥
  */
-void decryptionSpeck ( int * cipherText, int ** keys ) {
+void decryptionSpeck64 ( unsigned long long * cipherText, unsigned long long * keys ) {
 	/*
-	 * 保存临时密文
+	 * 保存临时明文
 	 */
-	int * tempCipher = new int[SPECK_BLOCK_SIZE];        
+	unsigned long long tempPlainHigher = 0x0;
+	unsigned long long tempPlainLower  = 0x0;       
 
 	/*
-	 * 进行SPECK_ROUNDS轮加密
+	 * 进行SPECK_ROUNDS轮解密
 	 */
-	int i, j;
-	int * first  = new int[SPECK_WORD_SIZE];
-	int * second = new int[SPECK_WORD_SIZE];
-	int jiewei;
-	for ( i = SPECK_ROUNDS-1; i >= 0; i-- ) {
-		for ( j = 0; j < SPECK_WORD_SIZE; j++ ) {
-			first[j] = (cipherText[j] + keys[i][j] ) % 2;
-		}
-		for ( j = 0; j < SPECK_WORD_SIZE; j++ ) {
-			second[j] = (cipherText[(j-SPECK_ROT_B+SPECK_WORD_SIZE)%SPECK_WORD_SIZE] +
-						cipherText[(j-SPECK_ROT_B+SPECK_WORD_SIZE)%SPECK_WORD_SIZE+SPECK_WORD_SIZE] ) % 2;
-		}
-
-		/*
-		 * 结果的前SPECK_WORD_SIZE位
-		 * 
-		 * 减法运算与加法不一样：先做减法，在进行循环左移SPECK_ROT_A位；不能先移位再减
-		 */
-		jiewei = 0;
-		for ( j = SPECK_WORD_SIZE-1; j >= 0; j-- ) {
-			// 借位相减
-			tempCipher[j] = first[j]-jiewei-second[j];
-			if ( tempCipher[j] < 0 ) {
-				tempCipher[j] += 2;
-				jiewei = 1;
-			} else {
-				jiewei = 0;
-			}
-		}
+	unsigned long long temp  = 0x0;
+	for ( int i = SPECK_ROUNDS-1; i >= 0; i-- ) {
+		tempPlainLower = ( (cipherText[0]>>SPECK_ROT_B)|(cipherText[0]<<(SPECK_WORD_SIZE-SPECK_ROT_B)) ) ^
+				( (cipherText[1]>>SPECK_ROT_B)|(cipherText[1]<<(SPECK_WORD_SIZE-SPECK_ROT_B)) );
+		temp = (cipherText[0] ^ keys[i]) - tempPlainLower;
+		tempPlainHigher = (temp<<SPECK_ROT_A)|(temp>>(SPECK_WORD_SIZE-SPECK_ROT_A));
 
 		/*
 		 * 重新将解密的结果复制到plainText中
 		 */
-		for ( j = 0; j < SPECK_WORD_SIZE; j++ ) {
-			cipherText[j] = tempCipher[(j+SPECK_ROT_A)%SPECK_WORD_SIZE];
-		}
-		for ( j = SPECK_WORD_SIZE; j < SPECK_BLOCK_SIZE; j++ ) {
-			cipherText[j] = second[j-SPECK_WORD_SIZE];
-		}
+		cipherText[0] = tempPlainHigher;
+		cipherText[1] = tempPlainLower;
 	}
-	
-	/*
-	 * 释放内存
-	 */
-	delete second;
-	delete first;
-	delete tempCipher;
 }
