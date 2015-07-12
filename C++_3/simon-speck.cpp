@@ -15,6 +15,37 @@ u8 z[5][64] = {
 			};
 
 //**********************************************************************
+// rotate shift
+//**********************************************************************
+/*
+ * rotate shift left x by n bits
+ */
+inline u32 rol32 (u32 x, int n) {
+	return (x<<n) | (x>>(SIMON_WORD_SIZE-n));
+}
+
+/*
+ * rotate shift left x by n bits
+ */
+inline u64 rol64 (u64 x, int n) {
+	return (x<<n) | (x>>(SIMON_WORD_SIZE-n));
+}
+
+/*
+ * rotate shift right x by n bits
+ */
+inline u32 ror32 (u32 x, int n) {
+	return (x>>n) | (x<<(SIMON_WORD_SIZE-n));
+}
+
+/*
+ * rotate shift right x by n bits
+ */
+inline u64 ror64 (u64 x, int n) {
+	return (x>>n) | (x<<(SIMON_WORD_SIZE-n));
+}
+
+//**********************************************************************
 // Key Schedule
 //**********************************************************************
 /*
@@ -32,8 +63,8 @@ void setSimonKeys32 ( u32 * inputKey, u64 * keys ) {
 	u32 temp;
 	if ( SIMON_KEY_WORDS == 3 ) {
 		for ( i = 0; i < SIMON_ROUNDS-SIMON_KEY_WORDS; i++ ) {
-			temp = (keys[i+2]>>3) | (keys[i+2]<<(SIMON_WORD_SIZE-3));
-			temp ^= (temp>>1) | (temp<<(SIMON_WORD_SIZE-1));
+			temp = ror32(keys[i+2], 3);
+			temp ^= ror32(temp, 1);
 			keys[i+SIMON_KEY_WORDS] = SIMON_CONST_C ^ keys[i] ^ temp;
 			// if SIMON_WORD_SIZE is 32, SIMON_CONST_Cthe cycle is 62 whether SIMON_KEY_WORDS is 3 or 4.
 			if ( z[SIMON_SEQUENCE_NUMBER][i%62] == 1 ) {
@@ -42,8 +73,8 @@ void setSimonKeys32 ( u32 * inputKey, u64 * keys ) {
 		}
 	} else if ( SIMON_KEY_WORDS == 4 ) {
 		for ( i = 0; i < SIMON_ROUNDS-SIMON_KEY_WORDS; i++ ) {
-			temp = ((keys[i+3]>>3) | (keys[i+3]<<(SIMON_WORD_SIZE-3))) ^ keys[i+1];
-			keys[i+SIMON_KEY_WORDS] = SIMON_CONST_C ^ keys[i] ^ temp ^ ((temp>>1) | (temp<<(SIMON_WORD_SIZE-1)));
+			temp = ror32(keys[i+3], 3) ^ keys[i+1];
+			keys[i+SIMON_KEY_WORDS] = SIMON_CONST_C ^ keys[i] ^ temp ^ ror32(temp, 1);
 			if ( z[SIMON_SEQUENCE_NUMBER][i%62] == 1 ) {
 				keys[i+SIMON_KEY_WORDS] ^=  0x1;
 			}
@@ -66,8 +97,8 @@ void setSimonKeys64 ( u64 * inputKey, u64 * keys ){
 	u64 temp;
 	if ( SIMON_KEY_WORDS == 2 ) {
 		for ( i = 0; i < SIMON_ROUNDS-SIMON_KEY_WORDS; i++ ) {
-			temp = (keys[i+1]>>3) | (keys[i+1]<<(SIMON_WORD_SIZE-3));
-			temp ^= (temp>>1) | (temp<<(SIMON_WORD_SIZE-1));
+			temp = ror32(keys[i+1], 3);
+			temp ^= ror32(temp, 1);
 			keys[i+SIMON_KEY_WORDS] = SIMON_CONST_C ^ keys[i] ^ temp;
 			if ( z[SIMON_SEQUENCE_NUMBER][i%62] == 1 ) {
 				keys[i+SIMON_KEY_WORDS] ^= 0x1 ;
@@ -93,8 +124,8 @@ void encryptionSimon32 ( u32 * plainText, u32 * keys ) {
 	for ( int i = 0; i < SIMON_ROUNDS; i++ ) {
 		tempCipherLower  = plainText[0];
 		tempCipherHigher = plainText[1] ^ keys[i] ^ 
-						( ((plainText[0]<<1)|(plainText[0]>>(SIMON_WORD_SIZE-1))) & ((plainText[0]<<8)|(plainText[0]>>(SIMON_WORD_SIZE-8))) ) ^
-						((plainText[0]<<2)|(plainText[0]>>(SIMON_WORD_SIZE-2)));
+						( rol32(plainText[0], 1) & rol32(plainText[0], 8)) ^
+						rol32(plainText[0], 2);
 		plainText[0]     = tempCipherHigher;
 		plainText[1]     = tempCipherLower;
 	}
@@ -114,8 +145,8 @@ void decryptionSimon32 ( u32 * cipherText, u32 * keys ) {
 	for ( int i = SIMON_ROUNDS-1; i >= 0; i-- ) {
 		tempPlainHigher = cipherText[1];
 		tempPlainLower  = cipherText[0] ^ keys[i] ^ 
-						( ((cipherText[1]<<1)|(cipherText[1]>>(SIMON_WORD_SIZE-1))) & ((cipherText[1]<<8)|(cipherText[1]>>(SIMON_WORD_SIZE-8))) ) ^
-						((cipherText[1]<<2)|(cipherText[1]>>(SIMON_WORD_SIZE-2)));
+						( rol32(cipherText[1], 1) & rol32(cipherText[1], 8)) ^
+						rol32(cipherText[1], 2);
 		cipherText[0]   = tempPlainHigher;
 		cipherText[1]   = tempPlainLower;
 		
@@ -136,8 +167,8 @@ void encryptionSimon64 ( u64 * plainText, u64 * keys ) {
 	for ( int i = 0; i < SIMON_ROUNDS; i++ ) {
 		tempCipherLower  = plainText[0];
 		tempCipherHigher = plainText[1] ^ keys[i] ^ 
-						( ((plainText[0]<<1)|(plainText[0]>>(SIMON_WORD_SIZE-1))) & ((plainText[0]<<8)|(plainText[0]>>(SIMON_WORD_SIZE-8))) ) ^
-						((plainText[0]<<2)|(plainText[0]>>(SIMON_WORD_SIZE-2)));
+						( rol64(plainText[0], 1) & rol64(plainText[0], 8)) ^
+						rol64(plainText[0], 2);
 		plainText[0]     = tempCipherHigher;
 		plainText[1]     = tempCipherLower;
 	}
@@ -156,8 +187,8 @@ void decryptionSimon64 ( u64 * cipherText, u64 * keys ) {
 	for ( int i = SIMON_ROUNDS-1; i >= 0; i-- ) {
 		tempPlainHigher = cipherText[1];
 		tempPlainLower  = cipherText[0] ^ keys[i] ^ 
-						( ((cipherText[1]<<1)|(cipherText[1]>>(SIMON_WORD_SIZE-1))) & ((cipherText[1]<<8)|(cipherText[1]>>(SIMON_WORD_SIZE-8))) ) ^
-						((cipherText[1]<<2)|(cipherText[1]>>(SIMON_WORD_SIZE-2)));
+						( rol64(cipherText[1], 1) & rol64(cipherText[1], 8)) ^
+						rol64(cipherText[1], 2);
 		cipherText[0]   = tempPlainHigher;
 		cipherText[1]   = tempPlainLower;
 		

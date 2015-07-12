@@ -33,6 +33,26 @@ typedef  unsigned int u32;
 typedef  uint64_t u64;
 
 /*
+ * rotate shift left x by n bits
+ */
+inline u32 rol32 (u32 x, int n);
+
+/*
+ * rotate shift left x by n bits
+ */
+inline u64 rol64 (u64 x, int n);
+
+/*
+ * rotate shift right x by n bits
+ */
+inline u32 ror32 (u32 x, int n);
+
+/*
+ * rotate shift right x by n bits
+ */
+inline u64 ror64 (u64 x, int n);
+
+/*
  * Simon£ºword size is 32
  * inputKey£ºthe original keys
  * keys: round keys
