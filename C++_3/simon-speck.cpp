@@ -53,7 +53,7 @@ inline u64 ror64 (u64 x, int n) {
  * inputKey£ºthe original keys
  * keys: round keys
  */
-void setSimonKeys32 ( u32 * inputKey, u64 * keys ) {
+void setSimonKeys32 ( u32 * inputKey, u32 * keys ) {
 
 	int i;
 	for ( i = 0; i < SIMON_KEY_WORDS; i++ )  {
@@ -113,7 +113,8 @@ void setSimonKeys64 ( u64 * inputKey, u64 * keys ){
 //**********************************************************************
 /*
  * Simon Encryption£ºword size is 32
- * plainText£º
+ * plainText£ºplainText[0] is the higher word, [1] is the lower. 
+ *            plainText has just one block.
  * keys£ºround keys
  */
 void encryptionSimon32 ( u32 * plainText, u32 * keys ) {
@@ -134,7 +135,8 @@ void encryptionSimon32 ( u32 * plainText, u32 * keys ) {
 
 /*
  * Simon Decryption£ºword size is 32
- * cipherText£º
+ * cipherText£ºcipherText[0] is the higher word, [1] is the lower.
+ *             cipherText has just one block.
  * keys£ºround keys
  */
 void decryptionSimon32 ( u32 * cipherText, u32 * keys ) {
@@ -156,7 +158,8 @@ void decryptionSimon32 ( u32 * cipherText, u32 * keys ) {
 
 /*
  * Simon Encryption£ºword size is 64
- * plainText£º
+ * plainText£ºplainText[0] is the higher word, [1] is the lower. 
+ *            plainText has just one block.
  * keys£ºround keys
  */
 void encryptionSimon64 ( u64 * plainText, u64 * keys ) {
@@ -176,7 +179,8 @@ void encryptionSimon64 ( u64 * plainText, u64 * keys ) {
 
 /*
  * Simon Decryption£ºword size is 64
- * cipherText£º
+ * cipherText£ºcipherText[0] is the higher word, [1] is the lower.
+ *             cipherText has just one block.
  * keys£ºround keys
  */
 void decryptionSimon64 ( u64 * cipherText, u64 * keys ) {
