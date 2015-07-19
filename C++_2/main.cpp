@@ -4,20 +4,20 @@
 #include"enDecryption.h"
 using namespace std;
 
-int SIMON_BLOCK_SIZE;       // Simon明文长度
-int SIMON_KEY_SIZE;         // Simon密钥长度
-int SIMON_WORD_SIZE;        // Simon字大小
-int SIMON_KEY_WORDS;        // Simon密钥字的个数
-int SIMON_SEQUENCE_NUMBER;  // Simon对应版本Z的数字
-int SIMON_ROUNDS;           // Simon加解密轮数
+int SIMON_BLOCK_SIZE;       // block size
+int SIMON_KEY_SIZE;         // key size
+int SIMON_WORD_SIZE;        // word size ( = SIMON_BLOCK_SIZE/2 )
+int SIMON_KEY_WORDS;        // the words of input key ( = SIMON_KEY_SIZE/SIMON_WORD_SIZE )
+int SIMON_SEQUENCE_NUMBER;  // the number of const Z(0, 1, 2, 3 or 4)
+int SIMON_ROUNDS;           // encryption and decryption rounds
 
-int SPECK_BLOCK_SIZE;       // Speck块大小
-int SPECK_KEY_SIZE;         // Speck密钥大小
-int SPECK_WORD_SIZE;        // Speck字大小
-int SPECK_KEY_WORDS;        // Speck密钥的字数
-int SPECK_ROT_A;            // Speck中移位变量a
-int SPECK_ROT_B;            // Speck中移位变量b
-int SPECK_ROUNDS;           // Speck加解密轮数
+int SPECK_BLOCK_SIZE;       // block size
+int SPECK_KEY_SIZE;         // key size
+int SPECK_WORD_SIZE;        // word size ( = SPECK_BLOCK_SIZE/2 )
+int SPECK_KEY_WORDS;        // the words of input key ( = SPECK_KEY_SIZE/SPECK_WORD_SIZE )
+int SPECK_ROT_A;            // the rotate shift parameter a
+int SPECK_ROT_B;            // the rotate shift parameter b
+int SPECK_ROUNDS;           // encryption and decryption rounds
 
 void simon();
 void speck();
@@ -25,11 +25,11 @@ int simonChoose ();
 int speckChoose ();
 
 /*
- * Simon和Speck算法
+ * Simon and Speck Algorithm
  * Version:2.0
  * Time:2015-1-10
  *
- * 字大小为32位时，用unsigned int代替，由于要进行计算，所以必须是非负数；为64位时用unsigned long long代替
+ * Unsigned int is used to stand for a part(BLOCK_SIZE/2) if the word size is 32. Otherwise, unsigned long long is used.
  *
  */
 int main () {
@@ -64,7 +64,7 @@ int main () {
 }
 
 /*
- * Simon算法
+ * Simon
  * 1：64/96
  * 2：64/128
  * 3：128/128
@@ -95,36 +95,31 @@ void simon () {
 		SIMON_ROUNDS          = 68;
 	}
 
-	/*
-	 * SIMON_WORD_SIZE为32位时，用unsigned int表示；此时输入一共64位，分别用两个unsigned int表示高32位和低32位
-	 *
-	 * SIMON_WORD_SIZE为64位时，用unsigned long long表示
-	 */
 	if ( SIMON_WORD_SIZE == 32 ) {
 		int i, j;
-		unsigned int * plainText       = new unsigned int[2]; // 明文
+		unsigned int * plainText       = new unsigned int[2]; // plainText
 		plainText[0] = plainText[1]    = 0x0;
-		unsigned int * inputKeys       = new unsigned int[SIMON_KEY_WORDS]; // 初始密钥，一共有SIMON_KEY_WORDS个
+		unsigned int * inputKeys       = new unsigned int[SIMON_KEY_WORDS]; // initial keys
 		for ( i = 0; i < SIMON_KEY_WORDS; i++ ) {
 			inputKeys[i]               = 0x0;
 		}
-		unsigned int * keys            = new unsigned int[SIMON_ROUNDS]; // 最终的密钥，一共SIMON_ROUNDS轮
+		unsigned int * keys            = new unsigned int[SIMON_ROUNDS]; // round keys
 
-		unsigned int * plainTextByte   = new unsigned int[SIMON_BLOCK_SIZE/8]; // 为了简化输入，每个输入以字节表示，[0,255]
-		for ( i = 0; i < SIMON_BLOCK_SIZE/8; i++ ) {
+		unsigned int * plainTextByte   = new unsigned int[SIMON_BLOCK_SIZE/8]; // plainText in byte
+		/*for ( i = 0; i < SIMON_BLOCK_SIZE/8; i++ ) {
 			plainTextByte[i]           = 0x0;
-		}
-		unsigned int * inputKeysByte   = new unsigned int[SIMON_KEY_SIZE/8];  // 以字节表示的密钥，用于保存输入的密钥
-		for ( i = 0; i < SIMON_KEY_SIZE/8; i++ ) {
+		}*/
+		unsigned int * inputKeysByte   = new unsigned int[SIMON_KEY_SIZE/8];  // initial keys in byte
+		/*for ( i = 0; i < SIMON_KEY_SIZE/8; i++ ) {
 			inputKeysByte[i]           = 0x0;
-		}
-		unsigned int * cipherTextByte  = new unsigned int[SIMON_BLOCK_SIZE/8];// 以字节表示的密文
-		for ( i = 0; i < SIMON_BLOCK_SIZE/8; i++ ) {
+		}*/
+		unsigned int * cipherTextByte  = new unsigned int[SIMON_BLOCK_SIZE/8];// cipher text in byte
+		/*for ( i = 0; i < SIMON_BLOCK_SIZE/8; i++ ) {
 			cipherTextByte[i]          = 0x0;
-		}
+		}*/
 
 		/*
-		 * 得到输入明文和初始密钥
+		 * get the plain text and input keys
 		 */
 		cout<<"Please input the plainText of "<<SIMON_BLOCK_SIZE/8<<" bytes:"<<endl;
 		for ( i = 0; i < SIMON_BLOCK_SIZE/8; i++ ) {
@@ -136,7 +131,7 @@ void simon () {
 		}
 
 		/*
-		 * 此时SIMON_BLOCK_SIZE为64，一共8个字节，高四个字节组成plainText[0]，低四个字节组成plainText[1]
+		 * SIMON_BLOCK_SIZE is 64. The higher four bytes is plainText[0], lower four bytes is plainText[1]
 		 */
 		for ( i = 0; i < 4; i++ ) {
 			plainText[0]  = plainText[0] * 256 + plainTextByte[i];
@@ -146,8 +141,8 @@ void simon () {
 		}
 		//cout<<endl<<endl<<plainText[1]/(256*256*256)<<","<<plainText[1]/(256*256)%256<<","<<plainText[1]%(256*256)/256<<","<<plainText[1]%256<<endl;
 		/*
-		 * 密钥是从右往左开始计算，则index最小的表示的是k最大的
-		 * 比如SIMON_KEY_WORDS=3；则inputKeysByte[0...3]=k2;inputKeysByte[4...7]=k1;inputKeysByte[8...11]=k0
+		 * the initial keys in from right to left, so index with the minimal value is biggger round key
+		 * if SIMON_KEY_WORDS=3, then inputKeysByte[0...3]=k2;inputKeysByte[4...7]=k1;inputKeysByte[8...11]=k0
 		 */
 		for ( i = 0; i < SIMON_KEY_SIZE/8; i++ ) {
 			inputKeys[SIMON_KEY_WORDS-1-i/4] = inputKeys[SIMON_KEY_WORDS-1-i/4] * 256 + inputKeysByte[i];
@@ -159,16 +154,16 @@ void simon () {
 			start = clock();
 			for ( j = 0; j < 10000*recordCount; j++ ) {
 				/*
-				 * 计算每轮的密钥
+				 * compute round keys
 				 */
 				setSimonKeys32 ( inputKeys, keys );
 			}
 			end = clock();
 			/*
-			 * = (10000*recordCount*SIMON_KEY_SIZE)/(end-start) 比特每毫秒
-			 * = (1000*10000*recordCount*SIMON_KEY_SIZE)/(end-start) 比特每秒
-			 * = (1000*10000*recordCount*SIMON_KEY_SIZE)/（1024*1024*(end-start)) 兆比特每秒
-			 * = (10.0*recordCount*SIMON_KEY_SIZE)/（.1024*1.024*(end-start)) 兆比特每秒
+			 * = (10000*recordCount*SIMON_KEY_SIZE)/(end-start) bits per millisecond
+			 * = (1000*10000*recordCount*SIMON_KEY_SIZE)/(end-start) bits per second 
+			 * = (1000*10000*recordCount*SIMON_KEY_SIZE)/（1024*1024*(end-start)) billion bits per second
+			 * = (10.0*recordCount*SIMON_KEY_SIZE)/（1.024*1.024*(end-start)) billion bits per second
 			 */
 			printf("Keys extend: %d, speed: %0.3f Mbps.\n", 10000*recordCount, 10.0*recordCount*SIMON_KEY_SIZE/(1.024*1.024*(end-start )));
 		}
@@ -178,46 +173,32 @@ void simon () {
 		}
 
 		/*
-		 * 保存明文副本，每次加密前重新恢复输入的明文。多次加密求平均可以减少因为加密时间太短带来的计算误差
+		 * set to the plain text before encryption each time.
+		 * It can reduce error by repeating many time and computing the average value
 		 */
 		unsigned int tempPlainHigher   = plainText[0];
 		unsigned int tempPlainLower    = plainText[1];
 		//cout<<endl<<endl<<plainText[1]/(256*256*256)<<","<<plainText[1]/(256*256)%256<<","<<plainText[1]%(256*256)/256<<","<<plainText[1]%256<<endl;
 
-		/*
-		 * 多次记录，测试速度是否稳定
-		 */
 		for ( recordCount = 4; recordCount <= 1024; recordCount*=2 ) {
-			/*
-			 * 开始时间
-			 */
 			start = clock();
-			/*
-			 * 计算多次取平均值
-			 */
 			for ( j = 0; j < 10000*recordCount; j++ ) {
 				plainText[0]  = tempPlainHigher;
 				plainText[1]  = tempPlainLower;
-				/*
-				 * 加密
-				 */
 				encryptionSimon32 ( plainText, keys );
 			}
-			/*
-			 * 结束时间
-			 */
 			end = clock();
 			/*
-			 * = (10000*recordCount*SIMON_BLOCK_SIZE)/(end-start) 比特每毫秒
-			 * = (1000*10000*recordCount*SIMON_BLOCK_SIZE)/(end-start) 比特每秒
-			 * = (1000*10000*recordCount*SIMON_BLOCK_SIZE)/（1024*1024*(end-start)) 兆比特每秒
-			 * = (10.0*recordCount*SIMON_BLOCK_SIZE)/（.1024*1.024*(end-start)) 兆比特每秒
+			 * = (10000*recordCount*SIMON_BLOCK_SIZE)/(end-start) bits per millisecond
+			 * = (1000*10000*recordCount*SIMON_BLOCK_SIZE)/(end-start) bits per second 
+			 * = (1000*10000*recordCount*SIMON_BLOCK_SIZE)/（1024*1024*(end-start)) billion bits per second
+			 * = (10.0*recordCount*SIMON_BLOCK_SIZE)/（.1024*1.024*(end-start)) billion bits per second
 			 */
 			printf("Encryption counts: %d, speed: %0.3f Mbps.\n", 10000*recordCount, 10.0*recordCount*SIMON_BLOCK_SIZE/(1.024*1.024*(end-start )));
 		}
 
 		/*
-		 * 加密后的数据以字节形式输出
+		 * output the cipher text in byte
 		 */
 		tempPlainHigher   = plainText[0];
 		tempPlainLower    = plainText[1];
@@ -227,10 +208,7 @@ void simon () {
 		}
 
 		/*
-		 * 错误：for ( i = SIMON_BLOCK_SIZE/8; i >= 4; i-- ) {
-		 * 
-		 * 结果运行的结果，第5位（从左往右）是错误的，总是为0，而且最终释放内存时会出现错误
-		 * 就是因为数组越界，导致整体结果向后移了一位
+		 * error：for ( i = SIMON_BLOCK_SIZE/8; i >= 4; i-- ) {
 		 */
 		for ( i = SIMON_BLOCK_SIZE/8-1; i >= 4; i-- ) {
 			cipherTextByte[i] = tempPlainLower % 256;
@@ -243,7 +221,7 @@ void simon () {
 		cout<<endl;
 
 		/*
-		 * 解密，并输出解密后的结果
+		 * decryption
 		 */
 		decryptionSimon32 ( plainText, keys );
 		for ( i = 3; i >= 0; i-- ) {
@@ -261,7 +239,7 @@ void simon () {
 		cout<<endl;
 
 		/*
-		 * 释放内存
+		 * free memory
 		 */
 		delete cipherTextByte;
 		delete inputKeysByte;
@@ -277,27 +255,15 @@ void simon () {
 		int i, j;
 		unsigned long long * plainText       = new unsigned long long[2];
 		plainText[0] = plainText[1]    = 0x0;
-		unsigned long long * inputKeys       = new unsigned long long[SIMON_KEY_WORDS]; // 初始密钥，一共有SIMON_KEY_WORDS个
+		unsigned long long * inputKeys       = new unsigned long long[SIMON_KEY_WORDS];
 		for ( i = 0; i < SIMON_KEY_WORDS; i++ ) {
 			inputKeys[i]               = 0x0;
 		}
-		unsigned long long * keys            = new unsigned long long[SIMON_ROUNDS]; // 最终的密钥，一共SIMON_WORD_SIZE轮
-		unsigned long long * plainTextByte   = new unsigned long long[SIMON_BLOCK_SIZE/8]; // 为了简化输入，每个输入以字节表示，[0,255]
-		for ( i = 0; i < SIMON_BLOCK_SIZE/8; i++ ) {
-			plainTextByte[i]           = 0x0;
-		}
-		unsigned long long * inputKeysByte   = new unsigned long long[SIMON_KEY_SIZE/8]; // 以字节表示的密钥，用于保存输入的密钥
-		for ( i = 0; i < SIMON_KEY_SIZE/8; i++ ) {
-			inputKeysByte[i]           = 0x0;
-		}
-		unsigned long long * cipherTextByte  = new unsigned long long[SIMON_BLOCK_SIZE/8]; // 以字节表示的密文
-		for ( i = 0; i < SIMON_BLOCK_SIZE/8; i++ ) {
-			cipherTextByte[i]          = 0x0;
-		}
+		unsigned long long * keys            = new unsigned long long[SIMON_ROUNDS];
+		unsigned long long * plainTextByte   = new unsigned long long[SIMON_BLOCK_SIZE/8];
+		unsigned long long * inputKeysByte   = new unsigned long long[SIMON_KEY_SIZE/8];
+		unsigned long long * cipherTextByte  = new unsigned long long[SIMON_BLOCK_SIZE/8];
 
-		/*
-		 * 得到输入明文和初始密钥
-		 */
 		cout<<"Please input the plainText of "<<SIMON_BLOCK_SIZE/8<<" bytes:"<<endl;
 		for ( i = 0; i < SIMON_BLOCK_SIZE/8; i++ ) {
 			cin>>plainTextByte[i];
@@ -308,7 +274,7 @@ void simon () {
 		}
 
 		/*
-		 * 此时SIMON_BLOCK_SIZE为128，一共16个字节
+		 * SIMON_BLOCK_SIZE is 64. The higher eight bytes is plainText[0], lower eight bytes is plainText[1]
 		 */
 		for ( i = 0; i < 8; i++ ) {
 			plainText[0]  = plainText[0] * 256 + plainTextByte[i];
@@ -316,69 +282,41 @@ void simon () {
 		for ( i = 8; i < SIMON_BLOCK_SIZE/8; i++ ) { 
 			plainText[1]  = plainText[1] * 256 + plainTextByte[i];
 		}
-		/*
-		 * 密钥是从右往左开始计算，则index最小的表示的是k最大的
-		 * 比如SIMON_KEY_WORDS=3；则inputKeysByte[0...3]=k2;inputKeysByte[4...7]=k1;inputKeysByte[8...11]=k0
-		 */
+		
 		for ( i = 0; i < SIMON_KEY_SIZE/8; i++ ) {
 			inputKeys[SIMON_KEY_WORDS-1-i/8] = inputKeys[SIMON_KEY_WORDS-1-i/8] * 256 + inputKeysByte[i];
 		}
 
+		/*
+		 * key schedule
+		 */
 		time_t start, end;
 		int recordCount = 0;
 		for ( recordCount = 4; recordCount <= 1024; recordCount*=2 ) {
 			start = clock();
 			for ( j = 0; j < 10000*recordCount; j++ ) {
 				/*
-				 * 计算每轮的密钥
+				 * compute round keys
 				 */
 				setSimonKeys64 ( inputKeys, keys );
 			}
 			end = clock();
-			/*
-			 * = (10000*recordCount*SIMON_KEY_SIZE)/(end-start) 比特每毫秒
-			 * = (1000*10000*recordCount*SIMON_KEY_SIZE)/(end-start) 比特每秒
-			 * = (1000*10000*recordCount*SIMON_KEY_SIZE)/（1024*1024*(end-start)) 兆比特每秒
-			 * = (10.0*recordCount*SIMON_KEY_SIZE)/（1.1024*1.024*(end-start)) 兆比特每秒
-			 */
 			printf("Keys extend: %d, speed: %0.3f Mbps.\n", 10000*recordCount, 10.0*recordCount*SIMON_KEY_SIZE/(1.024*1.024*(end-start )));
 		}
 
 		/*
-		 * 保存明文副本，每次加密前重新恢复输入的明文。多次加密求平均可以减少因为加密时间太短带来的计算误差
+		 * encryption
 		 */
 		unsigned long long tempPlainHigher   = plainText[0];
 		unsigned long long tempPlainLower    = plainText[1];
-		
-		/*
-		 * 多次记录，测试速度是否稳定
-		 */
 		for ( recordCount = 4; recordCount <= 1024; recordCount*=2 ) {
-			/*
-			 * 开始时间
-			 */
 			start = clock();
-			/*
-			 * 计算多次取平均值
-			 */
 			for ( j = 0; j < 10000*recordCount; j++ ) {
 				plainText[0]  = tempPlainHigher;
 				plainText[1]  = tempPlainLower;
-				/*
-				 * 加密
-				 */
 				encryptionSimon64 ( plainText, keys );
 			}
-			/*
-			 * 结束时间
-			 */
 			end = clock();
-			/*
-			 * = (10000*recordCount*SIMON_BLOCK_SIZE)/(end-start) 比特每毫秒
-			 * = (1000*10000*recordCount*SIMON_BLOCK_SIZE)/(end-start) 比特每秒
-			 * = (1000*10000*recordCount*SIMON_BLOCK_SIZE)/（1024*1024*(end-start)) 兆比特每秒
-			 * = (10.0*recordCount*SIMON_BLOCK_SIZE)/（1.1024*1.024*(end-start)) 兆比特每秒
-			 */
 			printf("Encryption counts: %d, speed: %0.3f Mbps.\n", 10000*recordCount, 10.0*recordCount*SIMON_BLOCK_SIZE/(1.024*1.024*(end-start )));
 		}
 
@@ -389,9 +327,6 @@ void simon () {
 		printf("\n\nEnd\n");
 
 
-		/*
-		 * 将每8个比特位转化为字节所对应的数值，并输出
-		 */
 		tempPlainHigher   = plainText[0];
 		tempPlainLower    = plainText[1];
 		for ( i = 7; i >= 0; i-- ) {
@@ -409,7 +344,7 @@ void simon () {
 		cout<<endl;
 
 		/*
-		 * 解密，并输出解密后的结果
+		 * decryption
 		 */
 		decryptionSimon64 ( plainText, keys );
 		for ( i = 7; i >= 0; i-- ) {
@@ -427,7 +362,7 @@ void simon () {
 		cout<<endl;
 
 		/*
-		 * 释放内存
+		 * free memory
 		 */
 		delete cipherTextByte;
 		delete inputKeysByte;
@@ -441,10 +376,10 @@ void simon () {
 }
 
 /*
- * 选择Simon算法
- * 1：64/96版本
- * 2：64/128版本
- * 3：128/128版本
+ * Choose Simon Algorithm
+ * 1：64/96
+ * 2：64/128
+ * 3：128/128
  */
 int simonChoose () {
 	int flag = 0;
@@ -458,10 +393,10 @@ int simonChoose () {
 }
 
 /*
- * Speck算法
- * 1：64/96版本
- * 2：64/128版本
- * 3：128/128版本
+ * Speck
+ * 1：64/96
+ * 2：64/128
+ * 3：128/128
  */
 void speck () {
 	
@@ -498,35 +433,25 @@ void speck () {
 
 	if ( SPECK_WORD_SIZE == 32 ) {
 		int i, j;
-		unsigned int * plainText      = new unsigned int[2]; // 明文
+		unsigned int * plainText      = new unsigned int[2]; // plain text
 		plainText[0] = plainText[1]   = 0x0;
-		unsigned int * inputKeys      = new unsigned int[SPECK_KEY_WORDS]; // 密钥
+		unsigned int * inputKeys      = new unsigned int[SPECK_KEY_WORDS]; // initial keys
 		for ( i = 0; i < SPECK_KEY_WORDS; i++ ) {
 			inputKeys[i] = 0;
 		}
-		unsigned int * keys           = new unsigned int[SPECK_ROUNDS]; // 密钥，共SIMON_ROUNDS轮，每轮SIMON_WORD_SIZE位
+		unsigned int * keys           = new unsigned int[SPECK_ROUNDS];
 		for ( i = 0; i < SPECK_ROUNDS; i++ ) {
 			/*
-			 * 错误记录：keys = 0x0;
-			 * 执行出现错误，写入地址0x00000000时发生冲突
+			 * error：keys = 0x0;
 			 */
 			keys[i] = 0x0;
 		}
-		unsigned int * plainTextByte  = new unsigned int[SPECK_BLOCK_SIZE/8]; // 以字节表示的明文，用于保存输入的明文
-		for ( i = 0; i < SPECK_BLOCK_SIZE/8; i++ ) {
-			plainTextByte[i] = 0;
-		}
-		unsigned int * inputKeysByte  = new unsigned int [SPECK_KEY_SIZE/8]; // 以字节表示的密钥，用于保存输入的密钥
-		for ( i = 0; i < SPECK_KEY_SIZE/8; i++ ) {
-			inputKeysByte[i] = 0;
-		}
-		unsigned int * cipherTextByte  = new unsigned int [SPECK_BLOCK_SIZE/8];  // 以字节表示的密文
-		for ( i = 0; i < SPECK_BLOCK_SIZE/8; i++ ) {
-			cipherTextByte[i] = 0;
-		}
+		unsigned int * plainTextByte  = new unsigned int[SPECK_BLOCK_SIZE/8];
+		unsigned int * inputKeysByte  = new unsigned int [SPECK_KEY_SIZE/8];
+		unsigned int * cipherTextByte  = new unsigned int [SPECK_BLOCK_SIZE/8];
 
 		/*
-		 * 得到明文和初始密钥
+		 * get the plain text and initial keys
 		 */
 		cout<<"Please input the plainText of "<<SPECK_BLOCK_SIZE/8<<" bytes:"<<endl;
 		for ( i = 0; i < SPECK_BLOCK_SIZE/8; i++ ) {
@@ -537,9 +462,6 @@ void speck () {
 			cin>>inputKeysByte[i];
 		}
 
-		/*
-		 * 将明文和密钥以unsigned int表示
-		 */
 		for ( i = 0; i < 4; i++ ) {
 			plainText[0] = plainText[0] * 256 + plainTextByte[i];
 		}
@@ -550,13 +472,16 @@ void speck () {
 			inputKeys[i/4] = inputKeys[i/4] * 256 + inputKeysByte[i];
 		}
 
+		/*
+		 * key schedule
+		 */
 		time_t start, end;
 		int recordCount = 0;
 		for ( recordCount = 4; recordCount <= 1024; recordCount*=2 ) {
 			start = clock();
 			for ( j = 0; j < 10000*recordCount; j++ ) {
 				/*
-				 * 计算每轮的密钥
+				 * compute round keys
 				 */
 				setSpeckKeys32 ( inputKeys, keys );
 			}
@@ -570,20 +495,14 @@ void speck () {
 			printf("%x,%x,%x,%x\n", keys[i]%256, keys[i]/256%256, keys[i]/256/256%256, keys[i]/256/256/256);
 		}
 		printf("\n\nEnd\n");
-			
+		
 		/*
-		 * 保存副本 
+		 * encryption
 		 */
 		unsigned int tempPlainHigher   = plainText[0];
 		unsigned int tempPlainLower    = plainText[1];
-		/*
-		 * 多次记录，测试速度是否稳定
-		 */
 		for ( recordCount = 4; recordCount <= 1024; recordCount*=2 ) {
 			start = clock();
-			/* 
-			 * 计算多次取平均值
-			 */
 			for ( j = 0; j < 10000*recordCount; j++ ) {
 				plainText[0] = tempPlainHigher;
 				plainText[1] = tempPlainLower;
@@ -610,7 +529,7 @@ void speck () {
 		cout<<endl;
 
 		/*
-		 * 解密，并输出解密后的结果
+		 * decryption
 		 */
 		decryptionSpeck32 ( plainText, keys );
 		for ( i = 3; i >= 0; i-- ) {
@@ -628,7 +547,7 @@ void speck () {
 		cout<<endl;
 
 		/*
-		 * 释放内存
+		 * free memory
 		 */
 		delete cipherTextByte;
 		delete inputKeysByte;
@@ -639,31 +558,31 @@ void speck () {
 	} else if ( SPECK_WORD_SIZE == 64 ) {
 
 		int i, j;
-		unsigned long long * plainText      = new unsigned long long[2]; // 明文
+		unsigned long long * plainText      = new unsigned long long[2];
 		plainText[0] = plainText[1]   = 0x0;
-		unsigned long long * inputKeys      = new unsigned long long[SPECK_KEY_WORDS]; // 密钥
+		unsigned long long * inputKeys      = new unsigned long long[SPECK_KEY_WORDS];
 		for ( i = 0; i < SPECK_KEY_WORDS; i++ ) {
 			inputKeys[i] = 0;
 		}
-		unsigned long long * keys           = new unsigned long long[SPECK_ROUNDS]; // 密钥，共SIMON_ROUNDS轮，每轮SIMON_WORD_SIZE位
+		unsigned long long * keys           = new unsigned long long[SPECK_ROUNDS];
 		for ( i = 0; i < SPECK_ROUNDS; i++ ) {
 			keys[i] = 0x0;
 		}
-		unsigned long long * plainTextByte  = new unsigned long long[SPECK_BLOCK_SIZE/8]; // 以字节表示的明文，用于保存输入的明文
+		unsigned long long * plainTextByte  = new unsigned long long[SPECK_BLOCK_SIZE/8];
 		for ( i = 0; i < SPECK_BLOCK_SIZE/8; i++ ) {
 			plainTextByte[i] = 0;
 		}
-		unsigned long long * inputKeysByte  = new unsigned long long [SPECK_KEY_SIZE/8]; // 以字节表示的密钥，用于保存输入的密钥
+		unsigned long long * inputKeysByte  = new unsigned long long [SPECK_KEY_SIZE/8];
 		for ( i = 0; i < SPECK_KEY_SIZE/8; i++ ) {
 			inputKeysByte[i] = 0;
 		}
-		unsigned long long * cipherTextByte  = new unsigned long long [SPECK_BLOCK_SIZE/8];  // 以字节表示的密文
+		unsigned long long * cipherTextByte  = new unsigned long long [SPECK_BLOCK_SIZE/8];
 		for ( i = 0; i < SPECK_BLOCK_SIZE/8; i++ ) {
 			cipherTextByte[i] = 0;
 		}
 
 		/*
-		 * 得到明文和初始密钥
+		 * get plain text and initial keys
 		 */
 		cout<<"Please input the plainText of "<<SPECK_BLOCK_SIZE/8<<" bytes:"<<endl;
 		for ( i = 0; i < SPECK_BLOCK_SIZE/8; i++ ) {
@@ -674,9 +593,6 @@ void speck () {
 			cin>>inputKeysByte[i];
 		}
 
-		/*
-		 * 将明文和密钥以unsigned int表示
-		 */
 		for ( i = 0; i < 8; i++ ) {
 			plainText[0] = plainText[0] * 256 + plainTextByte[i];
 		}
@@ -687,14 +603,14 @@ void speck () {
 			inputKeys[i/8] = inputKeys[i/8] * 256 + inputKeysByte[i];
 		}
 
+		/*
+		 * key schedule
+		 */
 		time_t start, end;
 		int recordCount = 0;
 		for ( recordCount = 4; recordCount <= 1024; recordCount*=2 ) {
 			start = clock();
 			for ( j = 0; j < 10000*recordCount; j++ ) {
-				/*
-				 * 计算每轮的密钥
-				 */
 				setSpeckKeys64 ( inputKeys, keys );
 			}
 			end = clock();
@@ -706,18 +622,12 @@ void speck () {
 		}
 
 		/*
-		 * 保存副本 
+		 * encryption
 		 */
 		unsigned long long tempPlainHigher   = plainText[0];
 		unsigned long long tempPlainLower    = plainText[1];
-		/*
-		 * 多次记录，测试速度是否稳定
-		 */
 		for ( recordCount = 4; recordCount <= 1024; recordCount*=2 ) {
 			start = clock();
-			/* 
-			 * 计算多次取平均值
-			 */
 			for ( j = 0; j < 10000*recordCount; j++ ) {
 				plainText[0] = tempPlainHigher;
 				plainText[1] = tempPlainLower;
@@ -744,7 +654,7 @@ void speck () {
 		cout<<endl;
 
 		/*
-		 * 解密，并输出解密后的结果
+		 * decryption
 		 */
 		decryptionSpeck64 ( plainText, keys );
 		for ( i = 7; i >= 0; i-- ) {
@@ -762,7 +672,7 @@ void speck () {
 		cout<<endl;
 
 		/*
-		 * 释放内存
+		 * free memory
 		 */
 		delete cipherTextByte;
 		delete inputKeysByte;
@@ -776,10 +686,10 @@ void speck () {
 }
 
 /*
- * 选择Speck算法
- * 1：64/96版本
- * 2：64/128版本
- * 3：128/128版本
+ * Choose Speck Algorithm
+ * 1：64/96
+ * 2：64/128
+ * 3：128/128
  */
 int speckChoose () {
 	int flag = 0;

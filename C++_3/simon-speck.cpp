@@ -4,6 +4,12 @@
 using namespace std;
 
 /*
+ * Simon and Speck Algorithm
+ * Time:2015-7-19
+ *
+ */
+
+/*
  * const z
  */
 u8 z[5][64] = {

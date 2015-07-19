@@ -2,7 +2,7 @@
 #include<iostream>
 
 /*
- * Simon算法中z的值
+ * const Z
  */
 
 int z[5][64] = {

@@ -2,58 +2,66 @@
 #include<iostream>
 
 /*
- * Simon加密：字大小为32
- * plainText：明文
- * keys：密钥
+ * Simon encryption: word size is 32(block size is 64)
+ *
+ * plainText: the point of plainText. There is only one block. plainText[0] is the higher parter, [1] is the lower.
+ * keys: round keys
  */
 void encryptionSimon32 ( unsigned int * plainText, unsigned int * keys );
 
 /*
- * Simon解密：字大小为32
- * cipherText：密文
- * keys：密钥
+ * Simon decryption: word size is 32(block size is 64)
+ *
+ * cipherText: the point of cipherText. There is only one block. cipherText[0] is the higher part, [1] is the lower.
+ * keys: round keys
  */
 void decryptionSimon32 ( unsigned int * cipherText, unsigned int * keys );
 
 /*
- * Simon加密：字大小为32
- * plainText：明文
- * keys：密钥
+ * Simon encryption: word size is 64(block size is 128)
+ *
+ * plainText: the point of plainText. There is only one block. plainText[0] is the higher parter, [1] is the lower.
+ * keys: round keys
  */
 void encryptionSimon64 ( unsigned long long * plainText, unsigned long long * keys );
 
 /*
- * Simon解密：字大小为64
- * cipherText：密文
- * keys：密钥
+ * Simon decryption: word size is 64(block size is 128)
+ *
+ * cipherText: the point of cipherText. There is only one block. cipherText[0] is the higher part, [1] is the lower.
+ * keys: round keys
  */
 void decryptionSimon64 ( unsigned long long * cipherText, unsigned long long * keys );
 
 
 /*
- * Speck加密：字32位
- * plainText：明文
- * keys：密钥
+ * Speck encryption: word size is 32(block size is 64)
+ *
+ * plainText: the point of plainText. There is only one block. plainText[0] is the higher parter, [1] is the lower.
+ * keys: round keys
  */
 void encryptionSpeck32 ( unsigned int * plainText, unsigned int * keys );
 
 /*
- * Speck解密：字32位
- * cipherText：密文
- * keys：密钥
+ * Speck decryption: word size is 32(block size is 64)
+ *
+ * cipherText: the point of cipherText. There is only one block. cipherText[0] is the higher parter, [1] is the lower.
+ * keys: round keys
  */
 void decryptionSpeck32 ( unsigned int * cipherText, unsigned int * keys );
 
 /*
- * Speck加密
- * plainText：明文
- * keys：密钥
+ * Speck encryption: word size is 64(block size is 128)
+ *
+ * plainText: the point of plainText. There is only one block. plainText[0] is the higher parter, [1] is the lower.
+ * keys: round keys
  */
 void encryptionSpeck64 ( unsigned long long * plainText, unsigned long long * keys );
 
 /*
- * Speck解密
- * cipherText：密文
- * keys：密钥
+ * Speck decryption: word size is 64(block size is 128)
+ *
+ * cipherText: the point of cipherText. There is only one block. cipherText[0] is the higher parter, [1] is the lower.
+ * keys: round keys
  */
 void decryptionSpeck64 ( unsigned long long * cipherText, unsigned long long * keys );
