@@ -2,9 +2,10 @@
 
 # C++
 在vs2010平台上实现<br>
-C++_1是最初的实现代码，不知道有移位指令，因此每一个bit用一个int代替，执行效率很低<br>
-C++_2是经过改进后的C++代码，通过C++中的左移和右移运算符代替了最初的方法<br>
-C++_3适当进行了代码的优化与精简<br>
+C++_1是最初的实现代码，不知道有移位指令，因此每一个bit用一个int代替，执行效率很低<br><br>
+C++_2是经过改进后的C++代码，通过C++中的左移和右移运算符代替了最初的方法<br><br>
+C++_3 is a more efficient and simpler implementation of Simon. Speck has not been implemented yet.<br>
+Just change the value of 'SIMON_BLOCK_SIZE' and 'SIMON_KEY_WORDS', then run it. The pair of value can be (64, 3), (64, 4), (128, 2).<br>
 
 # AVR
 在Atmel Studio平台实现<br>

@@ -97,8 +97,8 @@ void setSimonKeys64 ( u64 * inputKey, u64 * keys ){
 	u64 temp;
 	if ( SIMON_KEY_WORDS == 2 ) {
 		for ( i = 0; i < SIMON_ROUNDS-SIMON_KEY_WORDS; i++ ) {
-			temp = ror32(keys[i+1], 3);
-			temp ^= ror32(temp, 1);
+			temp = ror64(keys[i+1], 3);
+			temp ^= ror64(temp, 1);
 			keys[i+SIMON_KEY_WORDS] = SIMON_CONST_C ^ keys[i] ^ temp;
 			if ( z[SIMON_SEQUENCE_NUMBER][i%62] == 1 ) {
 				keys[i+SIMON_KEY_WORDS] ^= 0x1 ;
@@ -204,24 +204,75 @@ void decryptionSimon64 ( u64 * cipherText, u64 * keys ) {
 //**********************************************************************
 int main () {
 	if ( SIMON_BLOCK_SIZE==64 && SIMON_KEY_WORDS==3 )  {
-		u32 plainX = 0;
-		u32 plainY = 0;
-		u32 cipherX = 0;
-		u32 cipherY = 0;
 		/*
 		 * Simon64/96
 		 */
+		u32 * inputKey = new u32[SIMON_KEY_WORDS];
+		*inputKey = 0x03020100;
+		*(inputKey+1) = 0x0b0a0908;
+		*(inputKey+2) =	0x13121110;
+
 		u32 * keys = new u32[SIMON_ROUNDS];
+
+		u32 * plainText = new u32[2];
+		*plainText = 0x6f722067;
+		*(plainText+1) = 0x6e696c63;
+
+		setSimonKeys32(inputKey, keys);
+
+		printf("PlainText: %x, %x\n", plainText[0], plainText[1]);
+		encryptionSimon32(plainText, keys);
+		// cipherText is: 0x5ca2e27f 0x111a8fc8
+		printf("Encryption: %x, %x\n", plainText[0], plainText[1]);
+		decryptionSimon32(plainText, keys);
+		printf("Decryption: %x, %x\n", plainText[0], plainText[1]);
 	} else if ( SIMON_BLOCK_SIZE==64 && SIMON_KEY_WORDS==4 ) {
 		/*
 		 * Simon64/128
 		 */
+		u32 * inputKey = new u32[SIMON_KEY_WORDS];
+		*inputKey = 0x03020100;
+		*(inputKey+1) = 0x0b0a0908;
+		*(inputKey+2) =	0x13121110;
+		*(inputKey+3) = 0x1b1a1918;
+
 		u32 * keys = new u32[SIMON_ROUNDS];
+
+		u32 * plainText = new u32[2];
+		*plainText = 0x656b696c;
+		*(plainText+1) = 0x20646e75;
+
+		setSimonKeys32(inputKey, keys);
+
+		printf("PlainText: %x, %x\n", plainText[0], plainText[1]);
+		encryptionSimon32(plainText, keys);
+		// cipherText is: 0x44c8fc20 0xb9dfa07a
+		printf("Encryption: %x, %x\n", plainText[0], plainText[1]);
+		decryptionSimon32(plainText, keys);
+		printf("Decryption: %x, %x\n", plainText[0], plainText[1]);
+
 	} else if ( SIMON_BLOCK_SIZE==128 && SIMON_KEY_WORDS==2 ) {
 		/*
 		 * Simon128/128
 		 */
+		u64 * inputKey = new u64[SIMON_KEY_WORDS];
+		*inputKey = 0x0706050403020100;
+		*(inputKey+1) = 0x0f0e0d0c0b0a0908;
 		u64 * keys = new u64[SIMON_ROUNDS];
+
+		u64 * plainText = new u64[2];
+		*plainText = 0x6373656420737265;
+		*(plainText+1) = 0x6c6c657661727420;
+
+		setSimonKeys64(inputKey, keys);
+
+		printf("PlainText: %llx, %llx\n", plainText[0], plainText[1]);
+		encryptionSimon64(plainText, keys);
+		// cipherText is: 0x49681b1e1e54fe3f 0x65aa832af84e0bbc
+		printf("Encryption: %llx, %llx\n", plainText[0], plainText[1]);
+		//printf("%x, %x", plainText[0], plainText[1]);
+		decryptionSimon64(plainText, keys);
+		printf("Encryption: %llx, %llx\n", plainText[0], plainText[1]);
 	}
 	return 0;
 }
