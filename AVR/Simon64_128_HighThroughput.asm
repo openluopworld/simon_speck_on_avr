@@ -163,8 +163,10 @@ keysExtend:
 	eor r4, r8;
 	eor r5, r9;
 	; k(i) eor [k(i+1) eor S(-3)k(i+3)] eor S(-1)[k(i+1) eor S(-3)k(i+3)] + c + z(i)
-	bld currentZ, 7;
-	bst constC0, 0;
+	;bld currentZ, 7;
+	;bst constC0, 0;
+	bst currentZ, 7; bst Rr, b ==== T <- Rr(b). bst is "bit store from register to T"
+	bld constC0, 0;  bld Rr, b ==== Rr(b) <- T. bld is "bit load from T to register"
 	lsl currentZ;
 	eor r2, constC0;
 	eor r3, constC1;
