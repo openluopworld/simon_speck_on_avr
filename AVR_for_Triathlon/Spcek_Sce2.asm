@@ -15,51 +15,43 @@
  *   Author: LuoPeng
  */ 
 
+ .EQU	DATA_SIZE_BYTES = 16;
+ .EQU	COUNTER_SIZE_BYTES = 8;
+ .EQU	ENC_ROUNDS = 27;
+
  .def currentRound = r24;
  .def zero = r25;
 
  .dseg
-	sendData: .byte 8;
-	counter:    .byte 8;
+	SRamData: .byte 8;
+	SRamCounter:    .byte 8;
 
  .cseg
  main:
-	; init sendData
-	ldi r26, low(sendData);
-	ldi r27, high(sendData);
-	ldi r16, 0x00;
+	; init SRamData
+	ldi r26, low(SRamData);
+	ldi r27, high(SRamData);
+/*	ldi r30, low(data<<1);
+	ldi r31, high(data<<1);*/
+	clr currentRound;
+	clr r16;
+initData:
+	/*lpm r16, z+;*/
 	st x+, r16;
-	ldi r16, 0x00;
+	inc currentRound;
+	cpi currentRound, DATA_SIZE_BYTES;
+
+	ldi r26, low(SRamCounter);
+	ldi r27, high(SRamCounter);
+/*	ldi r30, low(counter<<1);
+	ldi r31, high(counter<<1);*/
+	clr currentRound;
+	clr r16;
+initCounter:
+	/*lpm r16, z+;*/
 	st x+, r16;
-	ldi r16, 0x00;
-	st x+, r16;
-	ldi r16, 0x00;
-	st x+, r16;
-	ldi r16, 0x00;
-	st x+, r16;
-	ldi r16, 0x00;
-	st x+, r16;
-	ldi r16, 0x00;
-	st x+, r16;
-	ldi r16, 0x00;
-	st x+, r16;
-	; init counter
-	ldi r16, 0x00;
-	st x+, r16;
-	ldi r16, 0x00;
-	st x+, r16;
-	ldi r16, 0x00;
-	st x+, r16;
-	ldi r16, 0x00;
-	st x+, r16;
-	ldi r16, 0x00;
-	st x+, r16;
-	ldi r16, 0x00;
-	st x+, r16;
-	ldi r16, 0x00;
-	st x+, r16;
-	ldi r16, 0x00;
-	st x+, r16;
+	inc currentRound;
+	cpi currentRound, COUNTER_SIZE_BYTES;
 
 	rcall encryption;
 	ret;
@@ -80,12 +72,11 @@
 	 *             r30 store 0
 	 */
 encryption:
-	clr currentRound;
 	clr zero;
 
 	; load the counter
-	ldi r26, low(counter);
-	ldi r27, high(counter);
+	ldi r26, low(SRamCounter);
+	ldi r27, high(SRamCounter);
 	ld r7, x+ ; the highest byte
 	ld r6, x+ ;
 	ld r5, x+ ;
@@ -115,6 +106,20 @@ encryption:
 	eor r1, r17;
 	eor r0, r16;
 	
+	; store counter
+	movw r16, r0;
+	movw r18, r2;
+	movw r20, r4;
+	movw r22, r6;
+	; counter increase
+	inc r16;
+	adc r17, zero;
+	adc r18, zero;
+	adc r19, zero;
+	adc r20, zero;
+	adc r21, zero;
+	adc r22, zero;
+	adc r23, zero;
 
 	/* 
 	 * encrypt (nonce eor counter) 
@@ -122,7 +127,8 @@ encryption:
 	 */
 	ldi r30, low(keys<<1);
 	ldi r31, high(keys<<1);
-encLoop:
+	clr currentRound;
+block1:
 	; load k: [r15, r14, r13, r12], r12 is the lowest byte
 	lpm r12, z+;
 	lpm r13, z+;
@@ -164,12 +170,12 @@ encLoop:
 	movw r6, r14; r7:r6 = r15:r14
 	
 	inc currentRound;
-	cpi currentRound, 27;
-	brne encLoop;
+	cpi currentRound, ENC_ROUNDS;
+	brne block1;
 
 	; load the plain text
-	ldi r26, low(sendData);
-	ldi r27, high(sendData);
+	ldi r26, low(SRamData);
+	ldi r27, high(SRamData);
 	ld r15, x+; the highest byte
 	ld r14, x+;
 	ld r13, x+;
@@ -196,11 +202,123 @@ encLoop:
 	st -x, r5;
 	st -x, r6;
 	st -x, r7;
+
+	adiw r26, 8;
+
+	; load counter
+	movw r0, r16;
+	movw r2, r18;
+	movw r4, r20;
+	movw r6, r22;
+	; load the nonce. nonce is fixed
+	ldi r30, low(nonce<<1);
+	ldi r31, high(nonce<<1);
+	lpm r23, z+; the highest byte
+	lpm r22, z+;
+	lpm r21, z+;
+	lpm r20, z+;
+	lpm r19, z+;
+	lpm r18, z+;
+	lpm r17, z+;
+	lpm r16, z+; the lowest byte
+	; counter eor nonce
+	eor r7, r23;
+	eor r6, r22;
+	eor r5, r21;
+	eor r4, r20;
+	eor r3, r19;
+	eor r2, r18;
+	eor r1, r17;
+	eor r0, r16;
+
+	/* 
+	 * encrypt (nonce eor counter) 
+	 * X = [r7, r6, r5, r4], Y = [r3, r2, r1, r0]
+	 */
+	ldi r30, low(keys<<1);
+	ldi r31, high(keys<<1);
+	clr currentRound;
+block2:
+	; load k: [r15, r14, r13, r12], r12 is the lowest byte
+	lpm r12, z+;
+	lpm r13, z+;
+	lpm r14, z+;
+	lpm r15, z+;
+	; x = S(8)( S(-8)(x) + y)
+	add r5, r0; x1 = x1 + y0
+	adc r6, r1; x2 = x2 + y1
+	adc r7, r2; x3 = x3 + y2
+	adc r4, r3; x0 = x0 + y3;
+	; k = ( S(-8)(x) + y ) eor k
+	eor r12, r5;
+	eor r13, r6;
+	eor r14, r7;
+	eor r15, r4;
+	; y = s(3)y
+	lsl r0; loop 1
+	rol r1;
+	rol r2;
+	rol r3;
+	adc r0, zero;
+	lsl r0; loop 2
+	rol r1;
+	rol r2;
+	rol r3;
+	adc r0, zero;
+	lsl r0; loop 3
+	rol r1;
+	rol r2;
+	rol r3;
+	adc r0, zero;
+	; y = S(3)(y) eor ( S(-8)(x) + y ) eor k
+	eor r0, r12;
+	eor r1, r13;
+	eor r2, r14;
+	eor r3, r15;
+	; x = ( S(-8)(x) + y ) eor k
+	movw r4, r12; r5:r4 = r13:r12
+	movw r6, r14; r7:r6 = r15:r14
+	
+	inc currentRound;
+	cpi currentRound, ENC_ROUNDS;
+	brne block2;
+
+	ld r15, x+; the highest byte
+	ld r14, x+;
+	ld r13, x+;
+	ld r12, x+;
+	ld r11, x+;
+	ld r10, x+;
+	ld r9, x+;
+	ld r8, x+;
+	; eor
+	eor r7, r15;
+	eor r6, r14;
+	eor r5, r13;
+	eor r4, r12;
+	eor r3, r11;
+	eor r2, r10;
+	eor r1, r9;
+	eor r0, r8;
+	; store the cipher text
+	st -x, r0;
+	st -x, r1;
+	st -x, r2;
+	st -x, r3;
+	st -x, r4;
+	st -x, r5;
+	st -x, r6;
+	st -x, r7;
+
 	ret;
 
-; 3b726574 7475432d
-; cipher text is: 8c6fa548 454e028b
+; plain text: 3b726574 7475432d; cipher text: 8c6fa548 454e028b
 nonce: .db 0x3b, 0x72, 0x65, 0x74, 0x74, 0x75, 0x43, 0x2d
+
+/*counter: .db 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00*/
+
+/*data: .db 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+	  .db 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00*/
 
 ; the 27*4 bytes of round keys
 keys: 

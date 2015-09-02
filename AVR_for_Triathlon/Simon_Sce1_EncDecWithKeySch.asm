@@ -18,17 +18,17 @@
 .def currentBlock = r25; in CBC model, the blocks of plain text is 16(128 bytes).
 
  .dseg ; RAM( data segment)
-	sendData: .byte 128; the 16 blocks(each block has 8 bytes) of plaintext. For each block, the byte is from high to low.
-	keys: .byte 176;     the 44*4 bytes of round keys
-	vector: .byte 8;     an initialization vector that is used in the first block(encryption and decryption)
-	tempCipher: .byte 8; store the cipher text of last round. only used in decrtypion.
+	SRamData: .byte 128; the 16 blocks(each block has 8 bytes) of plaintext. For each block, the byte is from high to low.
+	SRamKeys: .byte 176;     the 44*4 bytes of round keys
+	SRamVector: .byte 8;     an initialization vector that is used in the first block(encryption and decryption)
+	SRamTempCipher: .byte 8; store the cipher text of last round. only used in decrtypion.
 
  .cseg ; Flash( code segement)
 main:
 	; initialize the data
 	clr temp;
-	ldi r26, low(sendData);
-	ldi r27, high(sendData);
+	ldi r26, low(SRamData);
+	ldi r27, high(SRamData);
 initBlock:
 	st x+, temp;
 	inc temp;
@@ -36,8 +36,8 @@ initBlock:
 	brne initBlock;
 
 	; set the first block
-	ldi r26, low(sendData);
-	ldi r27, high(sendData);
+	ldi r26, low(SRamData);
+	ldi r27, high(SRamData);
 	;656b696c 20646e75
 	ldi temp, 0x65;
 	st x+, temp;
@@ -58,8 +58,8 @@ initBlock:
 
 	; load the master key from Flash to RAM
 	clr currentRound;
-	ldi r26, low(keys);
-	ldi r27, high(keys);
+	ldi r26, low(SRamKeys);
+	ldi r27, high(SRamKeys);
 	ldi r30, low(masterKey<<1);
 	ldi r31, high(masterKey<<1);
 initKeys:
@@ -72,8 +72,8 @@ initKeys:
 	; initilize the vector. The vector is [0, 0, 0, 0, 0, 0, 0, 0](from low byte to high byte)
 	clr temp;
 	clr currentRound;
-	ldi r26, low(vector);
-	ldi r27, high(vector);
+	ldi r26, low(SRamVector);
+	ldi r27, high(SRamVector);
 initVector:
 	st x+, temp;
 	inc currentRound;
@@ -108,8 +108,8 @@ initVector:
 	 */
 keySchedule:
 	; prepare for the key schedule
-	ldi r26, low(keys);
-	ldi r27, high(keys);
+	ldi r26, low(SRamKeys);
+	ldi r27, high(SRamKeys);
 	ldi r30, low(constZ<<1);
 	ldi r31, high(constZ<<1);
 	lpm currentZ, z+;
@@ -223,8 +223,8 @@ scheEnd:
 	 */
 encryption:
 	; load the vector to [r23-r16]
-	ldi r26, low(vector);
-	ldi r27, high(vector);
+	ldi r26, low(SRamVector);
+	ldi r27, high(SRamVector);
 	ld r16, x+;
 	ld r17, x+;
 	ld r18, x+;
@@ -236,12 +236,12 @@ encryption:
 
 	; start encyrption
 	clr currentBlock;
-	ldi r26, low(sendData); x stores the current address of data
-	ldi r27, high(sendData);
+	ldi r26, low(SRamData); x stores the current address of data
+	ldi r27, high(SRamData);
 encAnotherBlock:
 	clr currentRound; reset
-	ldi r28, low(keys); stores the start address of keys
-	ldi r29, high(keys);
+	ldi r28, low(SRamKeys); stores the start address of keys
+	ldi r29, high(SRamKeys);
 	; load the plaintext from RAM to registers [r7,...,r0], X = [r7, r6, r5, r4], Y = [r3, r2, r1, r0]
 	ld r7, x+ ;
 	ld r6, x+ ;
@@ -354,8 +354,8 @@ encAllEnd:
 	 */
 decryption:
 	; load the vector to register[r16-r23]
-	ldi r26, low(vector);
-	ldi r27, high(vector);
+	ldi r26, low(SRamVector);
+	ldi r27, high(SRamVector);
 	ld r16, x+;
 	ld r17, x+;
 	ld r18, x+;
@@ -367,8 +367,8 @@ decryption:
 
 	; start decyrption
 	clr currentBlock;
-	ldi r26, low(sendData); x stores the current address of data
-	ldi r27, high(sendData);
+	ldi r26, low(SRamData); x stores the current address of data
+	ldi r27, high(SRamData);
 decAnotherBlock:
 	clr currentRound; reset
 	; load the ciphertext from RAM to registers [r7,...,r0], X = [r7, r6, r5, r4], Y = [r3, r2, r1, r0]
@@ -381,8 +381,8 @@ decAnotherBlock:
 	ld r1, x+ ;
 	ld r0, x+ ;
 	; store the ciphertext of last round
-	ldi r30, low(tempCipher); x stores the current address of data
-	ldi r31, high(tempCipher);
+	ldi r30, low(SRamTempCipher); x stores the current address of data
+	ldi r31, high(SRamTempCipher);
 	st z+, r0;
 	st z+, r1;
 	st z+, r2;
@@ -392,8 +392,8 @@ decAnotherBlock:
 	st z+, r6;
 	st z+, r7;
 
-	ldi r28, low(vector); the address of keys
-	ldi r29, high(vector);
+	ldi r28, low(SRamVector); the address of keys
+	ldi r29, high(SRamVector);
 	;sbiw r28, 1; y is just the start address of keys + 176. So it does not need sub 1.
 
 	clr r30; r30 is useless this time
@@ -467,8 +467,8 @@ decLoop:
 	; x = x + 8, let x point the start address of next block
 	adiw r26, 8;K adiw rd, K ==== rd+1:rd <- rd+1:rd + K
 	; reset vector: move from tempCipher to vector
-	ldi r30, low(tempCipher);
-	ldi r31, high(tempCipher);
+	ldi r30, low(SRamTempCipher);
+	ldi r31, high(SRamTempCipher);
 	ld r16, z+;
 	ld r17, z+;
 	ld r18, z+;

@@ -61,6 +61,32 @@ initVector:
 	cpi currentRound, 8;
 	brne initVector;
 
+	; load the l2, l1, l0
+	clr currentRound;
+	ldi r28, low(lRAM);
+	ldi r29, high(lRAM);
+	adiw r28, 12;
+	ldi r30, low(masterKey<<1);
+	ldi r31, high(masterKey<<1);
+loadL:
+	lpm r0, z+;
+	st -y, r0;
+	inc currentRound;
+	cpi currentRound, 12;
+	brne loadL;
+	; load k0
+	ldi r26, low(keys);
+	ldi r27, high(keys);
+	adiw r26, 4;
+	lpm r0, z+;
+	st -x, r0;
+	lpm r0, z+;
+	st -x, r0;
+	lpm r0, z+;
+	st -x, r0;
+	lpm r0, z+;
+	st -x, r0;
+
 	; key schedule
 ;	rcall keySchedule;
 ;	nop;
@@ -88,32 +114,6 @@ initVector:
 	 *             Z the address of lRAM
 	 */
 keySchedule:
-	clr currentRound;
-	; load the l2, l1, l0
-	ldi r28, low(lRAM);
-	ldi r29, high(lRAM);
-	adiw r28, 12;
-	ldi r30, low(masterKey<<1);
-	ldi r31, high(masterKey<<1);
-loadL:
-	lpm r0, z+;
-	st -y, r0;
-	inc currentRound;
-	cpi currentRound, 12;
-	brne loadL;
-	; load k0
-	ldi r26, low(keys);
-	ldi r27, high(keys);
-	adiw r26, 4;
-	lpm r0, z+;
-	st -x, r0;
-	lpm r0, z+;
-	st -x, r0;
-	lpm r0, z+;
-	st -x, r0;
-	lpm r0, z+;
-	st -x, r0;
-	
 	; prepare for key schedule
 	clr currentRound;
 	clr r21; store the value of zero
