@@ -20,72 +20,65 @@
  .cseg ; Flash( code segement)
 main:
 	; initialize the data
-	clr temp;
+	ldi temp, 128;
 	ldi r26, low(sendData);
 	ldi r27, high(sendData);
 initBlock:
 	st x+, temp;
-	inc temp;
-	cpi temp, 128
+	dec temp;
+	cpi temp, 0;
 	brne initBlock;
 
-	; set the first block
-	ldi r26, low(sendData);
-	ldi r27, high(sendData);
-	;3b726574 7475432d
-	ldi temp, 0x3b;
-	st x+, temp;
-	ldi temp, 0x72;
-	st x+, temp;
-	ldi temp, 0x65;
-	st x+, temp;
-	ldi temp, 0x74;
-	st x+, temp;
-	ldi temp, 0x74;
-	st x+, temp;
-	ldi temp, 0x75;
-	st x+, temp;
-	ldi temp, 0x43;
-	st x+, temp;
-	ldi temp, 0x2d;
-	st x+, temp;
-
 	; initilize the vector. The vector is [0, 0, 0, 0, 0, 0, 0, 0](from low byte to high byte)
-	clr temp;
-	clr currentRound;
+	ldi temp, 8;
 	ldi r26, low(vector);
 	ldi r27, high(vector);
 initVector:
 	st x+, temp;
-	inc currentRound;
-	cpi currentRound, 8;
+	dec temp;
+	cpi temp, 0;
 	brne initVector;
 
-	; load the l2, l1, l0
-	clr currentRound;
-	ldi r28, low(lRAM);
-	ldi r29, high(lRAM);
-	adiw r28, 12;
-	ldi r30, low(masterKey<<1);
-	ldi r31, high(masterKey<<1);
-loadL:
-	lpm r0, z+;
-	st -y, r0;
-	inc currentRound;
-	cpi currentRound, 12;
-	brne loadL;
+	; 0x1b, 0x1a, 0x19, 0x18, 0x13, 0x12, 0x11, 0x10, 0x0b, 0x0a, 0x09, 0x08, 0x03, 0x02, 0x01, 0x00;
 	; load k0
 	ldi r26, low(keys);
 	ldi r27, high(keys);
-	adiw r26, 4;
-	lpm r0, z+;
-	st -x, r0;
-	lpm r0, z+;
-	st -x, r0;
-	lpm r0, z+;
-	st -x, r0;
-	lpm r0, z+;
-	st -x, r0;
+	ldi temp, 0x00;
+	st x+, temp;
+	ldi temp, 0x00;
+	st x+, temp;
+	ldi temp, 0x00;
+	st x+, temp;
+	ldi temp, 0x00;
+	st x+, temp;
+	; load the l2, l1, l0
+	ldi r26, low(lRAM);
+	ldi r27, high(lRAM);
+	ldi temp, 0x08;
+	st x+, temp;
+	ldi temp, 0x09;
+	st x+, temp;
+	ldi temp, 0x0a;
+	st x+, temp;
+	ldi temp, 0x0b;
+	st x+, temp;
+	ldi temp, 0x10;
+	st x+, temp;
+	ldi temp, 0x11;
+	st x+, temp;
+	ldi temp, 0x12;
+	st x+, temp;
+	ldi temp, 0x13;
+	st x+, temp;
+	ldi temp, 0x18;
+	st x+, temp;
+	ldi temp, 0x19;
+	st x+, temp;
+	ldi temp, 0x1a;
+	st x+, temp;
+	ldi temp, 0x1b;
+	st x+, temp;
+	
 
 	; key schedule
 ;	rcall keySchedule;
@@ -462,6 +455,3 @@ decLoop:
 	jmp decAnotherBlock;
 decAllEnd:
 	ret;
-
-; K = (l2, l1, l0, k0)
-masterKey: .db 0x1b, 0x1a, 0x19, 0x18, 0x13, 0x12, 0x11, 0x10, 0x0b, 0x0a, 0x09, 0x08, 0x03, 0x02, 0x01, 0x00;

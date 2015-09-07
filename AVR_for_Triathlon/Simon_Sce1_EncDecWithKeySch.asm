@@ -26,58 +26,59 @@
  .cseg ; Flash( code segement)
 main:
 	; initialize the data
-	clr temp;
+	ldi temp, 128;
 	ldi r26, low(SRamData);
 	ldi r27, high(SRamData);
 initBlock:
 	st x+, temp;
-	inc temp;
-	cpi temp, 128
+	dec temp;
+	cpi temp, 0;
 	brne initBlock;
 
-	; set the first block
-	ldi r26, low(SRamData);
-	ldi r27, high(SRamData);
-	;656b696c 20646e75
-	ldi temp, 0x65;
-	st x+, temp;
-	ldi temp, 0x6b;
-	st x+, temp;
-	ldi temp, 0x69;
-	st x+, temp;
-	ldi temp, 0x6c;
-	st x+, temp;
-	ldi temp, 0x20;
-	st x+, temp;
-	ldi temp, 0x64;
-	st x+, temp;
-	ldi temp, 0x6e;
-	st x+, temp;
-	ldi temp, 0x75;
-	st x+, temp;
-
-	; load the master key from Flash to RAM
-	clr currentRound;
+	; initial master Key 0x00, 0x01, 0x02, 0x03, 0x08, 0x09, 0x0a, 0x0b, 0x10, 0x11, 0x12, 0x13, 0x18, 0x19, 0x1a, 0x1b
 	ldi r26, low(SRamKeys);
 	ldi r27, high(SRamKeys);
-	ldi r30, low(masterKey<<1);
-	ldi r31, high(masterKey<<1);
-initKeys:
-	lpm r0, z+;
+	ldi temp, 0x00;
 	st x+, r0;
-	inc currentRound;
-	cpi currentRound, 16
-	brne initKeys;
+	ldi temp, 0x01;
+	st x+, r0;
+	ldi temp, 0x02;
+	st x+, r0;
+	ldi temp, 0x03;
+	st x+, r0;
+	ldi temp, 0x08;
+	st x+, r0;
+	ldi temp, 0x09;
+	st x+, r0;
+	ldi temp, 0x0a;
+	st x+, r0;
+	ldi temp, 0x0b;
+	st x+, r0;
+	ldi temp, 0x10;
+	st x+, r0;
+	ldi temp, 0x11;
+	st x+, r0;
+	ldi temp, 0x12;
+	st x+, r0;
+	ldi temp, 0x13;
+	st x+, r0;
+	ldi temp, 0x18;
+	st x+, r0;
+	ldi temp, 0x19;
+	st x+, r0;
+	ldi temp, 0x1a;
+	st x+, r0;
+	ldi temp, 0x1b;
+	st x+, r0;
 
 	; initilize the vector. The vector is [0, 0, 0, 0, 0, 0, 0, 0](from low byte to high byte)
-	clr temp;
-	clr currentRound;
+	ldi temp, 8;
 	ldi r26, low(SRamVector);
 	ldi r27, high(SRamVector);
 initVector:
 	st x+, temp;
-	inc currentRound;
-	cpi currentRound, 8;
+	dec temp;
+	cpi temp, 0;
 	brne initVector;
 
 	; the const value of c
@@ -483,9 +484,6 @@ decLoop:
 	jmp decAnotherBlock;
 decAllEnd:
 	ret; the end point is here or not makes much difference.
-
-masterKey: 
-.db 0x00, 0x01, 0x02, 0x03, 0x08, 0x09, 0x0a, 0x0b, 0x10, 0x11, 0x12, 0x13, 0x18, 0x19, 0x1a, 0x1b;
 
 ; 1101 1011, 1010 1100, 0110 0101, 1110 0000, 0100 1000, 1010 0111, 0011 0100, 0011 1100
 constZ:

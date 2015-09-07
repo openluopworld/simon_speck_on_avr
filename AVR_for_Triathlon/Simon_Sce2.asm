@@ -19,6 +19,7 @@
  .EQU	COUNTER_SIZE_BYTES = 8;
  .EQU	ENC_ROUNDS = 44;
 
+ .def temp = r23;
  .def currentRound = r24;
  .def zero = r25;
 
@@ -29,32 +30,27 @@
  .cseg
  main:
 	; init SRamData
+	ldi temp, 16;
 	ldi r26, low(SRamData);
 	ldi r27, high(SRamData);
-/*	ldi r30, low(data<<1);
-	ldi r31, high(data<<1);*/
-	clr currentRound;
-	clr r16;
-initData:
-	/*lpm r16, z+;*/
-	st x+, r16;
-	inc currentRound;
-	cpi currentRound, DATA_SIZE_BYTES;
+initBlock:
+	st x+, temp;
+	dec temp;
+	cpi temp, 0;
+	brne initBlock;
 
+	; init counter
+	ldi temp, 8;
 	ldi r26, low(SRamCounter);
 	ldi r27, high(SRamCounter);
-/*	ldi r30, low(counter<<1);
-	ldi r31, high(counter<<1);*/
-	clr currentRound;
-	clr r16;
 initCounter:
-	/*lpm r16, z+;*/
-	st x+, r16;
-	inc currentRound;
-	cpi currentRound, COUNTER_SIZE_BYTES;
+	st x+, temp;
+	dec temp;
+	cpi temp, 0;
+	brne initCounter;
 
-	rcall encryption;
-	ret;
+	;rcall encryption;
+	;ret;
 
 	/*
 	 * Subroutine: encryption
@@ -76,39 +72,12 @@ initCounter:
 	ld r2, x+ ;
 	ld r1, x+ ;
 	ld r0, x+ ; the lowest byte
-	; load the nonce. nonce is fixed
-	ldi r30, low(nonce<<1);
-	ldi r31, high(nonce<<1);
-	lpm r23, z+; the highest byte
-	lpm r22, z+;
-	lpm r21, z+;
-	lpm r20, z+;
-	lpm r19, z+;
-	lpm r18, z+;
-	lpm r17, z+;
-	lpm r16, z+; the lowest byte
 
 	; store counter
-	movw r8, r0;
-	movw r10, r2;
-	movw r12, r4;
-	movw r14, r6;
-
-	; counter eor nonce
-	eor r7, r23;
-	eor r6, r22;
-	eor r5, r21;
-	eor r4, r20;
-	eor r3, r19;
-	eor r2, r18;
-	eor r1, r17;
-	eor r0, r16;
-	
-	; store counter
-	movw r16, r8;
-	movw r18, r10;
-	movw r20, r12;
-	movw r22, r14;
+	movw r16, r0;
+	movw r18, r2;
+	movw r20, r4;
+	movw r22, r6;
 	; counter increase
 	inc r16;
 	adc r17, zero;
@@ -118,10 +87,7 @@ initCounter:
 	adc r21, zero;
 	adc r22, zero;
 	adc r23, zero;
-	/* 
-	 * encrypt (nonce eor counter) 
-	 * X = [r7, r6, r5, r4], Y = [r3, r2, r1, r0]
-	 */
+	; encrypt (nonce eor counter) X = [r7, r6, r5, r4], Y = [r3, r2, r1, r0]
 	ldi r30, low(keys<<1);
 	ldi r31, high(keys<<1);
 	clr currentRound;
@@ -209,30 +175,7 @@ block1:
 	movw r2, r18;
 	movw r4, r20;
 	movw r6, r22;
-	; load the nonce. nonce is fixed
-	ldi r30, low(nonce<<1);
-	ldi r31, high(nonce<<1);
-	lpm r23, z+; the highest byte
-	lpm r22, z+;
-	lpm r21, z+;
-	lpm r20, z+;
-	lpm r19, z+;
-	lpm r18, z+;
-	lpm r17, z+;
-	lpm r16, z+; the lowest byte
-	; counter eor nonce
-	eor r7, r23;
-	eor r6, r22;
-	eor r5, r21;
-	eor r4, r20;
-	eor r3, r19;
-	eor r2, r18;
-	eor r1, r17;
-	eor r0, r16;
-	/* 
-	 * encrypt (nonce eor counter) 
-	 * X = [r7, r6, r5, r4], Y = [r3, r2, r1, r0]
-	 */
+	; encrypt (nonce eor counter) X = [r7, r6, r5, r4], Y = [r3, r2, r1, r0]
 	ldi r30, low(keys<<1);
 	ldi r31, high(keys<<1);
 	clr currentRound;
@@ -311,8 +254,6 @@ block2:
 	st -x, r7;
 
 	ret;
-
-nonce: .db 0x65, 0x6b, 0x69, 0x6c, 0x20, 0x64, 0x6e, 0x75
 
 /*counter: .db 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00*/
 
