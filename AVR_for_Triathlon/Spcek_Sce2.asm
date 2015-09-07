@@ -23,7 +23,7 @@
  .def zero = r25;
 
  .dseg
-	SRamData: .byte 8;
+	SRamData: .byte 16;
 	SRamCounter:    .byte 8;
 
  .cseg
@@ -85,6 +85,7 @@ encryption:
 	ld r2, x+ ;
 	ld r1, x+ ;
 	ld r0, x+ ; the lowest byte
+
 	; load the nonce. nonce is fixed
 	ldi r30, low(nonce<<1);
 	ldi r31, high(nonce<<1);
@@ -96,6 +97,13 @@ encryption:
 	lpm r18, z+;
 	lpm r17, z+;
 	lpm r16, z+; the lowest byte
+
+	; store counter
+	movw r8, r0;
+	movw r10, r2;
+	movw r12, r4;
+	movw r14, r6;
+
 	; counter eor nonce
 	eor r7, r23;
 	eor r6, r22;
@@ -107,10 +115,10 @@ encryption:
 	eor r0, r16;
 	
 	; store counter
-	movw r16, r0;
-	movw r18, r2;
-	movw r20, r4;
-	movw r22, r6;
+	movw r16, r8;
+	movw r18, r10;
+	movw r20, r12;
+	movw r22, r14;
 	; counter increase
 	inc r16;
 	adc r17, zero;

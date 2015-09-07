@@ -87,6 +87,13 @@ initCounter:
 	lpm r18, z+;
 	lpm r17, z+;
 	lpm r16, z+; the lowest byte
+
+	; store counter
+	movw r8, r0;
+	movw r10, r2;
+	movw r12, r4;
+	movw r14, r6;
+
 	; counter eor nonce
 	eor r7, r23;
 	eor r6, r22;
@@ -98,10 +105,10 @@ initCounter:
 	eor r0, r16;
 	
 	; store counter
-	movw r16, r0;
-	movw r18, r2;
-	movw r20, r4;
-	movw r22, r6;
+	movw r16, r8;
+	movw r18, r10;
+	movw r20, r12;
+	movw r22, r14;
 	; counter increase
 	inc r16;
 	adc r17, zero;
@@ -164,7 +171,7 @@ block1:
 	eor r7, r11;
 	inc currentRound;
 	cpi currentRound, ENC_ROUNDS;
-brne block1;
+	brne block1;
 	; load the plain text
 	ldi r26, low(SRamData);
 	ldi r27, high(SRamData);
@@ -275,7 +282,7 @@ block2:
 	eor r7, r11;
 	inc currentRound;
 	cpi currentRound, ENC_ROUNDS;
-brne block2;
+	brne block2;
 	ld r15, x+; the highest byte
 	ld r14, x+;
 	ld r13, x+;
