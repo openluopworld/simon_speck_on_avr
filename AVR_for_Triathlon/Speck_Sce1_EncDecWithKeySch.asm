@@ -29,7 +29,7 @@ initBlock:
 	cpi temp, 0;
 	brne initBlock;
 
-	; initilize the vector. The vector is [0, 0, 0, 0, 0, 0, 0, 0](from low byte to high byte)
+	; initilize the vector (from low byte to high byte)
 	ldi temp, 8;
 	ldi r26, low(vector);
 	ldi r27, high(vector);

@@ -2,14 +2,12 @@
  * Spcek_Sce2.asm
  *
  * Encrypt 128 bits of data in CTR mode.
- * 1.Since the 128 bits can not be operated parallelly in AVR. The time is just operating 64 bits.
- * 2.Nonce is stored in flash.
- * 3.Others are same with the paper.
+ * 1.No nonce.
+ * 2.Counter and data are not stored in flash. There are just initialized in RAM with the same function of the paper.
  * 
  * Data In RAM:   sendData: the data needs to be encrypted 
  *                count:    the counter in CTR mode
- * Data In Flash: nonce:    the nonce
- *                keys:     the round keys.( No master key and key schedule is required)
+ * Data In Flash: keys:     the round keys.( No master key and key schedule is required)
  *
  *  Created: 2015/8/30 13:22:15
  *   Author: LuoPeng
