@@ -13,42 +13,15 @@
  *   Author: LuoPeng
  */ 
 
- .EQU	DATA_SIZE_BYTES = 16;
- .EQU	COUNTER_SIZE_BYTES = 8;
+ .EQU	PTEXT_NUM_BYTE = 16;
+ .EQU	COUNT_NUM_BYTE = 8;
  .EQU	ENC_ROUNDS = 27;
+
+ #define ENCRYPT
 
  .def temp = r23;
  .def currentRound = r24;
  .def zero = r25;
-
- .dseg
-	SRamData: .byte 16;
-	SRamCounter:    .byte 8;
-
- .cseg
- main:
-	; init SRamData
-	ldi temp, 16;
-	ldi r26, low(SRamData);
-	ldi r27, high(SRamData);
-initBlock:
-	st x+, temp;
-	dec temp;
-	cpi temp, 0;
-	brne initBlock;
-
-	; init counter
-	ldi temp, 8;
-	ldi r26, low(SRamCounter);
-	ldi r27, high(SRamCounter);
-initCounter:
-	st x+, temp;
-	dec temp;
-	cpi temp, 0;
-	brne initCounter;
-
-	;rcall encryption;
-	;ret;
 
 	/*
 	 * Subroutine: encryption
@@ -65,13 +38,13 @@ initCounter:
 	 *             Y the address of keys
 	 *             r30 store 0
 	 */
-
+#ifdef ENCRYPT
 encryption:
 	clr zero;
 
 	; load the counter
-	ldi r26, low(SRamCounter);
-	ldi r27, high(SRamCounter);
+	ldi r26, low(SRAM_COUNT);
+	ldi r27, high(SRAM_COUNT);
 	ld r7, x+ ; the highest byte
 	ld r6, x+ ;
 	ld r5, x+ ;
@@ -147,8 +120,8 @@ block1:
 	brne block1;
 
 	; load the plain text
-	ldi r26, low(SRamData);
-	ldi r27, high(SRamData);
+	ldi r26, low(SRAM_PTEXT);
+	ldi r27, high(SRAM_PTEXT);
 	ld r15, x+; the highest byte
 	ld r14, x+;
 	ld r13, x+;
@@ -232,6 +205,7 @@ block2:
 	cpi currentRound, ENC_ROUNDS;
 	brne block2;
 
+	; load plain text
 	ld r15, x+; the highest byte
 	ld r14, x+;
 	ld r13, x+;
@@ -260,11 +234,7 @@ block2:
 	st -x, r7;
 
 	ret;
-
-/*counter: .db 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00*/
-
-/*data: .db 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
-	  .db 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00*/
+#endif
 
 ; the 27*4 bytes of round keys
 keys: 

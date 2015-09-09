@@ -5,95 +5,25 @@
  *   Author: LuoPeng
  */ 
 
+.EQU    INITV_NUM_BYTE = 8
+.EQU    PTEXT_NUM_BYTE = 128
+.EQU	MASTER_KEY_NUM_BYTE = 16
+.EQU    KEYS_NUM_BYTE = 108
+.EQU	KEY_SCHEDULE_ROUNDS = 26
+.EQU	ENC_DEC_ROUNDS = 27
+.EQU	BLOCK_SIZE = 16
+
+#define KEYSCHEDULE
+#define ENCRYPT
+#define DECRYPT
+
 .def temp = r22;
 .def transferL = r23;
 .def currentRound = r24;
-.def currentBlock = r25; in CBC model, the blocks of plain text is 16(128 bytes).
-
- .dseg ; RAM( data segment)
-	sendData: .byte 128; the 16 blocks(each block has 8 bytes) of plaintext. For each block, the byte is from high to low.
-	lRAM: .byte 12;	
-	keys: .byte 108;     the 27*4 bytes of round keys
-	vector: .byte 8;     an initialization vector that is used in the first block(encryption and decryption)
-	tempCipher: .byte 8; store the cipher text of last round. only used in decrtypion.
-
- .cseg ; Flash( code segement)
-main:
-	; initialize the data
-	ldi temp, 128;
-	ldi r26, low(sendData);
-	ldi r27, high(sendData);
-initBlock:
-	st x+, temp;
-	dec temp;
-	cpi temp, 0;
-	brne initBlock;
-
-	; initilize the vector (from low byte to high byte)
-	ldi temp, 8;
-	ldi r26, low(vector);
-	ldi r27, high(vector);
-initVector:
-	st x+, temp;
-	dec temp;
-	cpi temp, 0;
-	brne initVector;
-
-	; 0x1b, 0x1a, 0x19, 0x18, 0x13, 0x12, 0x11, 0x10, 0x0b, 0x0a, 0x09, 0x08, 0x03, 0x02, 0x01, 0x00;
-	; load k0
-	ldi r26, low(keys);
-	ldi r27, high(keys);
-	ldi temp, 0x00;
-	st x+, temp;
-	ldi temp, 0x00;
-	st x+, temp;
-	ldi temp, 0x00;
-	st x+, temp;
-	ldi temp, 0x00;
-	st x+, temp;
-	; load the l2, l1, l0
-	ldi r26, low(lRAM);
-	ldi r27, high(lRAM);
-	ldi temp, 0x08;
-	st x+, temp;
-	ldi temp, 0x09;
-	st x+, temp;
-	ldi temp, 0x0a;
-	st x+, temp;
-	ldi temp, 0x0b;
-	st x+, temp;
-	ldi temp, 0x10;
-	st x+, temp;
-	ldi temp, 0x11;
-	st x+, temp;
-	ldi temp, 0x12;
-	st x+, temp;
-	ldi temp, 0x13;
-	st x+, temp;
-	ldi temp, 0x18;
-	st x+, temp;
-	ldi temp, 0x19;
-	st x+, temp;
-	ldi temp, 0x1a;
-	st x+, temp;
-	ldi temp, 0x1b;
-	st x+, temp;
-	
-
-	; key schedule
-;	rcall keySchedule;
-;	nop;
-
-	; encryption
-;	rcall encryption;
-;	nop;
-
-	; decryption
-;	rcall decryption;
-;	ret;
+.def currentBlock = r25;
 
 	/*
-	 * Subroutine: keySchedule
+	 * Subroutine: keyschedule
 	 * Function:   compute the sub keys.
 	 * RAM:        lRAM
 	 *             keys
@@ -106,15 +36,16 @@ initVector:
 	 *             Y the address of lRAM
 	 *             Z the address of lRAM
 	 */
-keySchedule:
+#ifdef KEYSCHEDULE
+keyschedule:
 	; prepare for key schedule
 	clr currentRound;
 	clr r21; store the value of zero
-	ldi r26, low(keys);
-	ldi r27, high(keys);
+	ldi r26, low(SRAM_KEYS);
+	ldi r27, high(SRAM_KEYS);
 subkey:	
-	ldi r28, low(lRAM);
-	ldi r29, high(lRAM);
+	ldi r28, low(SRAM_L);
+	ldi r29, high(SRAM_L);
 	;[r3,r2,r1,r0] to store ki
 	ld r0, x+;
 	ld r1, x+;
@@ -161,8 +92,8 @@ subkey:
 	sbiw r26, 4;
 
 	; update the lRAM, l[i] is useless.
-	ldi r30, low(lRAM);
-	ldi r31, high(lRAM);
+	ldi r30, low(SRAM_L);
+	ldi r31, high(SRAM_L);
 	clr transferL;
 L:
 	ld temp, y+;
@@ -177,9 +108,10 @@ L:
 
 	; loop control
 	inc currentRound;
-	cpi currentRound, 26; 27 may be wrong
+	cpi currentRound, KEY_SCHEDULE_ROUNDS; 27 may be wrong
 brne subkey;
-;	ret;
+	ret;
+#endif
 
 	/*
 	 * Subroutine: encryption
@@ -196,10 +128,11 @@ brne subkey;
 	 *             Y the address of keys
 	 *             r30 store 0
 	 */
-encryption:
+#ifdef ENCRYPT
+encrypt:
 	; load the vector to [r23-r16]
-	ldi r26, low(vector);
-	ldi r27, high(vector);
+	ldi r26, low(SRAM_INITV);
+	ldi r27, high(SRAM_INITV);
 	ld r16, x+;
 	ld r17, x+;
 	ld r18, x+;
@@ -211,12 +144,12 @@ encryption:
 
 	; start encyrption
 	clr currentBlock;
-	ldi r26, low(sendData); x stores the current address of data
-	ldi r27, high(sendData);
+	ldi r26, low(SRAM_PTEXT); x stores the current address of data
+	ldi r27, high(SRAM_PTEXT);
 encAnotherBlock:
 	clr currentRound; reset
-	ldi r28, low(keys); stores the start address of keys
-	ldi r29, high(keys);
+	ldi r28, low(SRAM_KEYS); stores the start address of keys
+	ldi r29, high(SRAM_KEYS);
 	; load the plaintext from RAM to registers [r7,...,r0], X = [r7, r6, r5, r4], Y = [r3, r2, r1, r0]
 	ld r7, x+ ;
 	ld r6, x+ ;
@@ -279,7 +212,7 @@ encLoop:
 	movw r6, r14; r7:r6 = r15:r14
 	
 	inc currentRound;
-	cpi currentRound, 27;
+	cpi currentRound, ENC_DEC_ROUNDS;
 	brne encLoop;
 	; one block has been encrypted. move cipher text to tempCipher
 	movw r16, r0;
@@ -298,12 +231,13 @@ encLoop:
 	; x = x + 8, let x point the start address of next block
 	adiw r26, 8; adiw rd, K ==== rd+1:rd <- rd+1:rd + K
 	inc currentBlock;
-	cpi currentBlock, 16;
+	cpi currentBlock, BLOCK_SIZE;
 	breq encAllEnd;
 	jmp encAnotherBlock;
 encAllEnd:
 	nop;
-;	ret;
+	ret;
+#endif
 
 	/*
 	 * Subroutine: decryption
@@ -322,10 +256,11 @@ encAllEnd:
 	 *             Y the address of keys
 	 *             Z the address of tempCipher
 	 */
-decryption:
+#ifdef DECRYPT
+decrypt:
 	; load the vector to register[r16-r23]
-	ldi r26, low(vector);
-	ldi r27, high(vector);
+	ldi r26, low(SRAM_INITV);
+	ldi r27, high(SRAM_INITV);
 	ld r16, x+;
 	ld r17, x+;
 	ld r18, x+;
@@ -337,8 +272,8 @@ decryption:
 
 	; start decyrption
 	clr currentBlock;
-	ldi r26, low(sendData); x stores the current address of data
-	ldi r27, high(sendData);
+	ldi r26, low(SRAM_PTEXT); x stores the current address of data
+	ldi r27, high(SRAM_PTEXT);
 decAnotherBlock:
 	clr currentRound; reset
 	; load the ciphertext from RAM to registers [r7,...,r0], X = [r7, r6, r5, r4], Y = [r3, r2, r1, r0]
@@ -351,8 +286,8 @@ decAnotherBlock:
 	ld r1, x+ ;
 	ld r0, x+ ;
 	; store the ciphertext of last round
-	ldi r30, low(tempCipher); x stores the current address of data
-	ldi r31, high(tempCipher);
+	ldi r30, low(SRAM_TempCipher); x stores the current address of data
+	ldi r31, high(SRAM_TempCipher);
 	st z+, r0;
 	st z+, r1;
 	st z+, r2;
@@ -362,8 +297,9 @@ decAnotherBlock:
 	st z+, r6;
 	st z+, r7;
 
-	ldi r28, low(vector); the address of (the last byte keys + 1)
-	ldi r29, high(vector);
+	; SRAM_INITV must be next and near to SRAM_KEYS in RAM
+	ldi r28, low(SRAM_INITV); the address of (the last byte keys + 1)
+	ldi r29, high(SRAM_INITV);
 	;sbiw r28, 1; y is just the start address of keys + 108. So it does not need sub 1.
 decLoop:
 	; get the sub key k
@@ -415,7 +351,7 @@ decLoop:
 	mov r7, r10;
 
 	inc currentRound;
-	cpi currentRound, 27;
+	cpi currentRound, ENC_DEC_ROUNDS;
 	brne decLoop;
 	
 	; eor with the init vector or the cipher text of last block
@@ -439,8 +375,8 @@ decLoop:
 	; x = x + 8, let x point the start address of next block
 	adiw r26, 8;K adiw rd, K ==== rd+1:rd <- rd+1:rd + K
 	; reset vector: move from tempCipher to vector
-	ldi r30, low(tempCipher);
-	ldi r31, high(tempCipher);
+	ldi r30, low(SRAM_TempCipher);
+	ldi r31, high(SRAM_TempCipher);
 	ld r16, z+;
 	ld r17, z+;
 	ld r18, z+;
@@ -450,8 +386,9 @@ decLoop:
 	ld r22, z+;
 	ld r23, z+;
 	inc currentBlock;
-	cpi currentBlock, 16;
+	cpi currentBlock, BLOCK_SIZE;
 	breq decAllEnd;
 	jmp decAnotherBlock;
 decAllEnd:
 	ret;
+#endif
