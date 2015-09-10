@@ -18,7 +18,7 @@ Implement on Atmel Studio<br>
 Two Scenarios: 1)128 bytes in CBC mode; 2) 128 bits in CTR mode<br>
 References:《Triathlon of Lightweight Block Ciphers for the Internet of Things》《FELICS - Fair Evaluation of Lightweight Cryptographic Systems》.<br>
 Just like the triathone, <b>some data such as masterKeys and counter are not stored in flash. They are just initialized in RAM.</b>
+<a href="http://perso.uclouvain.be/fstandae/lightweight_ciphers/">http://perso.uclouvain.be/fstandae/lightweight_ciphers/</a>
 
 # Something needs to be improved
 1. The code in directory <b>AVR</b> is old. Some instructions such as <b>adiw</b> and <b>cpi</b> can be used to reduce the number of code.<br>
-2. Learn to use subroutines in AVR code. The file just gives the interface of key schedule, encryption and decryption. Another file calls the function. <a href="http://perso.uclouvain.be/fstandae/lightweight_ciphers/">http://perso.uclouvain.be/fstandae/lightweight_ciphers/</a>
