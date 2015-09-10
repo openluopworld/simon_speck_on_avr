@@ -1,4 +1,4 @@
-.ORG 0x0000
+
 ; global interrupt disable
 	cli
 ; initialize stack
@@ -28,10 +28,8 @@ w_loop:
 	nop
 	nop
 	dec		r16			; r16=r16-1
-	brbc	1,w_loop	; branch sur loop si Z=0, c¡§¡ès si r16 != 0
+	brbc	1,w_loop	; branch sur loop si Z=0, c¨¤s si r16 != 0
 	ret					; return from subroutine
-
-
 
 ; wait2 : r17 * wait (to be set inside) + some instructions
 wait2:
@@ -39,10 +37,9 @@ wait2:
 w_loop2:
 	rcall	wait
 	dec		r17			; r17=r17-1
-	brbc	1,w_loop2	; branch sur loop2 si Z=0, c¡§¡ès si r17 != 0
+	brbc	1,w_loop2	; branch sur loop2 si Z=0, c¨¤s si r17 != 0
 	ret					; return from subroutine
 ;******************** Q ELEC FUNCTIONS (END) *********************
-
 
 ;******************** MAIN (START) *******************************
 main:
@@ -74,15 +71,14 @@ PTEXT_LOOP:
 	dec r18
 	st X+, r18
 	dec r18
-
 	; l0 = [12, 11, 10, 9]; l1 = [8, 7, 6, 5]; l2 = [4, 3, 2, 1]
 	ldi 	XH, high(SRAM_L)
 	ldi 	XL, low(SRAM_L)
 	ldi		r18, 12
-L_LOOP:
+KEY_LOOP:
 	st X+, r18
 	dec r18
-	brbc 1, L_LOOP
+	brbc 1, KEY_LOOP
 
 	sbi		PORTB,1		; portA,0 = high (trigger on port A0)
 	nop

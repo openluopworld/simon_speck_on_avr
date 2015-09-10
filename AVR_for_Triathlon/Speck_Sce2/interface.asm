@@ -1,4 +1,4 @@
-.ORG 0x0000
+
 ; global interrupt disable
 	cli
 ; initialize stack
@@ -12,7 +12,6 @@
   	out		DDRB, r16
 
 	rjmp	main
-
 
     .include "./Speck_Sce2.asm"
 
@@ -28,7 +27,7 @@ w_loop:
 	nop
 	nop
 	dec		r16			; r16=r16-1
-	brbc	1,w_loop	; branch sur loop si Z=0, c¡§¡ès si r16 != 0
+	brbc	1,w_loop	; branch sur loop si Z=0, c¨¤s si r16 != 0
 	ret					; return from subroutine
 
 
@@ -39,7 +38,7 @@ wait2:
 w_loop2:
 	rcall	wait
 	dec		r17			; r17=r17-1
-	brbc	1,w_loop2	; branch sur loop2 si Z=0, c¡§¡ès si r17 != 0
+	brbc	1,w_loop2	; branch sur loop2 si Z=0, c¨¤s si r17 != 0
 	ret					; return from subroutine
 ;******************** Q ELEC FUNCTIONS (END) *********************
 

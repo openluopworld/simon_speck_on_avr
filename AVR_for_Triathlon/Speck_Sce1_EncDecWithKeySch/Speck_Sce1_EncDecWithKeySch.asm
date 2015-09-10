@@ -391,4 +391,3 @@ decLoop:
 	jmp decAnotherBlock;
 decAllEnd:
 	ret;
-#endif
