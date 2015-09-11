@@ -20,5 +20,9 @@ References:ã€ŠTriathlon of Lightweight Block Ciphers for the Internet of Thingsã
 Just like the triathone, <b>some data such as masterKeys and counter are not stored in flash. They are just initialized in RAM.</b>
 <a href="http://perso.uclouvain.be/fstandae/lightweight_ciphers/">http://perso.uclouvain.be/fstandae/lightweight_ciphers/</a>
 
+# ARM_for_Triathlon
+Try to implement simon and speck on ARM according to the interface provided in the paper. Only key schudule, one block of encryption and decryption
+ is implemented now. And the correctness of the program is not verified.
+
 # Something needs to be improved
 1. The code in directory <b>AVR</b> is old. Some instructions such as <b>adiw</b> and <b>cpi</b> can be used to reduce the number of code.<br>
