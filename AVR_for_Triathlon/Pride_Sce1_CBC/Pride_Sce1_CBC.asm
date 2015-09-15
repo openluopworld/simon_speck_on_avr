@@ -4,11 +4,6 @@
  *  Created: 2015/9/15 9:46:19
  *   Author: Administrator
  */ 
-
-/*
- * 
- */
-
 .EQU	ONE_BLOCK_BYTE = 8			; one block has 8 bytes
 .EQU    PTEXT_NUM_BYTE = 128		; CBC mode has 128 bytes of plain text
 .EQU	MASTER_KEY_NUM_BYTE = 16	; master key is 16 bytes

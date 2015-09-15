@@ -4,9 +4,9 @@
  *  Created: 2015/9/15 14:12:38
  *   Author: Administrator
  */ 
-.EQU    PTEXT_NUM_BYTE = 16
-.EQU	WHITEN_KEY0_NUM_BYTE = 8
-.EQU    KEYS_NUM_BYTE = 160
+.EQU    PTEXT_NUM_BYTE = 16			; 128 bits is 16 bytes
+.EQU	WHITEN_KEY0_NUM_BYTE = 8	; whiten key0 is 8 bytes
+.EQU    KEYS_NUM_BYTE = 80			; round keys
 .EQU	ENC_DEC_ROUNDS = 19
 .EQU	COUNT_SIZE_BYTE = 8
 

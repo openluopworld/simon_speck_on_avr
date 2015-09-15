@@ -55,10 +55,10 @@ main:
 	ldi 	XH, high(SRAM_PTEXT)
 	ldi 	XL, low(SRAM_PTEXT)
 	ldi		r18, PTEXT_NUM_BYTE
-	clr		r19
+	;clr		r19
 PTEXT_LOOP:
-	st x+, r19
-	;st X+, r18
+	;st x+, r19
+	st X+, r18
 	dec r18
 	brbc 1, PTEXT_LOOP
 
@@ -71,7 +71,7 @@ COUNT_LOOP:
 	dec r18
 	brbc 1, COUNT_LOOP
 
-	ldi 	XH, high(SRAM_COUNT)
+/*	ldi 	XH, high(SRAM_COUNT)
 	ldi 	XL, low(SRAM_COUNT)
 	ldi r18, 0x01;
 	st x+, r18;
@@ -88,7 +88,7 @@ COUNT_LOOP:
 	ldi r18, 0xcd;
 	st x+, r18;
 	ldi r18, 0xef;
-	st x+, r18;
+	st x+, r18;*/
 
 	sbi		PORTB,1		; portA,0 = high (trigger on port A0)
 	nop

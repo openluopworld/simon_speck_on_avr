@@ -60,7 +60,7 @@ PTEXT_LOOP:
 	dec r18
 	brbc 1, PTEXT_LOOP
 
-	ldi 	XH, high(SRAM_PTEXT)
+/*	ldi 	XH, high(SRAM_PTEXT)
 	ldi 	XL, low(SRAM_PTEXT)
 	ldi r18, 0x01;
 	st x+, r18;
@@ -77,21 +77,21 @@ PTEXT_LOOP:
 	ldi r18, 0xcd;
 	st x+, r18;
 	ldi r18, 0xef;
-	st x+, r18;
+	st x+, r18;*/
 	
 	; the whitening key 0 and first round of round keys is initialized
 	ldi 	XH, high(SRAM_KEY0)
 	ldi 	XL, low(SRAM_KEY0)
 	ldi		r18, MASTER_KEY_NUM_BYTE
-	clr		r19
+	;clr		r19
 KEY_LOOP:
-	st x+, r19
-	;st X+, r18
+	;st x+, r19
+	st X+, r18
 	dec r18
 	brbc 1, KEY_LOOP
 
 	;fedcba9876543210
-	ldi xl, low(SRAM_KEYS)
+/*	ldi xl, low(SRAM_KEYS)
 	ldi xh, high(SRAM_KEYS)
 	ldi r18, 0xfe;
 	st x+, r18;
@@ -108,15 +108,15 @@ KEY_LOOP:
 	ldi r18, 0x32;
 	st x+, r18;
 	ldi r18, 0x10;
-	st x+, r18;
+	st x+, r18;*/
 
 	ldi 	XH, high(SRAM_INITV)
 	ldi 	XL, low(SRAM_INITV)
 	ldi		r18, ONE_BLOCK_BYTE
-	clr		r19
+	;clr		r19
 INITV_LOOP:
-	st	x+, r19
-	;st X+, r18
+	;st	x+, r19
+	st X+, r18
 	dec r18
 	brbc 1, INITV_LOOP
 
