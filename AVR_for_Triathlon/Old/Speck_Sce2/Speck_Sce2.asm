@@ -19,10 +19,10 @@
 
  #define ENCRYPT
 
- .def temp = r22
- .def zero = r23;;
+ .def temp = r23;
  .def currentRound = r24;
- .def currentBlock = r25;
+ .def zero = r25;
+
 	/*
 	 * Subroutine: encryption
 	 * Function:   encyrpt the 128 bytes of data
@@ -40,6 +40,7 @@
 	 */
 #ifdef ENCRYPT
 encrypt:
+	clr zero;
 
 	; load the counter
 	ldi r26, low(SRAM_COUNT);
@@ -61,25 +62,19 @@ encrypt:
 
 	; counter increase
 	inc r16;
-/*	adc r17, zero;
+	adc r17, zero;
 	adc r18, zero;
 	adc r19, zero;
 	adc r20, zero;
 	adc r21, zero;
 	adc r22, zero;
-	adc r23, zero;*/
-	clr currentBlock;
-	clr zero;
-	; load the plain text
-	ldi r26, low(SRAM_PTEXT);
-	ldi r27, high(SRAM_PTEXT);
-blocks:
+	adc r23, zero;
 
 	;encrypt (nonce eor counter) X = [r7, r6, r5, r4], Y = [r3, r2, r1, r0]
 	ldi r30, low(keys<<1);
 	ldi r31, high(keys<<1);
 	clr currentRound;
-encStart:
+block1:
 	; load k: [r15, r14, r13, r12], r12 is the lowest byte
 	lpm r12, z+;
 	lpm r13, z+;
@@ -122,8 +117,11 @@ encStart:
 	
 	inc currentRound;
 	cpi currentRound, ENC_ROUNDS;
-	brne encStart;
+	brne block1;
 
+	; load the plain text
+	ldi r26, low(SRAM_PTEXT);
+	ldi r27, high(SRAM_PTEXT);
 	ld r15, x+; the highest byte
 	ld r14, x+;
 	ld r13, x+;
@@ -151,17 +149,90 @@ encStart:
 	st -x, r6;
 	st -x, r7;
 
-	inc currentBlock;
-	cpi currentBlock, 2;
-	breq encEnd;
 	adiw r26, 8;
+
 	; load counter
 	movw r0, r16;
 	movw r2, r18;
 	movw r4, r20;
 	movw r6, r22; 
-	rjmp blocks;
-encEnd:
+	;encrypt (nonce eor counter) X = [r7, r6, r5, r4], Y = [r3, r2, r1, r0]
+	ldi r30, low(keys<<1);
+	ldi r31, high(keys<<1);
+	clr currentRound;
+block2:
+	; load k: [r15, r14, r13, r12], r12 is the lowest byte
+	lpm r12, z+;
+	lpm r13, z+;
+	lpm r14, z+;
+	lpm r15, z+;
+	; x = S(8)( S(-8)(x) + y)
+	add r5, r0; x1 = x1 + y0
+	adc r6, r1; x2 = x2 + y1
+	adc r7, r2; x3 = x3 + y2
+	adc r4, r3; x0 = x0 + y3;
+	; k = ( S(-8)(x) + y ) eor k
+	eor r12, r5;
+	eor r13, r6;
+	eor r14, r7;
+	eor r15, r4;
+	; y = s(3)y
+	lsl r0; loop 1
+	rol r1;
+	rol r2;
+	rol r3;
+	adc r0, zero;
+	lsl r0; loop 2
+	rol r1;
+	rol r2;
+	rol r3;
+	adc r0, zero;
+	lsl r0; loop 3
+	rol r1;
+	rol r2;
+	rol r3;
+	adc r0, zero;
+	; y = S(3)(y) eor ( S(-8)(x) + y ) eor k
+	eor r0, r12;
+	eor r1, r13;
+	eor r2, r14;
+	eor r3, r15;
+	; x = ( S(-8)(x) + y ) eor k
+	movw r4, r12; r5:r4 = r13:r12
+	movw r6, r14; r7:r6 = r15:r14
+	
+	inc currentRound;
+	cpi currentRound, ENC_ROUNDS;
+	brne block2;
+
+	; load plain text
+	ld r15, x+; the highest byte
+	ld r14, x+;
+	ld r13, x+;
+	ld r12, x+;
+	ld r11, x+;
+	ld r10, x+;
+	ld r9, x+;
+	ld r8, x+;
+	; eor
+	eor r7, r15;
+	eor r6, r14;
+	eor r5, r13;
+	eor r4, r12;
+	eor r3, r11;
+	eor r2, r10;
+	eor r1, r9;
+	eor r0, r8;
+	; store the cipher text
+	st -x, r0;
+	st -x, r1;
+	st -x, r2;
+	st -x, r3;
+	st -x, r4;
+	st -x, r5;
+	st -x, r6;
+	st -x, r7;
+
 	ret;
 #endif
 

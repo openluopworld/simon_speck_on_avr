@@ -63,8 +63,8 @@ PTEXT_LOOP:
 	dec r18
 	brbc 1, PTEXT_LOOP
 
-	ldi 	XH, high(SRAM_MASTER_KEY)
-	ldi 	XL, low(SRAM_MASTER_KEY)
+	ldi 	XH, high(SRAM_KEYS)
+	ldi 	XL, low(SRAM_KEYS)
 	ldi		r18, MASTER_KEY_NUM_BYTE
 KEY_LOOP:
 	st X+, r18
@@ -150,9 +150,8 @@ KEY_LOOP:
 
 
 .DSEG
-  SRAM_PTEXT: .BYTE PTEXT_NUM_BYTE				; the 16 blocks(each block has 8 bytes) of plaintext. For each block, the byte is from high to low.
-  SRAM_MASTER_KEY: .BYTE MASTER_KEY_NUM_BYTE	; master keys
-  SRAM_KEYS: .BYTE KEYS_NUM_BYTE				; the 44*4 bytes of round keys
-  SRAM_INITV: .BYTE INITV_NUM_BYTE				; an initialization vector that is used in the first block(encryption and decryption)
-  SRAM_TempCipher: .byte 8						; store the cipher text of last round. only used in decrtypion.
+  SRAM_PTEXT: .BYTE PTEXT_NUM_BYTE; the 16 blocks(each block has 8 bytes) of plaintext. For each block, the byte is from high to low.
+  SRAM_KEYS: .BYTE KEYS_NUM_BYTE;   the 44*4 bytes of round keys
+  SRAM_INITV: .BYTE INITV_NUM_BYTE; an initialization vector that is used in the first block(encryption and decryption)
+  SRAM_TempCipher: .byte 8;         store the cipher text of last round. only used in decrtypion.
 ;******************** MAIN (END) *********************************

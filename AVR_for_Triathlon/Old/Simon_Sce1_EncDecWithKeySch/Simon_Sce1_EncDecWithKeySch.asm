@@ -8,7 +8,7 @@
 .EQU    INITV_NUM_BYTE = 8
 .EQU    PTEXT_NUM_BYTE = 128
 .EQU	MASTER_KEY_NUM_BYTE = 16
-.EQU    KEYS_NUM_BYTE = 160; 176-16
+.EQU    KEYS_NUM_BYTE = 176
 .EQU	KEY_SCHEDULE_ROUNDS = 40
 .EQU	ENC_DEC_ROUNDS = 44
 .EQU	BLOCK_SIZE = 16
@@ -47,24 +47,9 @@ setConstC:
 	 */
 #if defined(KEYSCHEDULE)
 keyschedule:
-	; load master key
-/*	ldi r26, low(SRAM_KEYS);
-	ldi r27, high(SRAM_KEYS);
-	ldi r28, low(SRAM_MASTER_KEY);
-	ldi r29, high(SRAM_MASTER_KEY);
-	clr currentRound;
-loadMasterKey:
-	ld temp, y+;
-	st x+, temp;
-	inc currentRound;
-	cpi currentRound, MASTER_KEY_NUM_BYTE
-	brne loadMasterKey;*/
-	
 	; prepare for the key schedule
-	ldi r26, low(SRAM_MASTER_KEY);
-	ldi r27, high(SRAM_MASTER_KEY);
-/*	ldi r26, low(SRAM_KEYS);
-	ldi r27, high(SRAM_KEYS);*/
+	ldi r26, low(SRAM_KEYS);
+	ldi r27, high(SRAM_KEYS);
 	ldi r30, low(constZ<<1);
 	ldi r31, high(constZ<<1);
 	lpm currentZ, z+;
@@ -150,13 +135,13 @@ keysExtend:
 	inc remain8;
 	cpi remain8, 8;
 	breq nextByteZ; if remain8 = 8, the next byte of constZ should be load
-	rjmp keysExtend;
+	jmp keysExtend;
 nextByteZ:
 	clr remain8; start with 0 again
 	lpm currentZ, z+;
 	cpi currentRound, KEY_SCHEDULE_ROUNDS;
 	breq scheEnd;
-	rjmp keysExtend;
+	jmp keysExtend;
 scheEnd:
 	ret;
 #endif
@@ -286,7 +271,7 @@ encLoop:
 	inc currentBlock;
 	cpi currentBlock, BLOCK_SIZE;
 	breq encAllEnd;
-	rjmp encAnotherBlock;
+	jmp encAnotherBlock;
 encAllEnd:
 	ret;
 #endif
@@ -350,8 +335,8 @@ decAnotherBlock:
 	st z+, r6;
 	st z+, r7;
 
-	ldi r28, low(SRAM_KEYS+KEYS_NUM_BYTE); the address of keys
-	ldi r29, high(SRAM_KEYS+KEYS_NUM_BYTE);
+	ldi r28, low(SRAM_INITV); the address of keys
+	ldi r29, high(SRAM_INITV);
 	;sbiw r28, 1; y is just the start address of keys + 176. So it does not need sub 1.
 
 	clr r30; r30 is useless this time
@@ -438,7 +423,7 @@ decLoop:
 	inc currentBlock;
 	cpi currentBlock, BLOCK_SIZE;
 	breq decAllEnd;
-	rjmp decAnotherBlock;
+	jmp decAnotherBlock;
 decAllEnd:
 	ret; the end point is here or not makes much difference.
 #endif

@@ -1,4 +1,4 @@
-
+.ORG 0x0000
 ; global interrupt disable
 	cli
 ; initialize stack
@@ -13,8 +13,8 @@
 
 	rjmp	main
 
-
-    .include "./Speck_Sce1_EncDecWithKeySch.asm"
+	.include "./Speck_Sce1_LinRAM.asm"
+    ;.include "./Speck_Sce1_EncDecWithKeySch.asm"
 
 .CSEG
 ;******************** Q ELEC FUNCTIONS (START) *********************
@@ -28,8 +28,10 @@ w_loop:
 	nop
 	nop
 	dec		r16			; r16=r16-1
-	brbc	1,w_loop	; branch sur loop si Z=0, c¨¤s si r16 != 0
+	brbc	1,w_loop	; branch sur loop si Z=0, c¡§¡ès si r16 != 0
 	ret					; return from subroutine
+
+
 
 ; wait2 : r17 * wait (to be set inside) + some instructions
 wait2:
@@ -37,9 +39,10 @@ wait2:
 w_loop2:
 	rcall	wait
 	dec		r17			; r17=r17-1
-	brbc	1,w_loop2	; branch sur loop2 si Z=0, c¨¤s si r17 != 0
+	brbc	1,w_loop2	; branch sur loop2 si Z=0, c¡§¡ès si r17 != 0
 	ret					; return from subroutine
 ;******************** Q ELEC FUNCTIONS (END) *********************
+
 
 ;******************** MAIN (START) *******************************
 main:
@@ -59,8 +62,17 @@ PTEXT_LOOP:
 	dec r18
 	brbc 1, PTEXT_LOOP; branch if the bit in SREG is cleared. The 1 bit of SREG is Z, so it mean "branch if the result is not 0"
 
+
+	ldi 	XH, high(SRAM_MASTER_KEY)
+	ldi 	XL, low(SRAM_MASTER_KEY)
+	ldi		r18, MASTER_KEY_NUM_BYTE
+KEY_LOOP:
+	st X+, r18
+	dec r18
+	brbc 1, KEY_LOOP
+
 	; k0 = [16, 15, 14, 13]
-	ldi 	XH, high(SRAM_KEYS)
+/*	ldi 	XH, high(SRAM_KEYS)
 	ldi 	XL, low(SRAM_KEYS)
 	ldi		r18, MASTER_KEY_NUM_BYTE
 	st X+, r18
@@ -70,15 +82,16 @@ PTEXT_LOOP:
 	st X+, r18
 	dec r18
 	st X+, r18
-	dec r18
+	dec r18*/
+
 	; l0 = [12, 11, 10, 9]; l1 = [8, 7, 6, 5]; l2 = [4, 3, 2, 1]
-	ldi 	XH, high(SRAM_L)
+/*	ldi 	XH, high(SRAM_L)
 	ldi 	XL, low(SRAM_L)
 	ldi		r18, 12
-KEY_LOOP:
+L_LOOP:
 	st X+, r18
 	dec r18
-	brbc 1, KEY_LOOP
+	brbc 1, L_LOOP*/
 
 	sbi		PORTB,1		; portA,0 = high (trigger on port A0)
 	nop
@@ -158,9 +171,11 @@ KEY_LOOP:
 
 
 .DSEG
-  SRAM_PTEXT: .BYTE PTEXT_NUM_BYTE;      the 16 blocks(each block has 8 bytes) of plaintext. For each block, the byte is from high to low.
-  SRAM_KEYS: .BYTE KEYS_NUM_BYTE;        the 44*4 bytes of round keys
-  SRAM_INITV: .BYTE INITV_NUM_BYTE;      an initialization vector that is used in the first block(encryption and decryption)
-  SRAM_TempCipher: .byte INITV_NUM_BYTE; store the cipher text of last round. only used in decrtypion.
-  SRAM_L: .byte 12
+  SRAM_PTEXT: .BYTE PTEXT_NUM_BYTE				; the 16 blocks(each block has 8 bytes) of plaintext. For each block, the byte is from high to low.
+  SRAM_MASTER_KEY: .BYTE MASTER_KEY_NUM_BYTE	; master keys
+  SRAM_KEYS: .BYTE KEYS_NUM_BYTE				; the 27*4 bytes of round keys
+  SRAM_INITV: .BYTE INITV_NUM_BYTE				; an initialization vector that is used in the first block(encryption and decryption)
+  SRAM_TempCipher: .byte INITV_NUM_BYTE			; store the cipher text of last round. only used in decrtypion.
+  ;SRAM_L: .byte 12
+  SRAM_L: .byte 116
 ;******************** MAIN (END) *********************************

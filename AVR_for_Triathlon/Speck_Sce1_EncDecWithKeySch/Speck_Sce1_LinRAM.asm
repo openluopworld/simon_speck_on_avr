@@ -1,4 +1,11 @@
 /*
+ * Speck_Sce1_LinRAM.asm
+ *
+ *  Created: 2015/9/17 14:26:45
+ *   Author: Administrator
+ */ 
+
+/*
  * Speck_Sce1_EncDecWithKeySch.asm
  *
  *  Created: 2015/8/29 0:02:04
@@ -66,9 +73,11 @@ loadL:
 	clr r21; store the value of zero
 	ldi r26, low(SRAM_KEYS);
 	ldi r27, high(SRAM_KEYS);
-subkey:	
+
 	ldi r28, low(SRAM_L);
 	ldi r29, high(SRAM_L);
+subkey:	
+
 	;[r3,r2,r1,r0] to store ki
 	ld r0, x+;
 	ld r1, x+;
@@ -114,20 +123,12 @@ subkey:
 	st x+, r3;
 	sbiw r26, 4;
 
-	; update the lRAM, l[i] is useless.
-	ldi r30, low(SRAM_L);
-	ldi r31, high(SRAM_L);
-	clr transferL;
-L:
-	ld temp, y+;
-	st z+, temp;
-	inc transferL;
-	cpi transferL, 8;
-	brne L;
+	adiw z, 8;
 	st z+, r5;
 	st z+, r6;
 	st z+, r7;
 	st z+, r4;
+	sbiw z, 12;
 
 	; loop control
 	inc currentRound;
@@ -256,7 +257,7 @@ encLoop:
 	inc currentBlock;
 	cpi currentBlock, BLOCK_SIZE;
 	breq encAllEnd;
-	jmp encAnotherBlock;
+	rjmp encAnotherBlock;
 encAllEnd:
 	ret;
 #endif
@@ -410,7 +411,7 @@ decLoop:
 	inc currentBlock;
 	cpi currentBlock, BLOCK_SIZE;
 	breq decAllEnd;
-	jmp decAnotherBlock;
+	rjmp decAnotherBlock;
 decAllEnd:
 	ret;
 #endif

@@ -38,29 +38,6 @@
 	 */
 #ifdef KEYSCHEDULE
 keyschedule:
-	; load k[0]
-	ldi r26, low(SRAM_KEYS);
-	ldi r27, high(SRAM_KEYS);
-	ldi r28, low(SRAM_MASTER_KEY);
-	ldi r29, high(SRAM_MASTER_KEY);
-	ld temp, y+;
-	st x+, temp;
-	ld temp, y+;
-	st x+, temp;
-	ld temp, y+;
-	st x+, temp;
-	ld temp, y+;
-	st x+, temp;
-	ldi r26, low(SRAM_L);
-	ldi r27, high(SRAM_L);
-	clr currentRound;
-loadL:
-	ld temp, y+;
-	st x+, temp;
-	inc currentRound;
-	cpi currentRound, 12;
-	brne loadL
-
 	; prepare for key schedule
 	clr currentRound;
 	clr r21; store the value of zero
@@ -132,7 +109,7 @@ L:
 	; loop control
 	inc currentRound;
 	cpi currentRound, KEY_SCHEDULE_ROUNDS; 27 may be wrong
-	brne subkey;
+brne subkey;
 	ret;
 #endif
 
@@ -258,6 +235,7 @@ encLoop:
 	breq encAllEnd;
 	jmp encAnotherBlock;
 encAllEnd:
+	nop;
 	ret;
 #endif
 
@@ -320,8 +298,8 @@ decAnotherBlock:
 	st z+, r7;
 
 	; SRAM_INITV must be next and near to SRAM_KEYS in RAM
-	ldi r28, low(SRAM_KEYS+KEYS_NUM_BYTE); the address of (the last byte keys + 1)
-	ldi r29, high(SRAM_KEYS+KEYS_NUM_BYTE);
+	ldi r28, low(SRAM_INITV); the address of (the last byte keys + 1)
+	ldi r29, high(SRAM_INITV);
 	;sbiw r28, 1; y is just the start address of keys + 108. So it does not need sub 1.
 decLoop:
 	; get the sub key k
@@ -413,4 +391,3 @@ decLoop:
 	jmp decAnotherBlock;
 decAllEnd:
 	ret;
-#endif
