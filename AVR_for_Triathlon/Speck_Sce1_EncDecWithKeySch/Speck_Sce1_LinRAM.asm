@@ -4,14 +4,6 @@
  *  Created: 2015/9/17 14:26:45
  *   Author: Administrator
  */ 
-
-/*
- * Speck_Sce1_EncDecWithKeySch.asm
- *
- *  Created: 2015/8/29 0:02:04
- *   Author: LuoPeng
- */ 
-
 .EQU    INITV_NUM_BYTE = 8
 .EQU    PTEXT_NUM_BYTE = 128
 .EQU	MASTER_KEY_NUM_BYTE = 16
@@ -31,7 +23,7 @@
 
 	/*
 	 * Subroutine: keyschedule
-	 * Function:   compute the sub keys.
+	 * Function:   compute the sub keys. The values of L are all stored in RAM.
 	 * RAM:        lRAM
 	 *             keys
 	 * Register:   [r0, r7] key schedule
