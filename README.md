@@ -11,18 +11,16 @@ Just change the value of 'SIMON_BLOCK_SIZE' and 'SIMON_KEY_WORDS', then run it. 
 # AVR
 Implement on Atmel Studio<br>
 Simon64/128 and Speck64/128 are implemented on Minimal RAM and High-Throughput condition<sup>[1]</sup>.<br>
+Some instructions such as <b>adiw</b> and <b>cpi</b> can be used to reduce the number of code.<br>
 
 # AVR_for_Triathlon
 Implement on Atmel Studio<br>
 Two Scenarios: 1)128 bytes in CBC mode; 2) 128 bits in CTR mode<sup>[2,3]</sup><br>
-Just like the triathone, <b>some data such as masterKeys and counter are not stored in flash. They are just initialized in RAM.</b>
+Just like the triathone, <b>some data such as master keys and counter are not stored in flash. They are just initialized in RAM.</b>
 
 # ARM_for_Triathlon
 Try to implement simon and speck on ARM according to the interface provided in [3]. Only key schudule, one block of encryption and decryption
  is implemented now. And the correctness of the program is not verified.
-
-# Something needs to be improved
-1. The code in directory <b>AVR</b> is old. Some instructions such as <b>adiw</b> and <b>cpi</b> can be used to reduce the number of code.<br>
 
 # References
 [1] The Simon and Speck Block Ciphers on AVR 8-bit<br>
