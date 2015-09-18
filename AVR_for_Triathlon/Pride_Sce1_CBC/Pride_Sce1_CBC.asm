@@ -97,10 +97,12 @@ fixedBytes:
 	cpi currentRound, FIXED_KEYS_NUM_BYTE;
 	brne fixedBytes;
 	; set the unfixed four bytes
-	ldi r26, low(SRAM_KEYS);
+	sbiw x, KEY0_NUM_BYTE;
+	movw y, x;
+/*	ldi r26, low(SRAM_KEYS);
 	ldi r27, high(SRAM_KEYS);
 	ldi r28, low(SRAM_KEYS);
-	ldi r29, high(SRAM_KEYS);
+	ldi r29, high(SRAM_KEYS);*/
 	clr currentRound;
 unFixedBytes:
 	adiw x, 1;
