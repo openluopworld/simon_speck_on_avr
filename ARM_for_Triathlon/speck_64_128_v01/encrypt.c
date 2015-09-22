@@ -119,9 +119,24 @@ void Encrypt(uint8_t *block, uint8_t *roundKeys)
 /*----------------------------------------------------------------------------*/
 /* Encryption -- Default C Implementation				      */
 /*----------------------------------------------------------------------------*/
+#include <stdint.h>
+
+#include "cipher.h"
+#include "constants.h"
+#include "primitives.h"
+
 void Encrypt(uint8_t *block, uint8_t *roundKeys)
 {
-	
+	uint32_t *rk = (uint32_t *)roundKeys;
+	uint32_t *rightPtr = (uint32_t *)block;
+	uint32_t *leftPtr = rightPtr + 1;
+	uint8_t i;
+
+	for (i = 0; i < NUMBER_OF_ROUNDS; ++i)
+	{
+		*leftPtr = (rorAlpha(*leftPtr) + *rightPtr) ^ READ_ROUND_KEY_DOUBLE_WORD(rk[i]);
+		*rightPtr = rolBeta(*rightPtr) ^ *leftPtr;
+	}
 }
 
 #endif
