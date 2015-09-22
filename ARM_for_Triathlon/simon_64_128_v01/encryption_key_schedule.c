@@ -144,9 +144,34 @@ void RunEncryptionKeySchedule(uint8_t *key, uint8_t *roundKeys)
 /*----------------------------------------------------------------------------*/
 /* Key Schedule -- Default c implementation                                   */
 /*----------------------------------------------------------------------------*/
+#include <stdint.h>
+
+#include "cipher.h"
+#include "constants.h"
+#include "primitives.h"
+
 void RunEncryptionKeySchedule(uint8_t *key, uint8_t *roundKeys)
 {
-		
+	uint8_t i;
+	uint8_t z_xor_3;
+	uint32_t temp;
+	uint32_t *mk = (uint32_t *)key;
+	uint32_t *rk = (uint32_t *)roundKeys;
+
+	rk[0] = mk[0];
+    	rk[1] = mk[1];
+    	rk[2] = mk[2];
+	rk[3] = mk[3];
+    	for (i = 4; i < NUMBER_OF_ROUNDS; ++i)
+    	{
+        	temp = ror1(rk[i - 1]);
+		temp = ror1(temp);
+		temp = ror1(temp);
+        	temp = temp ^ ror1(temp);
+		temp = temp ^ rk[i-3] ^ ror1(rk[i-3]);
+		z_xor_3 = READ_Z_BYTE(Z_XOR_3[(i - 4)]);
+		rk[i] = ~(rk[i - 4]) ^ temp ^ (uint32_t)z_xor_3;
+    	}
 }
 #endif
 #endif

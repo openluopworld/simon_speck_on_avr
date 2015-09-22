@@ -132,9 +132,28 @@ void Decrypt(uint8_t *block, uint8_t *roundKeys)
 /*----------------------------------------------------------------------------*/
 /* decryption -- Default c implementation                                     */
 /*----------------------------------------------------------------------------*/
+#include <stdint.h>
+
+#include "cipher.h"
+#include "constants.h"
+#include "primitives.h"
+
 void Decrypt(uint8_t *block, uint8_t *roundKeys)
 {
-	/* Add here the cipher decryption implementation */
+    	int8_t i;
+	uint32_t *rk = (uint32_t *)roundKeys;
+	uint32_t *rightPtr = (uint32_t *)block;
+    	uint32_t *leftPtr = (rightPtr + 1);
+	uint32_t tmp;
+	uint32_t k;
+
+	for (i = NUMBER_OF_ROUNDS - 1; i >= 0; i--)
+	{
+		k = READ_ROUND_KEY_DOUBLE_WORD(rk[i]);
+		tmp = *rightPtr;
+		*rightPtr = f(*rightPtr) ^ *leftPtr ^ k;
+		*leftPtr = tmp;
+	}
 }
 #endif
 #endif
