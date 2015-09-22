@@ -7,7 +7,7 @@
  *
  * Copyright (C) 2015 University of Luxembourg
  *
- * Written in 2015 by Daniel Dinu <dumitru-daniel.dinu@uni.lu>
+ * Written in 2015 by Yann Le Corre <yann.lecorre@uni.lu>
  *
  * This file is part of FELICS.
  *
@@ -40,134 +40,81 @@
 
 
 #if defined(PC) /* PC */
-
-/* Architecture = PC ; Scenario = 0 (cipher operation) */
-#if defined(SCENARIO) && (SCENARIO_0 == SCENARIO)
-
-/* Replace with your custom data types and read macros for this architecture and scenario */
-#define SBOX_BYTE ROM_DATA_BYTE
-#define READ_SBOX_BYTE READ_ROM_DATA_BYTE
-
-#endif
-
-/* Architecture = PC ; Scenario = 1 */
-#if defined(SCENARIO) && (SCENARIO_1 == SCENARIO)
-
-/* Replace with your custom data types and read macros for this architecture and scenario */
-#define SBOX_BYTE ROM_DATA_BYTE
-#define READ_SBOX_BYTE READ_ROM_DATA_BYTE
-
-#endif
-
-/* Architecture = PC ; Scenario = 2 */
-#if defined(SCENARIO) && (SCENARIO_2 == SCENARIO)
-
-/* Replace with your custom data types and read macros for this architecture and scenario */
-#define SBOX_BYTE ROM_DATA_BYTE
-#define READ_SBOX_BYTE READ_ROM_DATA_BYTE
-
-#endif
-
+	/* Architecture = PC ; Scenario = 0 (cipher operation) */
+	#if defined(SCENARIO) && (SCENARIO_0 == SCENARIO)
+		#define Z_BYTE ROM_DATA_BYTE
+		#define READ_Z_BYTE READ_ROM_DATA_BYTE
+	#endif
+	/* Architecture = PC ; Scenario = 1 */
+	#if defined(SCENARIO) && (SCENARIO_1 == SCENARIO)
+		#define Z_BYTE ROM_DATA_BYTE
+		#define READ_Z_BYTE READ_ROM_DATA_BYTE
+	#endif
+	/* Architecture = PC ; Scenario = 2 */
+	#if defined(SCENARIO) && (SCENARIO_2 == SCENARIO)
+		#define Z_BYTE ROM_DATA_BYTE
+		#define READ_Z_BYTE READ_ROM_DATA_BYTE
+	#endif
 #endif /* PC */
 
 
 
 #if defined(AVR) /* AVR */
-
-/* Architecture = AVR ; Scenario = 0 (cipher operation) */
-#if defined(SCENARIO) && (SCENARIO_0 == SCENARIO)
-
-/* Replace with your custom data types and read macros for this architecture and scenario */
-#define SBOX_BYTE ROM_DATA_BYTE
-#define READ_SBOX_BYTE READ_ROM_DATA_BYTE
-
-#endif
-
-/* Architecture = AVR ; Scenario = 1 */
-#if defined(SCENARIO) && (SCENARIO_1 == SCENARIO)
-
-/* Replace with your custom data types and read macros for this architecture and scenario */
-#define SBOX_BYTE ROM_DATA_BYTE
-#define READ_SBOX_BYTE READ_ROM_DATA_BYTE
-
-#endif
-
-/* Architecture = AVR ; Scenario = 2 */
-#if defined(SCENARIO) && (SCENARIO_2 == SCENARIO)
-
-/* Replace with your custom data types and read macros for this architecture and scenario */
-#define SBOX_BYTE ROM_DATA_BYTE
-#define READ_SBOX_BYTE READ_ROM_DATA_BYTE
-
-#endif
-
+	/* Architecture = AVR ; Scenario = 0 (cipher operation) */
+	#if defined(SCENARIO) && (SCENARIO_0 == SCENARIO)
+		#define Z_BYTE ROM_DATA_BYTE
+		#define READ_Z_BYTE READ_ROM_DATA_BYTE
+	#endif
+	/* Architecture = AVR ; Scenario = 1 */
+	#if defined(SCENARIO) && (SCENARIO_1 == SCENARIO)
+		#define Z_BYTE ROM_DATA_BYTE
+		#define READ_Z_BYTE READ_ROM_DATA_BYTE
+	#endif
+	/* Architecture = AVR ; Scenario = 2 */
+	#if defined(SCENARIO) && (SCENARIO_2 == SCENARIO)
+		#define Z_BYTE ROM_DATA_BYTE
+		#define READ_Z_BYTE READ_ROM_DATA_BYTE
+	#endif
 #endif /* AVR */
 
 
 
 #if defined(MSP) /* MSP */
-
-/* Architecture = MSP ; Scenario = 0 (cipher operation) */
-#if defined(SCENARIO) && (SCENARIO_0 == SCENARIO)
-
-/* Replace with your custom data types and read macros for this architecture and scenario */
-#define SBOX_BYTE ROM_DATA_BYTE
-#define READ_SBOX_BYTE READ_ROM_DATA_BYTE
-
-#endif
-
-/* Architecture = MSP ; Scenario = 1 */
-#if defined(SCENARIO) && (SCENARIO_1 == SCENARIO)
-
-/* Replace with your custom data types and read macros for this architecture and scenario */
-#define SBOX_BYTE ROM_DATA_BYTE
-#define READ_SBOX_BYTE READ_ROM_DATA_BYTE
-
-#endif
-
-/* Architecture = MSP ; Scenario = 2 */
-#if defined(SCENARIO) && (SCENARIO_2 == SCENARIO)
-
-/* Replace with your custom data types and read macros for this architecture and scenario */
-#define SBOX_BYTE ROM_DATA_BYTE
-#define READ_SBOX_BYTE READ_ROM_DATA_BYTE
-
-#endif
-
+	/* Architecture = MSP ; Scenario = 0 (cipher operation) */
+	#if defined(SCENARIO) && (SCENARIO_0 == SCENARIO)
+		#define Z_BYTE ROM_DATA_BYTE
+		#define READ_Z_BYTE READ_ROM_DATA_BYTE
+	#endif
+	/* Architecture = MSP ; Scenario = 1 */
+	#if defined(SCENARIO) && (SCENARIO_1 == SCENARIO)
+		#define Z_BYTE ROM_DATA_BYTE
+		#define READ_Z_BYTE READ_ROM_DATA_BYTE
+	#endif
+	/* Architecture = MSP ; Scenario = 2 */
+	#if defined(SCENARIO) && (SCENARIO_2 == SCENARIO)
+		#define Z_BYTE ROM_DATA_BYTE
+		#define READ_Z_BYTE READ_ROM_DATA_BYTE
+	#endif
 #endif /* MSP */
 
 
 
 #if defined(ARM) /* ARM */
-
-/* Architecture = ARM ; Scenario = 0 (cipher operation) */
-#if defined(SCENARIO) && (SCENARIO_0 == SCENARIO)
-
-/* Replace with your custom data types and read macros for this architecture and scenario */
-#define SBOX_BYTE ROM_DATA_BYTE
-#define READ_SBOX_BYTE READ_ROM_DATA_BYTE
-
-#endif
-
-/* Architecture = ARM ; Scenario = 1 */
-#if defined(SCENARIO) && (SCENARIO_1 == SCENARIO)
-
-/* Replace with your custom data types and read macros for this architecture and scenario */
-#define SBOX_BYTE ROM_DATA_BYTE
-#define READ_SBOX_BYTE READ_ROM_DATA_BYTE
-
-#endif
-
-/* Architecture = ARM ; Scenario = 2 */
-#if defined(SCENARIO) && (SCENARIO_2 == SCENARIO)
-
-/* Replace with your custom data types and read macros for this architecture and scenario */
-#define SBOX_BYTE ROM_DATA_BYTE
-#define READ_SBOX_BYTE READ_ROM_DATA_BYTE
-
-#endif
-
+	/* Architecture = ARM ; Scenario = 0 (cipher operation) */
+	#if defined(SCENARIO) && (SCENARIO_0 == SCENARIO)
+		#define Z_BYTE ROM_DATA_BYTE
+		#define READ_Z_BYTE READ_ROM_DATA_BYTE
+	#endif
+	/* Architecture = ARM ; Scenario = 1 */
+	#if defined(SCENARIO) && (SCENARIO_1 == SCENARIO)
+		#define Z_BYTE ROM_DATA_BYTE
+		#define READ_Z_BYTE READ_ROM_DATA_BYTE
+	#endif
+	/* Architecture = ARM ; Scenario = 2 */
+	#if defined(SCENARIO) && (SCENARIO_2 == SCENARIO)
+		#define Z_BYTE ROM_DATA_BYTE
+		#define READ_Z_BYTE READ_ROM_DATA_BYTE
+	#endif
 #endif /* ARM */
-
 
 #endif /* DATA_TYPES_H */

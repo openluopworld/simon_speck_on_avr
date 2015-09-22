@@ -7,7 +7,7 @@
  *
  * Copyright (C) 2015 University of Luxembourg
  *
- * Written in 2015 by Daniel Dinu <dumitru-daniel.dinu@uni.lu>
+ * Written in 2015 by Yann Le Corre <yann.lecorre@uni.lu>
  *
  * This file is part of FELICS.
  *
@@ -29,13 +29,21 @@
 #include <stdint.h>
 
 #include "constants.h"
+#include "cipher.h"
 
+#ifdef AVR
+Z_BYTE Z3[] = {0xdb, 0xac, 0x65, 0xe0, 0x48, 0xa7, 0x34, 0x3c};
+#else
+#ifdef PC
+Z_BYTE Z_XOR_3[] =
+{
+    1 ^3, 0 ^3, 1 ^3, 0 ^3, 1 ^3, 1 ^3, 1 ^3, 1 ^3,
+    0 ^3, 1 ^3, 1 ^3, 1 ^3, 0 ^3, 0 ^3, 0 ^3, 0 ^3,
+    0 ^3, 0 ^3, 1 ^3, 1 ^3, 0 ^3, 1 ^3, 0 ^3, 0 ^3,
+    1 ^3, 0 ^3, 0 ^3, 1 ^3, 1 ^3, 0 ^3, 0 ^3, 0 ^3,
+    1 ^3, 0 ^3, 1 ^3, 0 ^3, 0 ^3, 0 ^3, 0 ^3, 1 ^3,
+    0 ^3, 0 ^3
+};
+#endif
+#endif
 
-/*
- *
- * Cipher constants
- *
- */
-/* Replace with the cipher constants definition */
-SBOX_BYTE S0[16] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
-SBOX_BYTE S1[16] = {16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1};

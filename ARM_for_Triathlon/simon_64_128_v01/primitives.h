@@ -26,32 +26,29 @@
  *
  */
 
-#ifndef CONSTANTS_H
-#define CONSTANTS_H
-
-#include "data_types.h"
-
-
-/*
+/****************************************************************************** 
  *
- * Cipher characteristics:
- * 	BLOCK_SIZE - the cipher block size in bytes
- * 	KEY_SIZE - the cipher key size in bytes
- *	ROUND_KEY_SIZE - the cipher round keys size in bytes
- * 	NUMBER_OF_ROUNDS - the cipher number of rounds
+ * common macro and inline functions for simon cipher
  *
- */
-#define BLOCK_SIZE 8
-#define KEY_SIZE 16
-#define ROUND_KEYS_SIZE 176
-#define NUMBER_OF_ROUNDS 44
+ ******************************************************************************/
 
-#ifdef AVR
-extern Z_BYTE Z[];
-#else
-#ifdef PC
-extern Z_BYTE Z_XOR_3[];
-#endif
-#endif
+static inline uint32_t rol1(uint32_t x)
+{
+	return (x << 1) | (x >> 31);
+}
 
-#endif /* CONSTANTS_H */
+static inline uint32_t rol8(uint32_t x)
+{
+	return (x << 8) | (x >> 24);
+}
+
+static inline uint32_t ror1(uint32_t x)
+{
+	return (x >> 1) | (x << 31);
+}
+
+static inline uint32_t f(uint32_t x)
+{
+	uint32_t x_rol1 = rol1(x);
+	return x_rol1 & rol8(x) ^ rol1(x_rol1);
+}
