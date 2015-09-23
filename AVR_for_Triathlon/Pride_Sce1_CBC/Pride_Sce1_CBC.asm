@@ -11,7 +11,7 @@
 .EQU	FIXED_KEYS_NUM_BYTE = 4		; in round keys, there are 4 bytes that are fixed
 .EQU    KEYS_NUM_BYTE = 80			; for each round keys, 4 bytes is different, so only 80 bytes is needed for 20 rounds
 .EQU	KEY_SCHEDULE_ROUNDS = 21	; round number begin with 1 not 0, so the loop control value should be 21 not 20
-.EQU	ENC_DEC_ROUNDS = 19			; 20 rounds in total, but the last round is different
+.EQU	ENC_DEC_ROUNDS = 19			; 20 rounds in total, the last round is different
 .EQU	BLOCK_SIZE = 16				; 128 bytes is 16 block
 
 #define KEYSCHEDULE
@@ -43,18 +43,18 @@
 .def s7 = r7
 
 .def rk0 = r8
-.def rk1 = r9
-.def rk2 = r10
-.def rk3 = r11
-.def rk4 = r12
-.def rk5 = r13
-.def rk6 = r14
+.def rk2 = r9
+.def rk4 = r10
+.def rk6 = r11
+.def rk1 = r12
+.def rk3 = r13
+.def rk5 = r14
 .def rk7 = r15
 
-.def t0 = r16
-.def t1 = r17
-.def t2 = r18
-.def t3 = r19
+.def t0 = r12
+.def t1 = r13
+.def t2 = r14
+.def t3 = r15
 
 .def initv0 = r16		; initv  is only used before encryption (store init value) and after encryption(store cipher text for next round)
 .def initv1 = r17		; but t0-t3 is only used in encryption, so register have no conflict.
@@ -97,12 +97,10 @@ fixedBytes:
 	cpi currentRound, FIXED_KEYS_NUM_BYTE;
 	brne fixedBytes;
 	; set the unfixed four bytes
-	sbiw x, KEY0_NUM_BYTE;
-	movw y, x;
-/*	ldi r26, low(SRAM_KEYS);
+	ldi r26, low(SRAM_KEYS);
 	ldi r27, high(SRAM_KEYS);
 	ldi r28, low(SRAM_KEYS);
-	ldi r29, high(SRAM_KEYS);*/
+	ldi r29, high(SRAM_KEYS);
 	clr currentRound;
 unFixedBytes:
 	adiw x, 1;
@@ -255,6 +253,8 @@ encLoop:
 	eor s5, t1
 	and s7, s5
 	eor s7, t3
+	cpi currentRound, ENC_DEC_ROUNDS;
+	breq enclastRound;
 	; State s0, s1, s2, s3, s4, s5, s6, s7
 	; Temporary registers t0, t1, t2, t3
 	; Linear Layer and Inverse Linear Layer: L0
@@ -299,11 +299,11 @@ encLoop:
 	eor s6, t0
 
 	inc currentRound;
-	cpi currentRound, ENC_DEC_ROUNDS;
-	breq enclastRound;
-	jmp encLoop;
+	;cpi currentRound, ENC_DEC_ROUNDS;
+	;breq enclastRound;
+	rjmp encLoop;
 enclastRound:
-	ld rk1, y+;
+	/*ld rk1, y+;
 	ld rk3, y+;
 	ld rk5, y+;
 	ld rk7, y+;
@@ -336,7 +336,7 @@ enclastRound:
 	and s5, s7
 	eor s5, t1
 	and s7, s5
-	eor s7, t3
+	eor s7, t3*/
 	; whitening key2
 	ldi r28, low(SRAM_KEY0);
 	ldi r29, high(SRAM_KEY0);
@@ -406,14 +406,14 @@ decrypt:
 	ld initv6, x+;
 	ld initv7, x+;
 	; store initv to ONE_BLOCK_BYTE
-	st x+, initv0;
+/*	st x+, initv0;
 	st x+, initv1;
 	st x+, initv2;
 	st x+, initv3;
 	st x+, initv4;
 	st x+, initv5;
 	st x+, initv6;
-	st x+, initv7;
+	st x+, initv7;*/
 
 	clr currentBlock;
 	ldi r26, low(SRAM_PTEXT);
@@ -461,6 +461,53 @@ decAnotherBlock:
 
 	;the first round in decryption
 	; Substitution Layer
+/*	movw t0, s0
+	movw t2, s2
+	and s0, s2
+	eor s0, s4
+	and s2, s4
+	eor s2, s6
+	and s1, s3
+	eor s1, s5
+	and s3, s5
+	eor s3, s7
+	movw s4, s0
+	movw s6, s2
+	and s4, s6
+	eor s4, t0
+	and s6, s4
+	eor s6, t2
+	and s5, s7
+	eor s5, t1
+	and s7, s5
+	eor s7, t3*/
+	
+	ldi r28, low(SRAM_KEYS_FIXED_FOUR); stores the start address of keys
+	ldi r29, high(SRAM_KEYS_FIXED_FOUR);
+	ld rk0, y+;
+	ld rk2, y+;
+	ld rk4, y+;
+	ld rk6, y+;
+	ldi r28, low(SRAM_KEYS + KEYS_NUM_BYTE); stores the start address of keys
+	ldi r29, high(SRAM_KEYS + KEYS_NUM_BYTE);
+/*	ld rk7, -y;
+	ld rk5, -y;
+	ld rk3, -y;
+	ld rk1, -y;
+	; eor round keys
+	eor s0, rk0;
+	eor s1, rk1;
+	eor s2, rk2;
+	eor s3, rk3;
+	eor s4, rk4;
+	eor s5, rk5;
+	eor s6, rk6;
+	eor s7, rk7;*/
+
+	clr currentRound;
+decLoop:
+	;the first round in decryption
+	; Substitution Layer
 	movw t0, s0
 	movw t2, s2
 	and s0, s2
@@ -481,15 +528,7 @@ decAnotherBlock:
 	eor s5, t1
 	and s7, s5
 	eor s7, t3
-	
-	ldi r28, low(SRAM_KEYS_FIXED_FOUR); stores the start address of keys
-	ldi r29, high(SRAM_KEYS_FIXED_FOUR);
-	ld rk0, y+;
-	ld rk2, y+;
-	ld rk4, y+;
-	ld rk6, y+;
-	ldi r28, low(SRAM_KEYS_FIXED_FOUR); stores the start address of keys
-	ldi r29, high(SRAM_KEYS_FIXED_FOUR);
+	; eor k
 	ld rk7, -y;
 	ld rk5, -y;
 	ld rk3, -y;
@@ -504,8 +543,9 @@ decAnotherBlock:
 	eor s6, rk6;
 	eor s7, rk7;
 
-	clr currentRound;
-decLoop:
+	cpi currentRound, ENC_DEC_ROUNDS;
+	breq declastRound;
+
 	; State s0, s1, s2, s3, s4, s5, s6, s7
 	; Temporary registers t0, t1, t2, t3
 	; Linear Layer and Inverse Linear Layer: L0
@@ -553,7 +593,7 @@ decLoop:
 	mov s7, t1
 	eor s6, t0
 	; Substitution Layer
-	movw t0, s0
+/*	movw t0, s0
 	movw t2, s2
 	and s0, s2
 	eor s0, s4
@@ -586,12 +626,12 @@ decLoop:
 	eor s4, rk4;
 	eor s5, rk5;
 	eor s6, rk6;
-	eor s7, rk7;
+	eor s7, rk7;*/
 
 	inc currentRound;
-	cpi currentRound, ENC_DEC_ROUNDS;
-	breq declastRound;
-	jmp decLoop;
+	/*cpi currentRound, ENC_DEC_ROUNDS;
+	breq declastRound;*/
+	rjmp decLoop;
 declastRound:
 	; whitening key0
 	ldi r28, low(SRAM_KEY0); x stores the current address of data
@@ -614,7 +654,7 @@ declastRound:
 	eor s6, rk6;
 	eor s7, rk7;
 	; eor initv
-	ldi r28, low(SRAM_TEMP_INITV);
+/*	ldi r28, low(SRAM_TEMP_INITV);
 	ldi r29, high(SRAM_TEMP_INITV);
 	ld initv0, y+;
 	ld initv1, y+;
@@ -623,7 +663,7 @@ declastRound:
 	ld initv4, y+;
 	ld initv5, y+;
 	ld initv6, y+;
-	ld initv7, y+;
+	ld initv7, y+;*/
 	eor s0, initv0;
 	eor s1, initv1;
 	eor s2, initv2;
@@ -653,14 +693,14 @@ declastRound:
 	ld initv5, z+;
 	ld initv6, z+;
 	ld initv7, z+;
-	st -y, initv7;
+/*	st -y, initv7;
 	st -y, initv6;
 	st -y, initv5;
 	st -y, initv4;
 	st -y, initv3;
 	st -y, initv2;
 	st -y, initv1;
-	st -y, initv0;
+	st -y, initv0;*/
 	; block control
 	inc currentBlock;
 	cpi currentBlock, BLOCK_SIZE;

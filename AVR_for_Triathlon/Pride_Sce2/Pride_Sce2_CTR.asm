@@ -23,18 +23,18 @@
 .def s7 = r7
 
 .def rk0 = r8
-.def rk1 = r9
-.def rk2 = r10
-.def rk3 = r11
-.def rk4 = r12
-.def rk5 = r13
-.def rk6 = r14
+.def rk2 = r9
+.def rk4 = r10
+.def rk6 = r11
+.def rk1 = r12
+.def rk3 = r13
+.def rk5 = r14
 .def rk7 = r15
 
-.def t0 = r16;
-.def t1 = r17;
-.def t2 = r18;
-.def t3 = r19;
+.def t0 = r12;
+.def t1 = r13;
+.def t2 = r14;
+.def t3 = r15;
 
 .def count0 = r16;
 .def count1 = r17;
@@ -72,14 +72,14 @@ encrypt:
 	movw count4, s4;
 	movw count6, s6;
 	inc count7;
-	st x+, count0;
+/*	st x+, count0;
 	st x+, count1;
 	st x+, count2;
 	st x+, count3;
 	st x+, count4;
 	st x+, count5;
 	st x+, count6;
-	st x+, count7;
+	st x+, count7;*/
 
 	ldi currentBlock, 0;
 	ldi r28, low(SRAM_PTEXT);
@@ -150,6 +150,10 @@ encLoop:
 	eor s5, t1
 	and s7, s5
 	eor s7, t3
+
+	cpi currentRound, ENC_DEC_ROUNDS;
+	breq enclastRound;
+
 	; State s0, s1, s2, s3, s4, s5, s6, s7
 	; Temporary registers t0, t1, t2, t3
 	; Linear Layer and Inverse Linear Layer: L0
@@ -194,44 +198,8 @@ encLoop:
 	eor s6, t0
 
 	inc currentRound;
-	cpi currentRound, ENC_DEC_ROUNDS;
-	breq enclastRound;
-	jmp encLoop;
+	rjmp encLoop;
 enclastRound:
-	lpm rk1, z+;
-	lpm rk3, z+;
-	lpm rk5, z+;
-	lpm rk7, z+;
-	; eor round keys
-	eor s0, rk0;
-	eor s1, rk1;
-	eor s2, rk2;
-	eor s3, rk3;
-	eor s4, rk4;
-	eor s5, rk5;
-	eor s6, rk6;
-	eor s7, rk7;
-	; Substitution Layer
-	movw t0, s0
-	movw t2, s2
-	and s0, s2
-	eor s0, s4
-	and s2, s4
-	eor s2, s6
-	and s1, s3
-	eor s1, s5
-	and s3, s5
-	eor s3, s7
-	movw s4, s0
-	movw s6, s2
-	and s4, s6
-	eor s4, t0
-	and s6, s4
-	eor s6, t2
-	and s5, s7
-	eor s5, t1
-	and s7, s5
-	eor s7, t3
 	; whitening key2
 	ldi r30, low(whitenKeys<<1);
 	ldi r31, high(whitenKeys<<1);
@@ -281,7 +249,11 @@ enclastRound:
 	st -y, s0;
 	adiw y, 8;
 	; load count for the next round
-	ldi r26, low(SRAM_TEMP_COUNT);
+	movw s0, count0;
+	movw s2, count2;
+	movw s4, count4;
+	movw s6, count6;
+/*	ldi r26, low(SRAM_TEMP_COUNT);
 	ldi r27, high(SRAM_TEMP_COUNT);
 	ld s0, x+ ;
 	ld s1, x+ ;
@@ -290,7 +262,7 @@ enclastRound:
 	ld s4, x+ ;
 	ld s5, x+ ;
 	ld s6, x+ ;
-	ld s7, x+ ;
+	ld s7, x+ ;*/
 
 	inc currentBlock
 	cpi currentBlock, 2
