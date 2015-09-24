@@ -49,11 +49,6 @@ void RunEncryptionKeySchedule(uint8_t *key, uint8_t *roundKeys)
 /*----------------------------------------------------------------------------*/
 /* Key Schedule -- MSP			                                      */
 /*----------------------------------------------------------------------------*/
-/*
- * Instructions in MSP is different with other microcontrollers.
- * 	.The first register is the source, the second is the destination.
- *	.For example, "mov #5, r4" means move number 5 to register r4.
- */
 void RunEncryptionKeySchedule(uint8_t *key, uint8_t *roundKeys)
 {
     asm volatile (\
@@ -64,6 +59,8 @@ void RunEncryptionKeySchedule(uint8_t *key, uint8_t *roundKeys)
         /* r7  - higher word of k(i+1)		                         */
 	/* r8  - lower word of k(i+3)					 */
         /* r9  - higher word of k(i+3)		                         */
+	/* r10 - 				                         */
+	/* r11 - 				                         */
         /* r12 - point of Const Z eor 3                                  */
         /* r13 - Loop counter                                            */
         /* r14 - RoundKeys i                                             */
@@ -88,7 +85,7 @@ void RunEncryptionKeySchedule(uint8_t *key, uint8_t *roundKeys)
         /*--------------------------------------------------------------*/
         /* load master key						*/
         /*--------------------------------------------------------------*/
-        "mov    @r15+,       	0(r14);\n" /* r15 will add 1 in word, but r14 in bytes. */ 
+        "mov    @r15+,       	0(r14);\n" /* r15 will add two, r14 unchanged. */ 
         "mov    @r15+,       	2(r14);\n"
         "mov    @r15+,       	4(r14);\n"
         "mov    @r15+,       	6(r14);\n"
@@ -139,6 +136,10 @@ void RunEncryptionKeySchedule(uint8_t *key, uint8_t *roundKeys)
 	"eor.b	r4,		r8;\n"
 	"mov	r8,		16(r14);\n"
 	"mov	r9,		18(r14);\n"
+
+	/* points to ki+1 */
+	"add	#4,		r14;\n"
+
 	/* loop control */
         "dec	r13;\n"
 	"jne	round_loop;\n"
@@ -282,3 +283,4 @@ void RunEncryptionKeySchedule(uint8_t *key, uint8_t *roundKeys)
 #endif
 #endif
 #endif
+

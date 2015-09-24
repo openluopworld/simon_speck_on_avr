@@ -25,7 +25,11 @@ C(Carry); V(overflow); N(negative); and Z(zero)
 &nbsp;&nbsp;<b>mov    @r15+,    r6;</b><br>
 &nbsp;&nbsp;<b>mov    @r15+,    r7;</b><br>
 
-5. The byte of higher address is stored in the higher 8 bits of register.(???)<br>
+5. Instructions in MSP is different with other microcontrollers.<br>
+&nbsp;&nbsp;<b>The first register is the source, the second is the destination.</b>
+&nbsp;&nbsp;For example, <b>"mov r5, r4"</b> means moving r5 to r4.
+
+6. The byte of higher address is stored in the higher 8 bits of register.(???)<br>
 
 Refs<br>
 [1] <a href="http://mspgcc.sourceforge.net/manual/x214.html">mov.b rs, rd</a><br>

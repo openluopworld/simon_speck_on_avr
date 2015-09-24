@@ -109,7 +109,7 @@ void Encrypt(uint8_t *block, uint8_t *roundKeys)
 	"adc	r5,		r7;\n"
 	/* x = [S(-8)(x) + y] eor k */
 	"eor	r8,		r6;\n"
-	"adc	r9,		r7;\n"
+	"eor	r9,		r7;\n"
 	
 	/* y = s(3)y */
 	"rla	r4;\n" /* S(-1) */
@@ -123,7 +123,7 @@ void Encrypt(uint8_t *block, uint8_t *roundKeys)
 	"adc	r4;\n"
 	/* y = s(3)y eor [S(-8)(x) + y] eor k */
 	"eor	r6,		r4;\n"
-	"adc	r7,		r5;\n"
+	"eor	r7,		r5;\n"
 
 	/* loop control */
         "dec	r13;\n"

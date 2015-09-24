@@ -63,6 +63,7 @@ void RunEncryptionKeySchedule(uint8_t *key, uint8_t *roundKeys)
         /* r9  - higher word of l(i+1)		                         */
 	/* r10 - lower word of l(i+2)					 */
         /* r11 - higher word of l(i+2)		                         */
+	/* r12 - 				                         */
         /* r13 - Loop counter                                            */
         /* r14 - RoundKeys i                                             */
         /* r15 - Key                                                     */
@@ -86,7 +87,7 @@ void RunEncryptionKeySchedule(uint8_t *key, uint8_t *roundKeys)
         /*--------------------------------------------------------------*/
         /* load master key						*/
         /*--------------------------------------------------------------*/
-        "mov    @r15+,       	0(r14);\n" /* r15 will add 1 in word, but r14 in bytes. */ 
+        "mov    @r15+,       	0(r14);\n" 
         "mov    @r15+,       	2(r14);\n"
         "mov    @r15+,       	r6;\n"
         "mov    @r15+,       	r7;\n"
@@ -110,9 +111,10 @@ void RunEncryptionKeySchedule(uint8_t *key, uint8_t *roundKeys)
         "mov   	@r14+,        	r5;\n" 
         /* li = ki + S(-8)(li);	*/
         "add	r4,		r6;\n"
-	"add	r5,		r7;\n"
+	"adc	r5,		r7;\n"
 	/* li = [ki + S(-8)(li)] eor i */
-        "eor   	r13,       	r6;\n"  
+        "eor   	r13,       	r6;\n"
+
 	/* ki = S(3)ki */
 	"rla	r4;\n" /* S(-1) */
 	"rlc	r5;\n"
@@ -126,6 +128,7 @@ void RunEncryptionKeySchedule(uint8_t *key, uint8_t *roundKeys)
 	/* ki = S(3)ki eor [[ki + S(-8)(li)] eor i] */
 	"eor	r6,		r4;\n"
 	"eor	r7,		r5;\n"
+
 	/* store ki+1. r14 has pointed to the address of ki+1 by instruction "@r14+" */
 	"mov	r4,		0(r14);\n"
 	"mov	r5,		2(r14);\n"
@@ -138,9 +141,10 @@ void RunEncryptionKeySchedule(uint8_t *key, uint8_t *roundKeys)
 	"mov	r11,		r9;\n"
 	"mov	r4,		r10;\n" /* update li+2, covered by li+3 */
 	"mov	r5,		r11;\n"
+
 	/* loop control */
         "inc	r13;\n"
-	"cmp	#26,		r13" /* 27 rounds, only need to schedule 26 rounds */
+	"cmp	#26,		r13" /* r13-26, sets status only; the destination is not written */
 	"jne	round_loop;\n"
         /*---------------------------------------------------------------*/
         /* Restore registers                                             */
@@ -158,7 +162,7 @@ void RunEncryptionKeySchedule(uint8_t *key, uint8_t *roundKeys)
 	"pop    r4;                 \n"
         /*---------------------------------------------------------------*/
     :
-    : [key] "m" (key), [roundKeys] "m" (roundKeys), [Z_XOR_3] "" (Z_XOR_3)); 
+    : [key] "m" (key), [roundKeys] "m" (roundKeys)); 
 }
 
 #else

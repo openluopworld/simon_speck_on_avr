@@ -59,10 +59,12 @@ void Encrypt(uint8_t *block, uint8_t *roundKeys)
         /* r7  - higher word of x		                         */
 	/* r8  - lower word of k					 */
         /* r9  - higher word of k		                         */
-        /* r12 - temp1                                       */
+	/* r10 - 				                         */
+	/* r11 - 				                         */
+        /* r12 - temp1                                       		 */
         /* r13 - Loop counter                                            */
         /* r14 - RoundKeys i                                             */
-        /* r15 - block                                           */
+        /* r15 - block                                           	 */
         /*---------------------------------------------------------------*/
         /* Store all modified registers                                  */
         /*---------------------------------------------------------------*/
