@@ -31,10 +31,6 @@
 #include "constants.h"
 #include "cipher.h"
 
-#ifdef AVR
-Z_BYTE Z3[] = {0xdb, 0xac, 0x65, 0xe0, 0x48, 0xa7, 0x34, 0x3c};
-#else
-#ifdef PC
 /* z3 = 1101,1011,	1010,1100,	0110,0101,	1110,0000,	0100,1000,	1010,0111,	00110100001111 */
 /* rounds is 44, but in key schedule only 40 rounds, so just need 40 */
 Z_BYTE Z_XOR_3[] =

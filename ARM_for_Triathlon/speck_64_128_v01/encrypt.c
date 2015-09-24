@@ -53,7 +53,98 @@ void Encrypt(uint8_t *block, uint8_t *roundKeys)
 /*----------------------------------------------------------------------------*/
 void Encrypt(uint8_t *block, uint8_t *roundKeys)
 {
+    asm volatile (\
+        /*---------------------------------------------------------------*/
+	/* r4  - lower word of y					 */
+        /* r5  - higher word of y		                         */
+	/* r6  - lower word of x					 */
+        /* r7  - higher word of x		                         */
+	/* r8  - lower word of k					 */
+        /* r9  - higher word of k		                         */
+        /* r10 - 		                         		 */
+        /* r11 - 		                         		 */
+        /* r12 - temp                                       		 */
+        /* r13 - Loop counter                                            */
+        /* r14 - RoundKeys i                                             */
+        /* r15 - block                                           	 */
+        /*---------------------------------------------------------------*/
+        /* Store all modified registers                                  */
+        /*---------------------------------------------------------------*/
+	"push   r4;                 \n"
+        "push   r5;                 \n"
+        "push   r6;                 \n"
+        "push   r7;                 \n"
+        "push   r8;                 \n"
+        "push   r9;                 \n"
+        "push   r12;                \n"
+        "push   r13;                \n"
+        "push   r14;                \n"
+        "push   r15;                \n"
+        /*---------------------------------------------------------------*/
+        "mov    %[block],       r15;\n"
+        "mov    %[roundKeys],   r14;\n" 
+        /*---------------------------------------------------------------*/
+        /* load plain text	                                         */
+        /*---------------------------------------------------------------*/
+        "mov    @r15+,       	r4;\n"
+        "mov    @r15+,       	r5;\n"
+        "mov    @r15+,       	r6;\n"
+        "mov    @r15+,       	r7;\n
+        /*---------------------------------------------------------------*/
+        "mov    #27,            r13;\n" /* 27 rounds                     */
+"round_loop:\n"
+        /* k = r9:r8;	*/ 
+        "mov	@r14+,       	r8;\n"  
+        "mov   	@r14+,        	r9;\n"
+	/* x = S(-8)(x) */
+	"mov.b	r6, 		r12;\n"
+ 	"xor.b	r7, 		r12;\n"
+	"swpb	r6;\n"
+	"swpb	r7;\n"
+	"swpb	r12;\n"
+	"xor	r12,		r6;\n"
+	"xor	r12,		r7;\n"
+	/* x = S(-8)(x) + y */
+	"add	r4,		r6;\n"
+	"adc	r5,		r7;\n"
+	/* x = [S(-8)(x) + y] eor k */
+	"eor	r8,		r6;\n"
+	"adc	r9,		r7;\n"
 	
+	/* y = s(3)y */
+	"rla	r4;\n" /* S(-1) */
+	"rlc	r5;\n"
+	"adc	r4;\n"
+	"rla	r4;\n" /* S(-1) */
+	"rlc	r5;\n"
+	"adc	r4;\n"
+	"rla	r4;\n" /* S(-1) */
+	"rlc	r5;\n"
+	"adc	r4;\n"
+	/* y = s(3)y eor [S(-8)(x) + y] eor k */
+	"eor	r6,		r4;\n"
+	"adc	r7,		r5;\n"
+
+	/* loop control */
+        "dec	r13;\n"
+	"jne	round_loop;\n"
+        /*---------------------------------------------------------------*/
+        /* Restore registers                                             */
+        /*---------------------------------------------------------------*/
+        "pop    r15;                \n"
+        "pop    r14;                \n"
+        "pop    r13;                \n"
+        "pop    r12;                \n"
+        "pop    r9;                 \n"
+        "pop    r8;                 \n"
+        "pop    r7;                 \n"
+        "pop    r6;                 \n"
+        "pop    r5;                 \n"
+	"pop    r4;                 \n"
+        /*---------------------------------------------------------------*/
+    :
+    : [block] "m" (block), [roundKeys] "m" (roundKeys)
+); 
 }
 
 #else

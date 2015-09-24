@@ -51,7 +51,101 @@ void Encrypt(uint8_t *block, uint8_t *roundKeys)
 /*----------------------------------------------------------------------------*/
 void Encrypt(uint8_t *block, uint8_t *roundKeys)
 {
-	/* Add here the cipher encryption implementation */
+    asm volatile (\
+        /*---------------------------------------------------------------*/
+	/* r4  - lower word of y					 */
+        /* r5  - higher word of y		                         */
+	/* r6  - lower word of x					 */
+        /* r7  - higher word of x		                         */
+	/* r8  - lower word of k					 */
+        /* r9  - higher word of k		                         */
+        /* r12 - temp1                                       */
+        /* r13 - Loop counter                                            */
+        /* r14 - RoundKeys i                                             */
+        /* r15 - block                                           */
+        /*---------------------------------------------------------------*/
+        /* Store all modified registers                                  */
+        /*---------------------------------------------------------------*/
+	"push   r4;                 \n"
+        "push   r5;                 \n"
+        "push   r6;                 \n"
+        "push   r7;                 \n"
+        "push   r8;                 \n"
+        "push   r9;                 \n"
+        "push   r12;                \n"
+        "push   r13;                \n"
+        "push   r14;                \n"
+        "push   r15;                \n"
+        /*---------------------------------------------------------------*/
+        "mov    %[block],       r15;\n"
+        "mov    %[roundKeys],   r14;\n" 
+        /*---------------------------------------------------------------*/
+        /* load plain text	                                         */
+        /*---------------------------------------------------------------*/
+        "mov    @r15+,       	r4;\n"
+        "mov    @r15+,       	r5;\n"
+        "mov    @r15+,       	r6;\n"
+        "mov    @r15+,       	r7;\n
+        /*---------------------------------------------------------------*/
+        "mov    #44,            r13;\n" /* 44 rounds                     */
+"round_loop:\n"
+        /* k = r9:r8;	*/ 
+        "mov	@r14+,       	r8;\n"  
+        "mov   	@r14+,        	r9;\n"
+	/* k = k eor x */
+        "eor	r6, 		r8;\n"
+	"eor	r7,		r9;\n"
+	/* x = y */
+	"mov	r4,       	r6;\n"  
+        "mov   	r5,        	r7;\n"
+	/* S(8)(y) */
+	/* A byte instruction with a register destination clears the high 8 bits of the register to 0. */
+	/* [http://mspgcc.sourceforge.net/manual/x214.html] */
+	/* I think the it means the destination regiser. */
+  	"swpb r4;\n"
+  	"swpb r5;\n"
+	"mov.b r4, r12;\n"
+  	"xor.b r5, r12;\n"
+  	"xor  r12, r4;\n"
+  	"xor  r12, r5;\n"
+	/* S(1)x, This time x is store in y, so the operation is on y */
+	"rla r4;\n"
+	"rlc r5;\n"
+	"adc r4;\n"
+	/* Sx & S(8)x */
+	"and	r4,		r6;\n"
+	"and	r5,		r7;\n"
+	/* S(2)x, again rotate shift left y with 1 bit*/
+	"rla r4;\n"
+	"rlc r5;\n"
+	"adc r4;\n"
+	/* [Sx & S(8)x] eor S(2)x */
+	"eor	r4,		r6;\n"
+	"eor	r5,		r7;\n"
+	/* (y eor k) eor [Sx & S(8)x] eor S(2)x */
+	"eor	r8,		r6;\n"
+	"eor	r9,		r7;\n"
+
+	/* loop control */
+        "dec	r13;\n"
+	"jne	round_loop;\n"
+        /*---------------------------------------------------------------*/
+        /* Restore registers                                             */
+        /*---------------------------------------------------------------*/
+        "pop    r15;                \n"
+        "pop    r14;                \n"
+        "pop    r13;                \n"
+        "pop    r12;                \n"
+        "pop    r9;                 \n"
+        "pop    r8;                 \n"
+        "pop    r7;                 \n"
+        "pop    r6;                 \n"
+        "pop    r5;                 \n"
+	"pop    r4;                 \n"
+        /*---------------------------------------------------------------*/
+    :
+    : [block] "m" (block), [roundKeys] "m" (roundKeys)
+); 
 }
 
 #else
@@ -69,7 +163,7 @@ void Encrypt(uint8_t *block, uint8_t *roundKeys)
  */
 void Encrypt(uint8_t *block, uint8_t *roundKeys)
 {
-	asm volatile (\
+    asm volatile (\
 	/*--------------------------------------------------------------------*/
         /* r0  - X high byte to low byte                                      */
         /* r1  - Y high byte to low byte                                      */

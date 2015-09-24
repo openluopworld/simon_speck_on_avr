@@ -51,7 +51,105 @@ void Decrypt(uint8_t *block, uint8_t *roundKeys)
 /*----------------------------------------------------------------------------*/
 void Decrypt(uint8_t *block, uint8_t *roundKeys)
 {
-	/* Add here the cipher decryption implementation */
+    asm volatile (\
+        /*---------------------------------------------------------------*/
+	/* r4  - lower word of y					 */
+        /* r5  - higher word of y		                         */
+	/* r6  - lower word of x					 */
+        /* r7  - higher word of x		                         */
+	/* r8  - lower word of k					 */
+        /* r9  - higher word of k		                         */
+        /* r12 - temp1                                       */
+        /* r13 - Loop counter                                            */
+        /* r14 - RoundKeys i                                             */
+        /* r15 - block                                           */
+        /*---------------------------------------------------------------*/
+        /* Store all modified registers                                  */
+        /*---------------------------------------------------------------*/
+	"push   r4;                 \n"
+        "push   r5;                 \n"
+        "push   r6;                 \n"
+        "push   r7;                 \n"
+        "push   r8;                 \n"
+        "push   r9;                 \n"
+        "push   r12;                \n"
+        "push   r13;                \n"
+        "push   r14;                \n"
+        "push   r15;                \n"
+        /*---------------------------------------------------------------*/
+        "mov    %[block],       r15;\n"
+        "mov    %[roundKeys],   r14;\n"
+	"add	#43*4,		r14;\n" 
+        /*---------------------------------------------------------------*/
+        /* load cipher text		                                 */
+        /*---------------------------------------------------------------*/
+    	"mov @r15+, r4;\n"
+    	"mov @r15+, r5;\n"
+    	"mov @r15+, r7;\n"
+    	"mov @r15+, r7;\n"
+        /*---------------------------------------------------------------*/
+        "mov    #44,            r13;\n" /* 44 rounds                     */
+    "round_loop:\n"
+        /* k = r9:r8;	*/ 
+        "mov	0(r14),       	r8;\n"  
+        "mov   	2(r14),        	r9;\n"
+	/* k = k eor y */
+        "eor	r4, 		r8;\n"
+	"eor	r5,		r9;\n"
+	/* y = x */
+	"mov	r6,       	r4;\n"  
+        "mov   	r7,        	r5;\n"
+	/* S(8)(x) */
+	/* A byte instruction with a register destination clears the high 8 bits of the register to 0. */
+	/* [http://mspgcc.sourceforge.net/manual/x214.html] */
+	/* I think the it means the destination regiser. */
+  	"swpb r6;\n"
+  	"swpb r7;\n"
+	"mov.b r6, r12;\n"
+  	"xor.b r7, r12;\n"
+  	"xor  r12, r6;\n"
+  	"xor  r12, r7;\n"
+	/* S(1)y, This time y is store in x, so the operation is on x */
+	"rla r6;\n"
+	"rlc r7;\n"
+	"adc r6;\n"
+	/* Sy & S(8)y */
+	"and	r6,		r4;\n"
+	"and	r7,		r5;\n"
+	/* S(2)y, again rotate shift left x with 1 bit*/
+	"rla r6;\n"
+	"rlc r7;\n"
+	"adc r6;\n"
+	/* [Sy & S(8)y] eor S(2)y */
+	"eor	r6,		r4;\n"
+	"eor	r7,		r5;\n"
+	/* (x eor k) eor [Sy & S(8)y] eor S(2)y */
+	"eor	r8,		r4;\n"
+	"eor	r9,		r5;\n"
+
+	/* next k */
+	"sub	#4,		r14;\n"
+
+	/* loop control */
+        "dec	r13;\n"
+	"jne	round_loop;\n"
+        /*---------------------------------------------------------------*/
+        /* Restore registers                                             */
+        /*---------------------------------------------------------------*/
+        "pop    r15;                \n"
+        "pop    r14;                \n"
+        "pop    r13;                \n"
+        "pop    r12;                \n"
+        "pop    r9;                 \n"
+        "pop    r8;                 \n"
+        "pop    r7;                 \n"
+        "pop    r6;                 \n"
+        "pop    r5;                 \n"
+	"pop    r4;                 \n"
+        /*---------------------------------------------------------------*/
+    :
+    : [block] "m" (block), [roundKeys] "m" (roundKeys)
+); 
 }
 
 #else

@@ -49,22 +49,25 @@ void RunEncryptionKeySchedule(uint8_t *key, uint8_t *roundKeys)
 /*----------------------------------------------------------------------------*/
 /* Key Schedule -- MSP			                                      */
 /*----------------------------------------------------------------------------*/
+/*
+ * Instructions in MSP is different with other microcontrollers.
+ * 	.The first register is the source, the second is the destination.
+ *	.For example, "mov #5, r4" means move number 5 to register r4.
+ */
 void RunEncryptionKeySchedule(uint8_t *key, uint8_t *roundKeys)
 {
     asm volatile (\
         /*---------------------------------------------------------------*/
-	/* r4  - higher word of ki					 */
-        /* r5  - lower word of ki		                         */
-	/* r6  - higher word of k(i+1)					 */
-        /* r7  - lower word of k(i+1)		                         */
-	/* r8  - higher word of k(i+3)					 */
-        /* r9  - lower word of k(i+3)		                         */
-        /* r10 - higher 16 bits of Const C                               */
-        /* r11 - lower 16 bits of Const C                                */
-        /* r12 - point of Const Z                                       */
+	/* r4  - lower word of ki					 */
+        /* r5  - higher word of ki		                         */
+	/* r6  - lower word of k(i+1)					 */
+        /* r7  - higher word of k(i+1)		                         */
+	/* r8  - lower word of k(i+3)					 */
+        /* r9  - higher word of k(i+3)		                         */
+        /* r12 - point of Const Z eor 3                                  */
         /* r13 - Loop counter                                            */
         /* r14 - RoundKeys i                                             */
-        /* r15 - Key, temp use                                           */
+        /* r15 - Key                                                     */
         /*---------------------------------------------------------------*/
         /* Store all modified registers                                  */
         /*---------------------------------------------------------------*/
@@ -74,88 +77,71 @@ void RunEncryptionKeySchedule(uint8_t *key, uint8_t *roundKeys)
         "push   r7;                 \n"
         "push   r8;                 \n"
         "push   r9;                 \n"
-        "push   r10;                \n"
-	"push   r11;                \n"
         "push   r12;                \n"
         "push   r13;                \n"
         "push   r14;                \n"
         "push   r15;                \n"
-        /*---------------------------------------------------------------*/
+        /*--------------------------------------------------------------*/
         "mov    %[key],         r15;\n"
         "mov    %[roundKeys],   r14;\n" 
+	"mov	%[Z_XOR_3],	r12;\n"
+        /*--------------------------------------------------------------*/
+        /* load master key						*/
+        /*--------------------------------------------------------------*/
+        "mov    @r15+,       	0(r14);\n" /* r15 will add 1 in word, but r14 in bytes. */ 
+        "mov    @r15+,       	2(r14);\n"
+        "mov    @r15+,       	4(r14);\n"
+        "mov    @r15+,       	6(r14);\n"
+        "mov    @r15+,       	8(r14);\n"
+        "mov    @r15+,      	10(r14);\n"
+        "mov    @r15+,      	12(r14);\n"
+        "mov    @r15+,      	14(r14);\n"
         /*---------------------------------------------------------------*/
-        /* load master key	                                         */
-        /*---------------------------------------------------------------*/
-        "mov    @r15+,       	0(r14);\n" /* 0                             */ 
-        "mov    @r15+,       	2(r14);\n" /* 2                             */
-        "mov    @r15+,       	4(r14);\n" /* 4                             */
-        "mov    @r15+,       	6(r14);\n" /* 6                             */
-        "mov    @r15+,       	8(r14);\n" /* 8                             */
-        "mov    @r15+,      	10(r14);\n" /* 10                            */
-        "mov    @r15+,      	12(r14);\n" /* 12                            */
-        "mov    @r15+,      	14(r14);\n" /* 14                            */
-        /*---------------------------------------------------------------*/
-	"mov	0xffff,	r10;\n"
-	"mov	0xfffc,	r11;\n"
         "mov    #40,            r13;\n" /* 40 rounds                     */
 "round_loop:\n"
-        /* ki = r4:r5;	*/ 
+        /* ki = r5:r4;	*/ 
         "mov	0(r14),       	r4;\n"  
         "mov   	2(r14),        	r5;\n" 
-        /* k(i+1) = r6:r7;	*/
+        /* k(i+1) = r7:r6;	*/
         "mov   	4(r14),        	r6;\n"  
         "mov   	6(r14),        	r7;\n"
-	/* k(i+3) = r8:r9							*/
+	/* k(i+3) = r9:r8							*/
         "mov   	12(r14),       	r8;\n"  
         "mov   	14(r14),       	r9;\n"
-	/* S(-3)(k(i+3)): swap high word with low word, then rotate shift left 13(=32-3-16)*/
-	"mov	r8,		r15;\n"
-	"mov	r9,		r8;\n"
-	"mov 	r15, 		r9;\n"
-	"clrc;\n" /* clear c to 0 */
-	"rlc	r9;\n" /* repeat 13 times */
-	"rlc	r8;\n"
-	"rlc	r9;\n" /* time 2 */
-	"rlc	r8;\n"
-	"rlc	r9;\n" /* time 3 */
-	"rlc	r8;\n"
-	"rlc	r9;\n" /* time 4 */
-	"rlc	r8;\n"
-	"rlc	r9;\n" /* time 5 */
-	"rlc	r8;\n"
-	"rlc	r9;\n" /* time 6 */
-	"rlc	r8;\n"
-	"rlc	r9;\n" /* time 7 */
-	"rlc	r8;\n"
-	"rlc	r9;\n" /* time 8 */
-	"rlc	r8;\n"
-	"rlc	r9;\n" /* time 9 */
-	"rlc	r8;\n"
-	"rlc	r9;\n" /* time 10 */ 
-	"rlc	r8;\n"
-	"rlc	r9;\n" /* time 11 */
-	"rlc	r8;\n"
-	"rlc	r9;\n" /* time 12 */
-	"rlc	r8;\n"
-	"rlc	r9;\n" /* time 13 */
-	"rlc	r8;\n"
+	/* S(-3)(k(i+3)) */
+	"bit	#1,		r8;\n" /* S(-1) */
+	"rrc	r9;\n"
+	"rrc	r8;\n"
+	"bit	#1,		r8;\n" /* S(-2) */
+	"rrc	r9;\n"
+	"rrc	r8;\n"
+	"bit	#1,		r8;\n" /* S(-3) */
+	"rrc	r9;\n"
+	"rrc	r8;\n"
 	/* S(-3)(k(i+3)) eor k(i+1) */
-	"eor	r6, 		r8;\n" /* result is in r8:r9 */
+	"eor	r6, 		r8;\n" /* result is in r9:r8 */
 	"eor	r7,		r9;\n"
 	/* move r8:r9 to r6:r7 */
 	"mov	r8,		r6;\n"
 	"mov	r9,		r7;\n"
-
 	/* S(-1)[S(-3)(k(i+3)) eor k(i+1)] */
-
+	"bit	#1,		r8;\n"
+	"rrc	r9;\n"
+	"rrc	r8;\n"
 	/* [I eor S(-1)][S(-3)(k(i+3)) eor k(i+1)] */
 	"eor	r6,		r8;\n"
 	"eor	r7,		r9;\n"
 	/* ki eor [I eor S(-1)][S(-3)(k(i+3)) eor k(i+1)] */
 	"eor	r4,		r8;\n"
 	"eor	r5,		r9;\n"
-
-        
+	/* load Z eor C */
+	"mov.b	@r12+,       	r4;\n" /* 0                          */
+	"eor.b	r4,		r8;\n"
+	"mov	r8,		16(r14);\n"
+	"mov	r9,		18(r14);\n"
+	/* loop control */
+        "dec	r13;\n"
+	"jne	round_loop;\n"
         /*---------------------------------------------------------------*/
         /* Restore registers                                             */
         /*---------------------------------------------------------------*/
@@ -163,8 +149,6 @@ void RunEncryptionKeySchedule(uint8_t *key, uint8_t *roundKeys)
         "pop    r14;                \n"
         "pop    r13;                \n"
         "pop    r12;                \n"
-	"pop	r11;		    \n"
-        "pop    r10;                \n"
         "pop    r9;                 \n"
         "pop    r8;                 \n"
         "pop    r7;                 \n"
@@ -173,7 +157,7 @@ void RunEncryptionKeySchedule(uint8_t *key, uint8_t *roundKeys)
 	"pop    r4;                 \n"
         /*---------------------------------------------------------------*/
     :
-    : [key] "m" (key), [roundKeys] "m" (roundKeys), [rc_tab] "" (rc_tab), [sbox] "" (sbox)); 
+    : [key] "m" (key), [roundKeys] "m" (roundKeys), [Z_XOR_3] "" (Z_XOR_3)); 
 }
 
 #else

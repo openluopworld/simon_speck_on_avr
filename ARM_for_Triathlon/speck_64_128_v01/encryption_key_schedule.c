@@ -53,7 +53,112 @@ void RunEncryptionKeySchedule(uint8_t *key, uint8_t *roundKeys)
 /*----------------------------------------------------------------------------*/
 void RunEncryptionKeySchedule(uint8_t *key, uint8_t *roundKeys)
 {
-	
+    asm volatile (\
+        /*---------------------------------------------------------------*/
+	/* r4  - lower word of ki					 */
+        /* r5  - higher word of ki		                         */
+	/* r6  - lower word of li					 */
+        /* r7  - higher word of li		                         */
+	/* r8  - lower word of l(i+1)					 */
+        /* r9  - higher word of l(i+1)		                         */
+	/* r10 - lower word of l(i+2)					 */
+        /* r11 - higher word of l(i+2)		                         */
+        /* r13 - Loop counter                                            */
+        /* r14 - RoundKeys i                                             */
+        /* r15 - Key                                                     */
+        /*---------------------------------------------------------------*/
+        /* Store all modified registers                                  */
+        /*---------------------------------------------------------------*/
+	"push   r4;                 \n"
+        "push   r5;                 \n"
+        "push   r6;                 \n"
+        "push   r7;                 \n"
+        "push   r8;                 \n"
+        "push   r9;                 \n"
+        "push   r10;                \n"
+	"push   r11;                \n"
+        "push   r13;                \n"
+        "push   r14;                \n"
+        "push   r15;                \n"
+        /*--------------------------------------------------------------*/
+        "mov    %[key],         r15;\n"
+        "mov    %[roundKeys],   r14;\n" 
+        /*--------------------------------------------------------------*/
+        /* load master key						*/
+        /*--------------------------------------------------------------*/
+        "mov    @r15+,       	0(r14);\n" /* r15 will add 1 in word, but r14 in bytes. */ 
+        "mov    @r15+,       	2(r14);\n"
+        "mov    @r15+,       	r6;\n"
+        "mov    @r15+,       	r7;\n"
+        "mov    @r15+,       	r8;\n"
+        "mov    @r15+,      	r9;\n"
+        "mov    @r15+,      	r10;\n"
+        "mov    @r15+,      	r11;\n"
+        /*---------------------------------------------------------------*/
+        "mov    #0,            r13;\n"
+"round_loop:\n"
+	/* S(-8)(li), ki is not used now */
+	"mov.b	r6, 		r4;\n"
+ 	"xor.b	r7, 		r4;\n"
+	"swpb	r6;\n"
+	"swpb	r7;\n"
+	"swpb	r4;\n"
+	"xor	r4,		r6;\n"
+	"xor	r4,		r7;\n"
+        /* ki = r5:r4;	*/ 
+        "mov	@r14+,       	r4;\n"  
+        "mov   	@r14+,        	r5;\n" 
+        /* li = ki + S(-8)(li);	*/
+        "add	r4,		r6;\n"
+	"add	r5,		r7;\n"
+	/* li = [ki + S(-8)(li)] eor i */
+        "eor   	r13,       	r6;\n"  
+	/* ki = S(3)ki */
+	"rla	r4;\n" /* S(-1) */
+	"rlc	r5;\n"
+	"adc	r4;\n"
+	"rla	r4;\n" /* S(-1) */
+	"rlc	r5;\n"
+	"adc	r4;\n"
+	"rla	r4;\n" /* S(-1) */
+	"rlc	r5;\n"
+	"adc	r4;\n"
+	/* ki = S(3)ki eor [[ki + S(-8)(li)] eor i] */
+	"eor	r6,		r4;\n"
+	"eor	r7,		r5;\n"
+	/* store ki+1. r14 has pointed to the address of ki+1 by instruction "@r14+" */
+	"mov	r4,		0(r14);\n"
+	"mov	r5,		2(r14);\n"
+	/* update l */
+	"mov	r6,		r4;\n" /* store li+3 */
+	"mov	r7,		r5;\n"
+	"mov	r8,		r6;\n" /* update li, covered by li+1 */
+	"mov	r9,		r7;\n"
+	"mov	r10,		r8;\n" /* update li+1, covered by li+2 */
+	"mov	r11,		r9;\n"
+	"mov	r4,		r10;\n" /* update li+2, covered by li+3 */
+	"mov	r5,		r11;\n"
+	/* loop control */
+        "inc	r13;\n"
+	"cmp	#26,		r13" /* 27 rounds, only need to schedule 26 rounds */
+	"jne	round_loop;\n"
+        /*---------------------------------------------------------------*/
+        /* Restore registers                                             */
+        /*---------------------------------------------------------------*/
+        "pop    r15;                \n"
+        "pop    r14;                \n"
+        "pop    r13;                \n"
+        "pop    r11;                \n"
+	"pop    r10;                \n"
+        "pop    r9;                 \n"
+        "pop    r8;                 \n"
+        "pop    r7;                 \n"
+        "pop    r6;                 \n"
+        "pop    r5;                 \n"
+	"pop    r4;                 \n"
+        /*---------------------------------------------------------------*/
+    :
+    : [key] "m" (key), [roundKeys] "m" (roundKeys), [Z_XOR_3] "" (Z_XOR_3)); 
 }
 
 #else

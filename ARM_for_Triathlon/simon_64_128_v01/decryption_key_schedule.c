@@ -37,6 +37,5 @@
  */
 void RunDecryptionKeySchedule(uint8_t *key, uint8_t *roundKeys)
 {
-	(void) key;
-	(void) roundKeys;
+	
 }
