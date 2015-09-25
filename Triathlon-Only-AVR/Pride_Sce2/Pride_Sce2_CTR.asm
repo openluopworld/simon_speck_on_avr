@@ -2,7 +2,9 @@
  * Pride_Sce2_CTR.asm
  *
  *  Created: 2015/9/15 14:12:38
- *   Author: Administrator
+ *   Author: LuoPeng
+ *
+ * Time : 2015.9.25
  */ 
 .EQU    PTEXT_NUM_BYTE = 16			; 128 bits is 16 bytes
 .EQU	WHITEN_KEY0_NUM_BYTE = 8	; whiten key0 is 8 bytes
@@ -267,7 +269,7 @@ enclastRound:
 	inc currentBlock
 	cpi currentBlock, 2
 	breq prideCTREnd;
-	jmp blockAgain;
+	rjmp blockAgain;
 prideCTREnd:
 	ret;
 #endif

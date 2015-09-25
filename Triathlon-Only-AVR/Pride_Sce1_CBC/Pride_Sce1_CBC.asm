@@ -2,7 +2,10 @@
  * Pride_Sce1_CBC.asm
  *
  *  Created: 2015/9/15 9:46:19
- *   Author: Administrator
+ *   Author: LuoPeng
+ *
+ * Time : 2015.9.25
+ *		  1. Use 16 bytes to store master keys because they can not be changed even after the key schedule.
  */ 
 .EQU	ONE_BLOCK_BYTE = 8			; one block has 8 bytes
 .EQU    PTEXT_NUM_BYTE = 128		; CBC mode has 128 bytes of plain text
@@ -84,8 +87,9 @@
 #if defined(KEYSCHEDULE)
 keyschedule:
 	; set the fixed four bytes
-	ldi r26, low(SRAM_KEYS);
-	ldi r27, high(SRAM_KEYS);
+	ldi r26, low(SRAM_MASTER_KEYS);
+	ldi r27, high(SRAM_MASTER_KEYS);
+	adiw r26, 8;
 	ldi r28, low(SRAM_KEYS_FIXED_FOUR);
 	ldi r29, high(SRAM_KEYS_FIXED_FOUR);
 	clr currentRound;
@@ -97,8 +101,7 @@ fixedBytes:
 	cpi currentRound, FIXED_KEYS_NUM_BYTE;
 	brne fixedBytes;
 	; set the unfixed four bytes
-	ldi r26, low(SRAM_KEYS);
-	ldi r27, high(SRAM_KEYS);
+	sbiw r26, 8;
 	ldi r28, low(SRAM_KEYS);
 	ldi r29, high(SRAM_KEYS);
 	clr currentRound;
@@ -179,7 +182,7 @@ encAnotherBlock:
 	ld s5, x+ ;
 	ld s6, x+ ;
 	ld s7, x+ ;
-	; eor initv
+	; eor initv16
 	eor s0, initv0;
 	eor s1, initv1;
 	eor s2, initv2;
@@ -189,8 +192,8 @@ encAnotherBlock:
 	eor s6, initv6;
 	eor s7, initv7;
 	; whitening key0
-	ldi r28, low(SRAM_KEY0); x stores the current address of data
-	ldi r29, high(SRAM_KEY0);
+	ldi r28, low(SRAM_MASTER_KEYS); x stores the current address of data
+	ldi r29, high(SRAM_MASTER_KEYS);
 	ld rk0, y+;
 	ld rk1, y+;
 	ld rk2, y+;
@@ -338,8 +341,8 @@ enclastRound:
 	and s7, s5
 	eor s7, t3*/
 	; whitening key2
-	ldi r28, low(SRAM_KEY0);
-	ldi r29, high(SRAM_KEY0);
+	ldi r28, low(SRAM_MASTER_KEYS);
+	ldi r29, high(SRAM_MASTER_KEYS);
 	ld rk0, y+;
 	ld rk1, y+;
 	ld rk2, y+;
@@ -376,7 +379,7 @@ enclastRound:
 	inc currentBlock;
 	cpi currentBlock, BLOCK_SIZE;
 	breq encAllEnd;
-	jmp encAnotherBlock;
+	rjmp encAnotherBlock;
 encAllEnd:
 	ret;
 #endif
@@ -439,8 +442,8 @@ decAnotherBlock:
 	st z+, s6;
 	st z+, s7;
 	; whitening key2
-	ldi r28, low(SRAM_KEY0);
-	ldi r29, high(SRAM_KEY0);
+	ldi r28, low(SRAM_MASTER_KEYS);
+	ldi r29, high(SRAM_MASTER_KEYS);
 	ld rk0, y+;
 	ld rk1, y+;
 	ld rk2, y+;
@@ -634,8 +637,8 @@ decLoop:
 	rjmp decLoop;
 declastRound:
 	; whitening key0
-	ldi r28, low(SRAM_KEY0); x stores the current address of data
-	ldi r29, high(SRAM_KEY0);
+	ldi r28, low(SRAM_MASTER_KEYS); x stores the current address of data
+	ldi r29, high(SRAM_MASTER_KEYS);
 	ld rk0, y+;
 	ld rk1, y+;
 	ld rk2, y+;
@@ -705,7 +708,7 @@ declastRound:
 	inc currentBlock;
 	cpi currentBlock, BLOCK_SIZE;
 	breq decAllEnd;
-	jmp decAnotherBlock;
+	rjmp decAnotherBlock;
 decAllEnd:
 	ret;
 #endif
