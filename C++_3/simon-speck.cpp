@@ -1,5 +1,5 @@
 #include<iostream>
-#include<time.h>
+#include<stdio.h> /* printf is not declared using g++ on ubuntu */
 #include"simon-speck.h"
 using namespace std;
 

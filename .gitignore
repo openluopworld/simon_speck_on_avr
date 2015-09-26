@@ -1,2 +1,5 @@
 # Ubuntu temp files
 *~
+
+# Compiled Object files
+*.o

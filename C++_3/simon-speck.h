@@ -5,7 +5,7 @@
  * Simon parameters
  */
 #define SIMON_BLOCK_SIZE (64) // the initial value
-#define SIMON_KEY_WORDS (3) // the initail value
+#define SIMON_KEY_WORDS (4) // the initail value
 
 #if (SIMON_BLOCK_SIZE==64)
 	#define SIMON_WORD_SIZE (32)
@@ -26,10 +26,10 @@
 	#endif
 #endif
 
-typedef  unsigned char u8;
-typedef  unsigned short u16;
-typedef  unsigned int u32;
-typedef  unsigned long long u64;
+typedef  uint8_t u8;
+typedef  uint16_t u16;
+typedef  uint32_t u32;
+typedef  uint64_t u64;
 // typedef  uint64_t u64;
 
 /*
