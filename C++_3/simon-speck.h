@@ -60,9 +60,9 @@ inline u64 ror64 (u64 x, int n);
 void setSimonKeys32 ( u32 * inputKey, u32 * keys );
 
 /*
- * Simon£ºword size is 64
- * inputKey£ºthe original keys
- * keys£ºround keys
+ * Simon: word size is 64
+ * inputKey: the original keys
+ * keys: round keys
  */
 void setSimonKeys64 ( u64 * inputKey, u64 * keys );
 
