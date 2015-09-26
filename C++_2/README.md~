@@ -1,0 +1,4 @@
+# C++
+Uses "<<" and ">>" operation to implement rotate shift left and rotate shift right.<br>
+For example, we can use "(X<<n)|(X>>(32-n))" to implement 'rotate shift left X with n bits' on the assumption that X is an unsigned int.<br>
+
