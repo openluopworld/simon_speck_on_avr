@@ -201,7 +201,6 @@ void RunEncryptionKeySchedule(uint8_t *key, uint8_t *roundKeys)
 	"breq 		scheEnd;				\n"
 	"rjmp 		keysExtend;				\n"
 "scheEnd:							\n"
-	"ret;							\n"
 	/* ---------------------------------------------------- */
 	/* Restore all modified registers			*/
         "pop  r31;       \n"

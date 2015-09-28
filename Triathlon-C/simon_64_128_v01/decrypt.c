@@ -181,7 +181,6 @@ void Decrypt(uint8_t *block, uint8_t *roundKeys)
         "pop  r2;        \n"
 	"pop  r1;	 \n"
 	"pop  r0;	 \n"
-	"ret;\n" the end point is here or not makes much difference.
     :
     : [block] "m" (block), [roundKeys] "m" (roundKeys)
 );

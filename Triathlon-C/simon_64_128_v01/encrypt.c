@@ -156,7 +156,6 @@ void Encrypt(uint8_t *block, uint8_t *roundKeys)
 	"st 		-x, 		r5;			\n"
 	"st 		-x, 		r6;			\n"
 	"st 		-x, 		r7;			\n"
-	"ret;							\n"
 	/* ---------------------------------------------------- */
 	/* Restore all modified registers			*/
         "pop  r31;       \n"
