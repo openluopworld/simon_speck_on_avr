@@ -26,11 +26,10 @@
  *
  */
 
-#ifndef CONSTANTS_H
-#define CONSTANTS_H
+#include <stdint.h>
 
-#include "data_types.h"
-
+#include "constants.h"
+#include "cipher.h"
 
 /*
  *
@@ -49,6 +48,8 @@
 #define ALPHA 8
 #define BETA 3
 
-extern uint8_t L[];
+uint8_t L[116] = {0};
 
-#endif /* CONSTANTS_H */
+#endif
+
+

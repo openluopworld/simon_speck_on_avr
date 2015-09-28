@@ -42,7 +42,138 @@
 /*----------------------------------------------------------------------------*/
 void Decrypt(uint8_t *block, uint8_t *roundKeys)
 {
-	
+    asm volatile (\
+	/*------------------------------------------------------*/
+        /* Registers allocation:				*/
+        /* r0 - r7 : cipher text				*/
+        /* r8 - r11: round key					*/
+        /* r12-r15 : 						*/
+        /* r16-r23 : 						*/
+        /* r24     : currentRound				*/
+        /* r25     : 						*/
+        /* r26:r27 : X roundKeys				*/
+        /* r28:r29 : Y key					*/
+        /* r30:r31 : 						*/
+        /* ---------------------------------------------------- */
+        /* Store all modified registers				*/
+        /* ---------------------------------------------------- */
+	"push	r0;	\n"
+	"push	r1;	\n"
+	"push	r2;	\n"
+        "push  	r3;	\n"
+        "push  	r4;	\n"
+	"push  	r5;	\n"
+	"push  	r6;	\n"
+        "push  	r7;	\n"
+	"push  	r8;	\n"
+	"push  	r9;	\n"
+	"push  	r10;	\n"
+        "push  	r11;	\n"
+        "push 	r24;	\n"
+        "push 	r26;	\n" 
+        "push 	r27;	\n" 
+        "push 	r28;	\n"
+        "push 	r29;	\n"
+	/* ---------------------------------------------------- */
+	/* decryption						*/
+	"ldi 		r26, 		lo8(block);		\n"
+	"ldi 		r27, 		hi8(block);		\n"
+	"clr 		r24;					\n"
+	"ldi 		r28, 		lo8(roundKeys+ROUND_KEYS_SIZE);\n"
+	"ldi 		r29, 		hi8(roundKeys+ROUND_KEYS_SIZE);\n"
+	/* load the plaintext from RAM to registers [r7,...,r0], X = [r7, r6, r5, r4], Y = [r3, r2, r1, r0] */
+	"ld 		r7, 		x+ ;			\n"
+	"ld 		r6, 		x+ ;			\n"
+	"ld 		r5, 		x+ ;			\n"
+	"ld 		r4, 		x+ ;			\n"
+	"ld 		r3, 		x+ ;			\n"
+	"ld 		r2, 		x+ ;			\n"
+	"ld 		r1, 		x+ ;			\n"
+	"ld 		r0, 		x+ ;			\n"
+"encLoop:							\n"
+	/* store the 4 bytes of sub key to K = [r11, r10, r9, r8] */
+	"ld 		r11, 		-y;			\n"
+	"ld 		r10, 		-y;			\n"
+	"ld 		r9, 		-y;			\n"
+	"ld 		r8, 		-y;			\n"
+	/* k = k eor x 						*/
+	"eor 		r8, 		r4;			\n"
+	"eor 		r9, 		r5;			\n"
+	"eor 		r10, 		r6;			\n"
+	"eor 		r11, 		r7;			\n"
+	/* x = x eor y 						*/
+	"eor 		r4, 		r0;			\n"
+	"eor 		r5, 		r1;			\n"
+	"eor 		r6, 		r2;			\n"
+	"eor 		r7, 		r3;			\n"
+	/* x = S(-3)x 						*/
+	"lsr 		r7;					\n"
+	"ror 		r6;					\n"
+	"ror 		r5;					\n"
+	"bst 		r4, 		0;			\n"
+	"ror 		r4;					\n"
+	"bld 		r7, 		7;			\n"
+	"lsr 		r7;					\n"
+	"ror 		r6;					\n"
+	"ror 		r5;					\n"
+	"bst 		r4,		0;			\n"
+	"ror 		r4;					\n"
+	"bld 		r7, 		7;			\n"
+	"lsr 		r7;					\n"
+	"ror 		r6;					\n"
+	"ror 		r5;					\n"
+	"bst 		r4, 		0;			\n"
+	"ror 		r4;					\n"
+	"bld 		r7, 		7;			\n"
+	/* y = x 						*/
+	"movw 		r0, 		r4;			\n"
+	"movw 		r2, 		r6;			\n"
+	/* x = k - x 						*/
+	"sub 		r8, 		r4;			\n"
+	"sbc 		r9, 		r5;			\n"
+	"sbc 		r10,		r6;			\n"
+	"sbc 		r11, 		r7;			\n"
+	/* x = S(8)k 						*/
+	"mov 		r4, 		r11;			\n"
+	"mov 		r5, 		r8;			\n"
+	"mov 		r6, 		r9;			\n"
+	"mov 		r7, 		r10;			\n"
+	/* loop control						*/
+	"inc 		r24;					\n"
+	"cpi 		r24, 		NUMBER_OF_ROUNDS;	\n"
+	"brne 		decLoop;				\n"
+	/* ---------------------------------------------------- */
+	/* move cipher text back to plain text 			*/
+	"st 		-x, 		r0;			\n"
+	"st 		-x, 		r1;			\n"
+	"st 		-x, 		r2;			\n"
+	"st 		-x, 		r3;			\n"
+	"st 		-x, 		r4;			\n"
+	"st 		-x, 		r5;			\n"
+	"st 		-x, 		r6;			\n"
+	"st 		-x, 		r7;			\n"
+	/* ---------------------------------------------------- */
+	/* Restore all modified registers			*/
+        "pop  r29;       \n"
+        "pop  r28;       \n"
+        "pop  r27;       \n" 
+        "pop  r26;       \n" 
+        "pop  r24;       \n" 
+	"pop  r11;       \n"
+	"pop  r10;       \n"
+	"pop  r9;       \n"
+	"pop  r8;       \n"
+	"pop  r7;        \n"
+	"pop  r6;        \n"
+	"pop  r5;        \n"
+	"pop  r4;        \n"
+        "pop  r3;        \n"
+        "pop  r2;        \n"
+        "pop  r1;        \n"
+        "pop  r0;        \n"
+    :
+    : [block] "m" (block), [roundKeys] "m" (roundKeys)
+); 
 }
 
 #else

@@ -41,9 +41,149 @@
 /*----------------------------------------------------------------------------*/
 /* Key Schedule -- AVR			                                      */
 /*----------------------------------------------------------------------------*/
+/* L in */
 void RunEncryptionKeySchedule(uint8_t *key, uint8_t *roundKeys)
 {
-	
+    asm volatile (\
+	/*------------------------------------------------------*/
+        /* Registers allocation:				*/
+        /* r0 - r3 : ki, from low byte to high byte		*/
+        /* r4 - r7 : li, from low byte to high byte		*/
+        /* r8 - r20: 						*/
+        /* r21     : store 0					*/
+        /* r22     : temp					*/
+        /* r23     : 						*/
+        /* r24     : currentRound				*/
+        /* r25     : 						*/
+        /* r26:r27 : X roundKeys				*/
+        /* r28:r29 : Y key					*/
+        /* r30:r31 :						*/
+        /* ---------------------------------------------------- */
+        /* Store all modified registers				*/
+        /* ---------------------------------------------------- */
+	"push	r0;	\n"
+	"push	r1;	\n"
+	"push	r2;	\n"
+        "push  	r3;	\n"
+        "push  	r4;	\n"
+	"push  	r5;	\n"
+	"push  	r6;	\n"
+        "push  	r7;	\n"
+        "push 	r21;	\n"
+        "push 	r22;	\n"
+        "push 	r24;	\n"
+        "push 	r26;	\n" 
+        "push 	r27;	\n" 
+        "push 	r28;	\n"
+        "push 	r29;	\n"
+	/*---------------------------------------------------------------*/
+	/* store master key						 */
+	"ldi 		r26, 		lo8(roundKeys);			\n"
+	"ldi 		r27, 		hi8(roundKeys);			\n"
+	"ldi 		r28, 		lo8(key);			\n"
+	"ldi 		r29, 		hi8(key);			\n"
+	"ld 		r22, 		y+;				\n"
+	"st 		x+, 		r22;				\n"
+	"ld 		r22, 		y+;				\n"
+	"st 		x+, 		r22;				\n"
+	"ld 		r22, 		y+;				\n"
+	"st 		x+, 		r22;				\n"
+	"ld 		r22, 		y+;				\n"
+	"st 		x+, 		r22;				\n"
+	"ldi 		r26, 		lo8(L);				\n"
+	"ldi 		r27, 		hi8(L);				\n"
+	"clr 		r24;						\n"
+"loadL:									\n"
+	"ld 		r22, 		y+;				\n"
+	"st 		x+, 		r22;				\n"
+	"inc 		r24;						\n"
+	"cpi 		r24, 		12;				\n"
+	"brne 		loadL;						\n"
+	/*---------------------------------------------------------------*/
+	/* key schedule							 */
+	"clr 		r24;						\n"
+	"clr 		r21;						\n" /* store 0 */
+	"ldi 		r26, 		lo8(roundKeys);			\n"
+	"ldi 		r27, 		hi8(roundKeys);			\n"
+	"ldi 		r28, 		lo8(L);				\n"
+	"ldi 		r29, 		hi8(L);				\n"
+"subkey:								\n"
+	/* [r3,r2,r1,r0] to store ki 					*/
+	"ld 		r0, 		x+;				\n"
+	"ld 		r1, 		x+;				\n"
+	"ld 		r2, 		x+;				\n"
+	"ld 		r3, 		x+;				\n"
+	/* [r7,r6,r5,r4] to store li 					*/
+	"ld 		r4, 		y+;				\n"
+	"ld 		r5, 		y+;				\n"
+	"ld 		r6, 		y+;				\n"
+	"ld 		r7, 		y+;				\n"
+	/* k(i)+S(-8)l(i)						*/
+	"add 		r5, 		r0;				\n"
+	"adc 		r6, 		r1;				\n"
+	"adc 		r7, 		r2;				\n"
+	"adc 		r4, 		r3;				\n"
+	/* eor i 							*/
+	"eor 		r5, 		r24;				\n"
+	/* S3(ki) 							*/
+	"lsl 		r0;						\n"
+	"rol 		r1;						\n"
+	"rol 		r2;						\n"
+	"rol 		r3;						\n"
+	"adc 		r0, 		r21;				\n"
+	"lsl 		r0;						\n"
+	"rol 		r1;						\n"
+	"rol 		r2;						\n"
+	"rol 		r3;						\n"
+	"adc 		r0, 		r21;				\n"
+	"lsl 		r0;						\n"
+	"rol 		r1;						\n"
+	"rol 		r2;						\n"
+	"rol 		r3;						\n"
+	"adc 		r0, 		r21;				\n"
+	/* k(i+1) 							*/
+	"eor 		r0, 		r5;				\n"
+	"eor 		r1, 		r6;				\n"
+	"eor 		r2, 		r7;				\n"
+	"eor 		r3, 		r4;				\n"
+	/* store k(i+1) 						*/
+	"st 		x+, 		r0;				\n"
+	"st 		x+, 		r1;				\n"
+	"st 		x+, 		r2;				\n"
+	"st 		x+,	 	r3;				\n"
+	/* set x to k(i+1) 						*/
+	"sbiw 		r26, 		4;				\n"
+	/* store l(i+3) 						*/
+	"adiw 		y, 		8;				\n"
+	"st 		y+, 		r5;				\n"
+	"st 		y+, 		r6;				\n"
+	"st 		y+, 		r7;				\n"
+	"st 		y+, 		r4;				\n"
+	"sbiw 		y, 		12;				\n"
+	/* loop control 						*/
+	"inc 		r24;						\n"
+	"cpi 		r24, 		26;				\n"
+	"brne 		subkey;						\n"
+	/* ---------------------------------------------------- */
+	/* Restore all modified registers			*/
+        "pop  r29;       \n"
+        "pop  r28;       \n"
+        "pop  r27;       \n" 
+        "pop  r26;       \n" 
+        "pop  r24;       \n" 
+	"pop  r22;       \n"
+	"pop  r21;       \n"
+	"pop  r7;        \n"
+	"pop  r6;        \n"
+	"pop  r5;        \n"
+	"pop  r4;        \n"
+        "pop  r3;        \n"
+        "pop  r2;        \n"
+        "pop  r1;        \n"
+        "pop  r0;        \n"
+	/* ---------------------------------------------------- */
+    :
+    : [key] "m" (key), [roundKeys] "m" (roundKeys), [L] "" (L)); 
 }
 
 #else
