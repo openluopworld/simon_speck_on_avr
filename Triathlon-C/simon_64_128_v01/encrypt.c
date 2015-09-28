@@ -230,7 +230,7 @@ void Encrypt(uint8_t *block, uint8_t *roundKeys)
         "mov    @r15+,       	r4;\n"
         "mov    @r15+,       	r5;\n"
         "mov    @r15+,       	r6;\n"
-        "mov    @r15+,       	r7;\n
+        "mov    @r15+,       	r7;\n"
         /*---------------------------------------------------------------*/
         "mov    #44,            r13;\n" /* 44 rounds                     */
 "round_loop:\n"
@@ -238,8 +238,8 @@ void Encrypt(uint8_t *block, uint8_t *roundKeys)
         "mov	@r14+,       	r8;\n"  
         "mov   	@r14+,        	r9;\n"
 	/* k = k eor x */
-        "eor	r6, 		r8;\n"
-	"eor	r7,		r9;\n"
+        "xor	r6, 		r8;\n"
+	"xor	r7,		r9;\n"
 	/* x = y */
 	"mov	r4,       	r6;\n"  
         "mov   	r5,        	r7;\n"
@@ -265,11 +265,11 @@ void Encrypt(uint8_t *block, uint8_t *roundKeys)
 	"rlc r5;\n"
 	"adc r4;\n"
 	/* [Sx & S(8)x] eor S(2)x */
-	"eor	r4,		r6;\n"
-	"eor	r5,		r7;\n"
+	"xor	r4,		r6;\n"
+	"xor	r5,		r7;\n"
 	/* (y eor k) eor [Sx & S(8)x] eor S(2)x */
-	"eor	r8,		r6;\n"
-	"eor	r9,		r7;\n"
+	"xor	r8,		r6;\n"
+	"xor	r9,		r7;\n"
 
 	/* loop control */
         "dec	r13;\n"

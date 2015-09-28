@@ -41,7 +41,7 @@
 /*----------------------------------------------------------------------------*/
 void RunEncryptionKeySchedule(uint8_t *key, uint8_t *roundKeys)
 {
-    asm volatile(\	
+	asm volatile(\
 	/*------------------------------------------------------*/
         /* Registers allocation:				*/
         /* r0	   : 						*/
@@ -102,7 +102,7 @@ void RunEncryptionKeySchedule(uint8_t *key, uint8_t *roundKeys)
 	"st 		x+, 		r17;			\n"
 	"inc 		r24;					\n"
 	"cpi 		r24, 		KEY_SIZE;		\n"
-	"brne loadMasterKey;\n"
+	"brne loadMasterKey;					\n"
 	/* ---------------------------------------------------- */
 	/* prepare for the key schedule 			*/
 	"ldi 		r26, 		low(roundKeys);		\n"
@@ -303,8 +303,8 @@ void RunEncryptionKeySchedule(uint8_t *key, uint8_t *roundKeys)
 	"rrc	r9;\n"
 	"rrc	r8;\n"
 	/* S(-3)(k(i+3)) eor k(i+1) */
-	"eor	r6, 		r8;\n" /* result is in r9:r8 */
-	"eor	r7,		r9;\n"
+	"xor	r6, 		r8;\n" /* result is in r9:r8 */
+	"xor	r7,		r9;\n"
 	/* move r8:r9 to r6:r7 */
 	"mov	r8,		r6;\n"
 	"mov	r9,		r7;\n"
@@ -313,14 +313,14 @@ void RunEncryptionKeySchedule(uint8_t *key, uint8_t *roundKeys)
 	"rrc	r9;\n"
 	"rrc	r8;\n"
 	/* [I eor S(-1)][S(-3)(k(i+3)) eor k(i+1)] */
-	"eor	r6,		r8;\n"
-	"eor	r7,		r9;\n"
+	"xor	r6,		r8;\n"
+	"xor	r7,		r9;\n"
 	/* ki eor [I eor S(-1)][S(-3)(k(i+3)) eor k(i+1)] */
-	"eor	r4,		r8;\n"
-	"eor	r5,		r9;\n"
+	"xor	r4,		r8;\n"
+	"xor	r5,		r9;\n"
 	/* load Z eor C */
 	"mov.b	@r12+,       	r4;\n" /* 0                          */
-	"eor.b	r4,		r8;\n"
+	"xor.b	r4,		r8;\n"
 	"mov	r8,		16(r14);\n"
 	"mov	r9,		18(r14);\n"
 
@@ -463,7 +463,7 @@ void RunEncryptionKeySchedule(uint8_t *key, uint8_t *roundKeys)
 		temp = ror1(temp);
         	temp = temp ^ ror1(temp);
 		temp = temp ^ rk[i-3] ^ ror1(rk[i-3]);
-		z_xor_3 = READ_Z_BYTE(Z_XOR_3[(i - 4)]);
+		z_xor_3 = Z_XOR_3[(i - 4)];
 		rk[i] = ~(rk[i - 4]) ^ temp ^ (uint32_t)z_xor_3;
     	}
 }

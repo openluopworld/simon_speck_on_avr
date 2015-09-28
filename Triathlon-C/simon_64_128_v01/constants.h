@@ -46,9 +46,9 @@
 #define NUMBER_OF_ROUNDS 44
 
 #ifdef AVR
-extern Z_BYTE CONSTZ[];
+extern uint8_t CONSTZ[];
 #else
-extern Z_BYTE Z_XOR_3[];
+extern uint8_t Z_XOR_3[];
 #endif
 
 #endif /* CONSTANTS_H */

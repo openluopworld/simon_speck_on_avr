@@ -83,8 +83,9 @@ void Decrypt(uint8_t *block, uint8_t *roundKeys)
 	"ldi 		r26, 		lo8(block);		\n"
 	"ldi 		r27, 		hi8(block);		\n"
 	"clr 		r24;					\n"
-	"ldi 		r28, 		lo8(roundKeys+ROUND_KEYS_SIZE);		\n"
-	"ldi 		r29, 		hi8(roundKeys+ROUND_KEYS_SIZE);		\n"
+	"ldi 		r28, 		lo8(roundKeys);		\n"
+	"ldi 		r29, 		hi8(roundKeys);		\n"
+	"adiw		r28,		ROUND_KEYS_SIZE;	\n"
 	/* load the ciphertext from RAM to registers [r7,...,r0], X = [r7, r6, r5, r4], Y = [r3, r2, r1, r0] */
 	"ld 		r7, 		x+ ;			\n"
 	"ld 		r6, 		x+ ;			\n"
@@ -99,7 +100,7 @@ void Decrypt(uint8_t *block, uint8_t *roundKeys)
 "decLoop:;							\n"
 	/* get the sub key k, store the 4 bytes of sub key to K = [r11, r10, r9, r8] */
 	"ld 		r11, 		-y ;			\n"
- 	"ld 		r10, 		-y ;			\n
+ 	"ld 		r10, 		-y ;			\n"
 	"ld 		r9, 		-y ;			\n"
 	"ld 		r8, 		-y ;			\n"
 	/* k = k eor x 						*/
@@ -238,8 +239,8 @@ void Decrypt(uint8_t *block, uint8_t *roundKeys)
         "mov	0(r14),       	r8;					\n"  
         "mov   	2(r14),        	r9;					\n"
 	/* k = k eor y 							*/
-        "eor	r4, 		r8;					\n"
-	"eor	r5,		r9;					\n"
+        "xor	r4, 		r8;					\n"
+	"xor	r5,		r9;					\n"
 	/* y = x 							*/
 	"mov	r6,       	r4;					\n"  
         "mov   	r7,        	r5;					\n"
@@ -265,11 +266,11 @@ void Decrypt(uint8_t *block, uint8_t *roundKeys)
 	"rlc r7;							\n"
 	"adc r6;							\n"
 	/* [Sy & S(8)y] eor S(2)y 					*/
-	"eor	r6,		r4;					\n"
-	"eor	r7,		r5;					\n"
+	"xor	r6,		r4;					\n"
+	"xor	r7,		r5;					\n"
 	/* (x eor k) eor [Sy & S(8)y] eor S(2)y 			*/
-	"eor	r8,		r4;					\n"
-	"eor	r9,		r5;					\n"
+	"xor	r8,		r4;					\n"
+	"xor	r9,		r5;					\n"
 	/* next k 							*/
 	"sub	#4,		r14;					\n"
 	/*---------------------------------------------------------------*/

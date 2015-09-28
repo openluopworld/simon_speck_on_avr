@@ -1,5 +1,14 @@
 # Instruction Set
-C(Carry); V(overflow); N(negative); and Z(zero)
+C(Carry); V(overflow); N(negative); and Z(zero)<br>
+<b>Problem</b><br>
+1. Test uses the C implementation???<br>
+2. What is the different between Debug mode and Release mode???<br>
+3. There are some errors when using "make avr" in release mode, but the AES_128_128_v07 is correct. Fix Simon_64_128_v01 according to AES.<br>
+&nbsp;&nbsp;In encryption_key_schedule.c<br>
+&nbsp;&nbsp;/tmp/ccKGVV6l.s: Assembler messages:<br>
+&nbsp;&nbsp;/tmp/ccKGVV6l.s:152: Error: garbage at end of line<br>
+&nbsp;&nbsp;/tmp/ccKGVV6l.s:153: Error: garbage at end of line<br>
+&nbsp;&nbsp;/tmp/ccKGVV6l.s:154: Error: garbage at end of line<br>
 
 # MSP430
 &nbsp;&nbsp;Brief Introduction: 16 16-bit register. Four of the registers are dedicated to program counter(r0 or pc), stack point(r1 or sp), status register(r2 or sr/cg1) and constant generator(r3 or cg2), while the remaining 12 registers(r4-r15) are general-purpose registers. There are 52 instructions in total.<br><br>
@@ -28,6 +37,8 @@ C(Carry); V(overflow); N(negative); and Z(zero)
 &nbsp;&nbsp;For example, <b>"mov r5, r4"</b> means moving r5 to r4.
 
 6. The byte of higher address is stored in the higher 8 bits of register.(???)<br>
+
+7. <b>xor</b> is ^ in MSP. There is no <i>eor</i> instruction.<br>
 
 Refs<br>
 [1] <a href="http://mspgcc.sourceforge.net/manual/x214.html">mov.b rs, rd</a><br>
