@@ -41,7 +41,195 @@
 /*----------------------------------------------------------------------------*/
 void RunEncryptionKeySchedule(uint8_t *key, uint8_t *roundKeys)
 {
-	/* Add here the cipher decryption implementation */
+    asm volatile(\	
+	/*------------------------------------------------------*/
+        /* Registers allocation:				*/
+        /* r0	   : 						*/
+        /* r1	   : 						*/
+        /* r2-r5   : ki						*/
+        /* r6-r9   : ki+3					*/
+        /* r10-13  : ki+1					*/
+        /* r14     :						*/
+        /* r15     :						*/
+        /* r16     :                            		*/
+        /* r17     : temp             				*/
+        /* r18     : remain8, currentRound % 8	 		*/
+        /* r19     : currentZ, the current byte value of z	*/
+        /* r20     : constC0, the lowest byte const value c	*/
+        /* r21     : 						*/
+        /* r22     : 						*/
+        /* r23     : 						*/
+        /* r24     : currentRound				*/
+        /* r25     : 						*/
+        /* r26:r27 : X roundKeys				*/
+        /* r28:r29 : Y key					*/
+        /* r30:r31 : Z CONSTZ					*/
+        /* ---------------------------------------------------- */
+        /* Store all modified registers				*/
+        /* ---------------------------------------------------- */
+	"push	r2;	\n"
+        "push  	r3;	\n"
+        "push  	r4;	\n"
+	"push  	r5;	\n"
+	"push  	r6;	\n"
+        "push  	r7;	\n"
+        "push  	r8;	\n"
+	"push 	r9;	\n"
+	"push  	r10;	\n"
+        "push  	r11;	\n"
+        "push  	r12;	\n"
+	"push  	r13;	\n"
+        "push 	r17; 	\n"
+        "push 	r18;	\n"
+        "push 	r19;	\n"
+        "push 	r20;	\n"
+        "push 	r24;	\n"
+        "push 	r26;	\n" 
+        "push 	r27;	\n" 
+        "push 	r28;	\n"
+        "push 	r29;	\n"
+        "push 	r30;	\n"
+        "push 	r31;	\n"
+	/* ---------------------------------------------------- */
+	/* load master key 					*/
+	"ldi		r26,		low(roundKeys);		\n"
+	"ldi		r27, 		high(roundKeys);	\n"
+	"ldi 		r28,		low(key);		\n"
+	"ldi		r29,		high(key);		\n"
+	"clr		r24;					\n"
+"loadMasterKey:							\n"
+	"ld		r17,		y+;			\n"
+	"st 		x+, 		r17;			\n"
+	"inc 		r24;					\n"
+	"cpi 		r24, 		KEY_SIZE;		\n"
+	"brne loadMasterKey;\n"
+	/* ---------------------------------------------------- */
+	/* prepare for the key schedule 			*/
+	"ldi 		r26, 		low(roundKeys);		\n"
+	"ldi 		r27, 		high(roundKeys);	\n"
+	"ldi 		r30, 		lo8(CONSTZ);		\n"
+	"ldi 		r31, 		hi8(CONSTZ);		\n"
+	"lpm 		r19, 		z+;			\n"
+	"clr 		r18;					\n"
+	"ldi		r20,		0xfc;			\n"
+	"clr 		r24;					\n"
+	/* ---------------------------------------------------- */
+"keysExtend:							\n"
+	/* load k(i) 						*/
+	"ld 		r2, 		x+;			\n"
+	"ld 		r3, 		x+;			\n"
+	"ld 		r4, 		x+;			\n"
+	"ld 		r5, 		x+;			\n"
+	/* load k(i+1) 						*/
+	"ld 		r10, 		x+;			\n"
+	"ld 		r11, 		x+;			\n"
+	"ld 		r12, 		x+;			\n"
+	"ld 		r13, 		x+;			\n"
+	/* S(-3)k(i+3) 						*/
+	"adiw 		r26, 		4;			\n"
+	"ld 		r6, 		x+;			\n"
+	"ld 		r7, 		x+;			\n"
+	"ld 		r8, 		x+;			\n"
+	"ld 		r9, 		x+;			\n"
+	"lsr 		r9;					\n" /* S(-1) */
+	"ror 		r8;					\n"
+	"ror 		r7;					\n"
+	"bst 		r6, 		0;			\n"
+	"ror 		r6;					\n"
+	"bld 		r9, 		7;			\n"
+	"lsr 		r9;					\n" /* S(-2) */
+	"ror 		r8;					\n"
+	"ror 		r7;					\n"
+	"bst 		r6, 		0;			\n"
+	"ror 		r6;					\n"
+	"bld 		r9, 		7;			\n"
+	"lsr 		r9;					\n" /* S(-3) */
+	"ror 		r8;					\n"
+	"ror 		r7;					\n"
+	"bst 		r6, 		0;			\n"
+	"ror 		r6;					\n"
+	"bld 		r9, 		7;			\n"
+	/* k(i+1) eor S(-3)k(i+3) 				*/
+	"eor 		r6, 		r10;			\n"
+	"eor 		r7, 		r11;			\n"
+	"eor 		r8, 		r12;			\n"
+	"eor 		r9, 		r13;			\n"
+	/* k(i) eor [k(i+1) eor S(-3)k(i+3)] 			*/
+	"eor 		r2, 		r6;			\n"
+	"eor 		r3, 		r7;			\n"
+	"eor 		r4, 		r8;			\n"
+	"eor 		r5, 		r9;			\n"
+	/* S(-1)[k(i+1) eor S(-3)k(i+3)] 			*/
+	"lsr 		r9;					\n"
+	"ror 		r8;					\n"
+	"ror 		r7;					\n"
+	"bst 		r6, 		0;			\n"
+	"ror 		r6;					\n"
+	"bld 		r9, 		7;			\n"
+	/* k(i) eor [k(i+1) eor S(-3)k(i+3)] eor S(-1)[k(i+1) eor S(-3)k(i+3)] */
+	"eor 		r2, 		r6;			\n"
+	"eor 		r3, 		r7;			\n"
+	"eor 		r4, 		r8;			\n"
+	"eor 		r5, 		r9;			\n"
+	/* k(i) eor [k(i+1) eor S(-3)k(i+3)] eor S(-1)[k(i+1) eor S(-3)k(i+3)] eor c eor z(i) */
+	/* the least significant bit of the least significant byte of C is 0, so just set the bit to implement "c eor z(i)"*/
+	"bst 		r19, 		7;			\n"
+	"bld 		r20, 		0;			\n"
+	"lsl 		r19;					\n" /* update z for next round use */
+	"eor 		r2, 		r20;			\n"
+	"com 		r3;					\n"
+	"com 		r4;					\n"
+	"com 		r5;					\n"
+	/* k(i+4), is just [r5,r4,r3,r2] 			*/
+	"st 		x+, 		r2;			\n"
+	"st 		x+, 		r3;			\n"
+	"st 		x+, 		r4;			\n"
+	"st 		x+, 		r5;			\n"
+	/* set x to the position of k(i+1), should sub 16(from k(i+5) to k(i+1)) not 12 */
+	"sbiw 		r26, 		16;			\n"
+	/* ---------------------------------------------------- */
+	/* loop control						*/
+	"inc 		r24;					\n"
+	"inc 		r18;					\n"
+	"cpi 		r18, 		8;			\n"
+	"breq 		nextByteZ;				\n" /* if remain8 = 8, the next byte of constZ should be load */
+	"rjmp 		keysExtend;				\n"
+"nextByteZ:							\n"
+	"clr 		r18;					\n" /* start with 0 again */
+	"lpm 		r19, 		z+;			\n"
+	"cpi 		r24, 		40;			\n"
+	"breq 		scheEnd;				\n"
+	"rjmp 		keysExtend;				\n"
+"scheEnd:							\n"
+	"ret;							\n"
+	/* ---------------------------------------------------- */
+	/* Restore all modified registers			*/
+        "pop  r31;       \n"
+        "pop  r30;       \n"
+        "pop  r29;       \n"
+        "pop  r28;       \n"
+        "pop  r27;       \n" 
+        "pop  r26;       \n" 
+        "pop  r24;       \n" 
+	"pop  r20;       \n"
+	"pop  r19;       \n"
+	"pop  r18;       \n"
+        "pop  r17;       \n"
+        "pop  r13;       \n"
+	"pop  r12;       \n"
+	"pop  r11;       \n"
+	"pop  r10;       \n"
+	"pop  r9;        \n"
+	"pop  r8;        \n"
+	"pop  r7;        \n"
+	"pop  r6;        \n"
+	"pop  r5;        \n"
+	"pop  r4;        \n"
+        "pop  r3;        \n"
+        "pop  r2;        \n"
+	/* ---------------------------------------------------- */
+    :
+    : [key] "x" (key), [roundKeys] "z" (roundKeys), [CONSTZ] "" (CONSTZ));
 }
 
 #else

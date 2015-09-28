@@ -41,7 +41,150 @@
 /*----------------------------------------------------------------------------*/
 void Decrypt(uint8_t *block, uint8_t *roundKeys)
 {
-	/* Add here the cipher decryption implementation */
+    asm volatile (\
+	/*------------------------------------------------------*/
+        /* Registers allocation:				*/
+        /* r0-r7   : cipher text 				*/
+        /* r8-11   : round key					*/
+        /* r12-r15 : temp use					*/
+        /* r16-r23 :                            		*/
+        /* r24     : currentRound				*/
+        /* r25     : 						*/
+        /* r26:r27 : X point to plain text			*/
+        /* r28:r29 : Y roundKeys				*/
+        /* r30:r31 : Z r30 stores 0				*/
+        /* ---------------------------------------------------- */
+        /* Store all modified registers				*/
+        /* ---------------------------------------------------- */
+	"push	r0;	\n" /* plain text */
+        "push  	r1;	\n"
+	"push	r2;	\n"
+        "push  	r3;	\n"
+        "push  	r4;	\n"
+	"push  	r5;	\n"
+	"push  	r6;	\n"
+        "push  	r7;	\n"
+        "push  	r8;	\n" /* round key */
+	"push 	r9;	\n"
+	"push  	r10;	\n"
+        "push  	r11;	\n"
+        "push  	r12;	\n" /* temp use */
+	"push  	r13;	\n"
+	"push  	r14;	\n"
+	"push  	r15;	\n"
+        "push 	r24;	\n" /* currentRound */
+        "push 	r26;	\n" /* X */
+        "push 	r27;	\n" 
+        "push 	r28;	\n" /* Y */
+        "push 	r29;	\n"
+        "push 	r30;	\n" /* Z */
+        "push 	r31;	\n"
+	/* ---------------------------------------------------- */
+	"ldi 		r26, 		lo8(block);		\n"
+	"ldi 		r27, 		hi8(block);		\n"
+	"clr 		r24;					\n"
+	"ldi 		r28, 		lo8(roundKeys+ROUND_KEYS_SIZE);		\n"
+	"ldi 		r29, 		hi8(roundKeys+ROUND_KEYS_SIZE);		\n"
+	/* load the ciphertext from RAM to registers [r7,...,r0], X = [r7, r6, r5, r4], Y = [r3, r2, r1, r0] */
+	"ld 		r7, 		x+ ;			\n"
+	"ld 		r6, 		x+ ;			\n"
+	"ld 		r5, 		x+ ;			\n"
+	"ld 		r4, 		x+ ;			\n"
+	"ld 		r3, 		x+ ;			\n"
+	"ld 		r2, 		x+ ;			\n"
+	"ld 		r1, 		x+ ;			\n"
+	"ld 		r0, 		x+ ;			\n"
+	"clr 		r30;					\n"
+	/* ---------------------------------------------------- */
+"decLoop:;							\n"
+	/* get the sub key k, store the 4 bytes of sub key to K = [r11, r10, r9, r8] */
+	"ld 		r11, 		-y ;			\n"
+ 	"ld 		r10, 		-y ;			\n
+	"ld 		r9, 		-y ;			\n"
+	"ld 		r8, 		-y ;			\n"
+	/* k = k eor x 						*/
+	"eor 		r8, 		r4;			\n"
+	"eor 		r9, 		r5;			\n"
+	"eor 		r10, 		r6;			\n"
+	"eor 		r11, 		r7;			\n"
+	/* move y to x 						*/
+	"movw 		r4, 		r0;			\n"
+	"movw 		r6, 		r2;			\n"
+	/* rotate y by left with 1 bit 				*/
+	/* logical shift left: bit 0 is cleared, bit 7 is loaded into the C flag of the SREG */
+	/* rotate left through carry: the C flag in shifted into bit 0, bit 7 is shifted into the C flag */
+	"lsl 		r0;					\n"
+	"rol 		r1;					\n"
+	"rol 		r2;					\n"
+	"rol 		r3;					\n"
+	"adc 		r0, 		r30;			\n"
+	/* move y to t, t stands for [r15, r14, r13, r12]	*/
+	"movw 		r12, 		r0;			\n"
+	"movw 		r14, 		r2;			\n"
+	/* t & S8(y) 						*/
+	"and 		r12, 		r7;			\n"
+	"and 		r13, 		r4;			\n"
+	"and 		r14, 		r5;			\n"
+	"and 		r15, 		r6;			\n"
+	/* y = S2(y) 						*/
+	"lsl 		r0;					\n"
+	"rol 		r1;					\n"
+	"rol 		r2;					\n"
+	"rol 		r3;					\n"
+	"adc 		r0, 		r30;			\n"
+	/* y = y eor t 						*/
+	"eor 		r0, 		r12;			\n"
+	"eor 		r1, 		r13;			\n"
+	"eor 		r2, 		r14;			\n"
+	"eor 		r3, 		r15;			\n"
+	/* y = y eor k 						*/
+	"eor 		r0, 		r8;			\n"
+	"eor 		r1, 		r9;			\n"
+	"eor 		r2, 		r10;			\n"
+	"eor 		r3, 		r11;			\n"
+	/* loop control 					*/
+	"inc 		r24;					\n"
+	"cpi 		r24, 		NUMBER_OF_ROUNDS;	\n"
+	"brne 		decLoop;				\n"
+	/* ---------------------------------------------------- */
+	/* move cipher text back to plain text 			*/
+	"st 		-x, 		r0;			\n"
+	"st 		-x, 		r1;			\n"
+	"st 		-x, 		r2;			\n"
+	"st 		-x, 		r3;			\n"
+	"st 		-x, 		r4;			\n"
+	"st 		-x, 		r5;			\n"
+	"st 		-x, 		r6;			\n"
+	"st 		-x, 		r7;			\n"
+	/* ---------------------------------------------------- */
+	/* Restore all modified registers			*/
+        "pop  r31;       \n"
+        "pop  r30;       \n"
+        "pop  r29;       \n"
+        "pop  r28;       \n"
+        "pop  r27;       \n" 
+        "pop  r26;       \n" 
+        "pop  r24;       \n" 
+	"pop  r15;       \n"
+	"pop  r14;       \n"
+	"pop  r13;       \n"
+        "pop  r12;       \n"
+        "pop  r11;       \n"
+	"pop  r10;       \n"
+	"pop  r9;        \n"
+	"pop  r8;        \n"
+	"pop  r7;        \n"
+	"pop  r6;        \n"
+	"pop  r5;        \n"
+	"pop  r4;        \n"
+        "pop  r3;        \n"
+        "pop  r2;        \n"
+	"pop  r1;	 \n"
+	"pop  r0;	 \n"
+	"ret;\n" the end point is here or not makes much difference.
+    :
+    : [block] "m" (block), [roundKeys] "m" (roundKeys)
+);
 }
 
 #else
@@ -68,76 +211,75 @@ void Decrypt(uint8_t *block, uint8_t *roundKeys)
         /*---------------------------------------------------------------*/
         /* Store all modified registers                                  */
         /*---------------------------------------------------------------*/
-	"push   r4;                 \n"
-        "push   r5;                 \n"
-        "push   r6;                 \n"
-        "push   r7;                 \n"
-        "push   r8;                 \n"
-        "push   r9;                 \n"
-        "push   r12;                \n"
-        "push   r13;                \n"
-        "push   r14;                \n"
-        "push   r15;                \n"
-        /*---------------------------------------------------------------*/
-        "mov    %[block],       r15;\n"
-        "mov    %[roundKeys],   r14;\n"
-	"add	#43*4,		r14;\n" 
-        /*---------------------------------------------------------------*/
-        /* load cipher text		                                 */
-        /*---------------------------------------------------------------*/
-    	"mov @r15+, r4;\n"
-    	"mov @r15+, r5;\n"
-    	"mov @r15+, r7;\n"
-    	"mov @r15+, r7;\n"
-        /*---------------------------------------------------------------*/
-        "mov    #44,            r13;\n" /* 44 rounds                     */
-    "round_loop:\n"
-        /* k = r9:r8;	*/ 
-        "mov	0(r14),       	r8;\n"  
-        "mov   	2(r14),        	r9;\n"
-	/* k = k eor y */
-        "eor	r4, 		r8;\n"
-	"eor	r5,		r9;\n"
-	/* y = x */
-	"mov	r6,       	r4;\n"  
-        "mov   	r7,        	r5;\n"
-	/* S(8)(x) */
+	"push   r4;                 	\n"
+        "push   r5;                 	\n"
+        "push   r6;                 	\n"
+        "push   r7;                 	\n"
+        "push   r8;                 	\n"
+        "push   r9;                 	\n"
+        "push   r12;                	\n"
+        "push   r13;                	\n"
+        "push   r14;                	\n"
+        "push   r15;                	\n"
+        /*--------------------------------------------------------------*/
+        "mov    %[block],       r15;					\n"
+        "mov    %[roundKeys],   r14;					\n"
+	"add	#43*4,		r14;					\n" 
+        /*--------------------------------------------------------------*/
+        /* load cipher text		                                */
+        /*--------------------------------------------------------------*/
+    	"mov 	@r15+, r4;						\n"
+    	"mov 	@r15+, r5;						\n"
+    	"mov 	@r15+, r7;						\n"
+    	"mov 	@r15+, r7;						\n"
+        /*--------------------------------------------------------------*/
+        "mov    #44,            r13;					\n" /* 44 rounds */
+    "round_loop:							\n"
+        /* k = r9:r8;							*/ 
+        "mov	0(r14),       	r8;					\n"  
+        "mov   	2(r14),        	r9;					\n"
+	/* k = k eor y 							*/
+        "eor	r4, 		r8;					\n"
+	"eor	r5,		r9;					\n"
+	/* y = x 							*/
+	"mov	r6,       	r4;					\n"  
+        "mov   	r7,        	r5;					\n"
+	/* S(8)(x) 							*/
 	/* A byte instruction with a register destination clears the high 8 bits of the register to 0. */
-	/* [http://mspgcc.sourceforge.net/manual/x214.html] */
-	/* I think the it means the destination regiser. */
-  	"swpb r6;\n"
-  	"swpb r7;\n"
-	"mov.b r6, r12;\n"
-  	"xor.b r7, r12;\n"
-  	"xor  r12, r6;\n"
-  	"xor  r12, r7;\n"
-	/* S(1)y, This time y is store in x, so the operation is on x */
-	"rla r6;\n"
-	"rlc r7;\n"
-	"adc r6;\n"
-	/* Sy & S(8)y */
-	"and	r6,		r4;\n"
-	"and	r7,		r5;\n"
-	/* S(2)y, again rotate shift left x with 1 bit*/
-	"rla r6;\n"
-	"rlc r7;\n"
-	"adc r6;\n"
-	/* [Sy & S(8)y] eor S(2)y */
-	"eor	r6,		r4;\n"
-	"eor	r7,		r5;\n"
-	/* (x eor k) eor [Sy & S(8)y] eor S(2)y */
-	"eor	r8,		r4;\n"
-	"eor	r9,		r5;\n"
-
-	/* next k */
-	"sub	#4,		r14;\n"
-
-	/* loop control */
-        "dec	r13;\n"
-	"jne	round_loop;\n"
-        /*---------------------------------------------------------------*/
+	/* [http://mspgcc.sourceforge.net/manual/x214.html] 		*/
+	/* I think the it means the destination regiser. 		*/
+  	"swpb 	r6;							\n"
+  	"swpb 	r7;							\n"
+	"mov.b 	r6, 		r12;					\n"
+  	"xor.b 	r7, 		r12;					\n"
+  	"xor  	r12, 		r6;					\n"
+  	"xor  	r12, 		r7;					\n"
+	/* S(1)y, This time y is store in x, so the operation is on x 	*/
+	"rla 	r6;							\n"
+	"rlc 	r7;							\n"
+	"adc 	r6;							\n"
+	/* Sy & S(8)y 							*/
+	"and	r6,		r4;					\n"
+	"and	r7,		r5;					\n"
+	/* S(2)y, again rotate shift left x with 1 bit			*/
+	"rla r6;							\n"
+	"rlc r7;							\n"
+	"adc r6;							\n"
+	/* [Sy & S(8)y] eor S(2)y 					*/
+	"eor	r6,		r4;					\n"
+	"eor	r7,		r5;					\n"
+	/* (x eor k) eor [Sy & S(8)y] eor S(2)y 			*/
+	"eor	r8,		r4;					\n"
+	"eor	r9,		r5;					\n"
+	/* next k 							*/
+	"sub	#4,		r14;					\n"
+	/*---------------------------------------------------------------*/
+	/* loop control 						*/
+        "dec	r13;							\n"
+	"jne	round_loop;						\n"
+        /*--------------------------------------------------------------*/
         /* Restore registers                                             */
-        /*---------------------------------------------------------------*/
+        /*--------------------------------------------------------------*/
         "pop    r15;                \n"
         "pop    r14;                \n"
         "pop    r13;                \n"

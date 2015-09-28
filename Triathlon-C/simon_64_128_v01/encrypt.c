@@ -41,7 +41,151 @@
 /*----------------------------------------------------------------------------*/
 void Encrypt(uint8_t *block, uint8_t *roundKeys)
 {
-	/* Add here the cipher encryption implementation */
+    asm volatile (\
+	/*------------------------------------------------------*/
+        /* Registers allocation:				*/
+        /* r0-r7   : plain text 				*/
+        /* r8-11   : round key					*/
+        /* r12-r15 : temp use					*/
+        /* r16-r23 :                            		*/
+        /* r24     : currentRound				*/
+        /* r25     : 						*/
+        /* r26:r27 : X point to plain text			*/
+        /* r28:r29 : Y roundKeys				*/
+        /* r30:r31 : Z r30 stores 0				*/
+        /* ---------------------------------------------------- */
+        /* Store all modified registers				*/
+        /* ---------------------------------------------------- */
+	"push	r0;	\n" /* plain text */
+        "push  	r1;	\n"
+	"push	r2;	\n"
+        "push  	r3;	\n"
+        "push  	r4;	\n"
+	"push  	r5;	\n"
+	"push  	r6;	\n"
+        "push  	r7;	\n"
+        "push  	r8;	\n" /* round key */
+	"push 	r9;	\n"
+	"push  	r10;	\n"
+        "push  	r11;	\n"
+        "push  	r12;	\n" /* temp use */
+	"push  	r13;	\n"
+	"push  	r14;	\n"
+	"push  	r15;	\n"
+        "push 	r24;	\n" /* currentRound */
+        "push 	r26;	\n" /* X */
+        "push 	r27;	\n" 
+        "push 	r28;	\n" /* Y */
+        "push 	r29;	\n"
+        "push 	r30;	\n" /* Z */
+        "push 	r31;	\n"
+	/* ---------------------------------------------------- */
+	/* start encyrption 					*/
+	"ldi 		r26, 		lo8(block);		\n"
+	"ldi 		r27, 		hi8(block);		\n"
+	"clr 		r24;					\n"
+	"ldi 		r28, 		lo8(roundKeys);		\n"
+	"ldi 		r29, 		hi8(roundKeys);		\n"
+	/* load the plaintext X = [r7, r6, r5, r4], Y = [r3, r2, r1, r0] */
+	"ld 		r7, 		x+;			\n"
+	"ld 		r6, 		x+ ;			\n"
+	"ld 		r5, 		x+ ;			\n"
+	"ld 		r4, 		x+ ;			\n"
+	"ld 		r3, 		x+ ;			\n"
+	"ld 		r2, 		x+ ;			\n"
+	"ld 		r1, 		x+ ;			\n"
+	"ld 		r0, 		x+ ;			\n"
+	"clr 		r30;					\n"
+"encLoop:\n"
+	/* store the 4 bytes of sub key to K = [r11, r10, r9, r8]*/
+	"ld 		r8, 		y+;			\n" /* r8 is the lowes byte */
+ 	"ld 		r9, 		y+;			\n"
+	"ld 		r10, 		y+;			\n"
+	"ld 		r11, 		y+;			\n" /* r11 is the highest byte */
+	/* k = k eor y 						*/
+	"eor 		r8, 		r0;			\n"
+	"eor 		r9, 		r1;			\n"
+	"eor 		r10, 		r2;			\n"
+	"eor 		r11, 		r3;			\n"
+	/* move x to y 						*/
+	"movw 		r0, 		r4;			\n" /* the index must be even ( R1:R0 = R5:R4) */
+	"movw 		r2, 		r6;			\n" /* ( R3:R2 = R7:R6 ) */
+	/* rotate x by left with 1 bit. logical shift left: bit 0 is cleared, bit 7 is loaded into the C flag of the SREG */
+	"lsl 		r4;					\n"
+	/* rotate left through carry: the C flag in shifted into bit 0, bit 7 is shifted into the C flag */
+	"rol 		r5;					\n" 
+	"rol 		r6;					\n"
+	"rol 		r7;					\n"
+	"adc 		r4, 		r30;			\n"
+	/* move x to t, t stands for [r15, r14, r13, r12]	*/
+	"movw 		r12, 		r4;			\n"
+	"movw 		r14, 		r6;			\n"
+	/* t & S8(y) 						*/
+	"and 		r12, 		r3;			\n"
+	"and 		r13, 		r0;			\n"
+	"and 		r14, 		r1;			\n"
+	"and 		r15, 		r2;			\n"
+	/* x = S2(x) 						*/
+	"lsl 		r4;					\n"
+	"rol 		r5;					\n"
+	"rol 		r6;					\n"
+	"rol 		r7;					\n"
+	"adc 		r4, 		r30;			\n"
+	/* x = x eor t						*/
+	"eor 		r4, 		r12;			\n"
+	"eor 		r5, 		r13;			\n"
+	"eor 		r6, 		r14;			\n"
+	"eor 		r7, 		r15;			\n"
+	/* x = x eor k 						*/
+	"eor		r4, 		r8;			\n"
+	"eor 		r5, 		r9;			\n"
+	"eor 		r6, 		r10;			\n"
+	"eor 		r7, 		r11;			\n"
+	/* ---------------------------------------------------- */
+	/* loop control						*/
+	"inc 		r24;					\n"
+	"cpi 		r24, NUMBER_OF_ROUNDS;			\n"
+	"brne 		encLoop;				\n"
+	/* ---------------------------------------------------- */
+	/* move cipher text back to plain text			*/
+	"st 		-x, 		r0;			\n"
+	"st 		-x, 		r1;			\n"
+	"st 		-x, 		r2;			\n"
+	"st 		-x, 		r3;			\n"
+	"st 		-x, 		r4;			\n"
+	"st 		-x, 		r5;			\n"
+	"st 		-x, 		r6;			\n"
+	"st 		-x, 		r7;			\n"
+	"ret;							\n"
+	/* ---------------------------------------------------- */
+	/* Restore all modified registers			*/
+        "pop  r31;       \n"
+        "pop  r30;       \n"
+        "pop  r29;       \n"
+        "pop  r28;       \n"
+        "pop  r27;       \n" 
+        "pop  r26;       \n" 
+        "pop  r24;       \n" 
+	"pop  r15;       \n"
+	"pop  r14;       \n"
+	"pop  r13;       \n"
+        "pop  r12;       \n"
+        "pop  r11;       \n"
+	"pop  r10;       \n"
+	"pop  r9;        \n"
+	"pop  r8;        \n"
+	"pop  r7;        \n"
+	"pop  r6;        \n"
+	"pop  r5;        \n"
+	"pop  r4;        \n"
+        "pop  r3;        \n"
+        "pop  r2;        \n"
+	"pop  r1;	 \n"
+	"pop  r0;	 \n"
+	/* ---------------------------------------------------- */
+    :
+    : [block] "m" (block), [roundKeys] "m" (roundKeys)
+);
 }
 
 #else
