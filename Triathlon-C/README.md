@@ -38,13 +38,13 @@ C(Carry); V(overflow); N(negative); and Z(zero)<br>
 
 6. The byte of higher address is stored in the higher 8 bits of register.(???)<br>
 
-7. <b>xor</b> is ^ in MSP. There is no <i>eor</i> instruction.<br>
+7. ^ is <b>xor</b> in MSP, but <i>eor</i> is AVR.<br>
 
 Refs<br>
 [1] <a href="http://mspgcc.sourceforge.net/manual/x214.html" target="_blank">mov.b rs, rd</a><br>
-[2] <a href="http://mspgcc.sourceforge.net/manual/x223.html">bit rs, rd</a><br>
-[3] <a href="http://mspgcc.sourceforge.net/manual/x82.html">bit	#1,	r8</a><br>
-[4] <a href="http://www.ece.utep.edu/courses/web3376/Links_files/MSP430%20Quick%20Reference.pdf">mov(.b) @rs+, rd</a><br>
+[2] <a href="http://mspgcc.sourceforge.net/manual/x223.html" target="_blank">bit rs, rd</a><br>
+[3] <a href="http://mspgcc.sourceforge.net/manual/x82.html" target="_blank">bit	#1,	r8</a><br>
+[4] <a href="http://www.ece.utep.edu/courses/web3376/Links_files/MSP430%20Quick%20Reference.pdf" target="_blank">mov(.b) @rs+, rd</a><br>
 
 # AVR
 &nbsp;&nbsp;Most of the 133 instructions require a single cycle to execute. The rich instruction set in combimed with the 32 8-bit general purpose registers(r0-r31) with single clock access time. Six of the 32 8-bit registers can be used as three 16-bit indirect register pointers(X, r26-r27; Y, r28-r29; and Z, r30-r31) for addressing the data space.
