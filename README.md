@@ -13,10 +13,17 @@ Some instructions such as <b>adiw</b> and <b>cpi</b> can be used to reduce the n
 
 # Triathlon-Only-AVR
 Implement on ATmega128, IDE is Atmel Studio 6.2.<br>
-Two Scenarios: 1)128 bytes in CBC mode; 2) 128 bits in CTR mode<sup>[3,4]</sup><br>
+Two Scenarios<sup>[3,4]</sup>:<br>
+&nbsp;&nbsp;1)128 bytes in CBC mode;<br>
+&nbsp;&nbsp;2)128 bits in CTR mode<br>
 
 # Triathlon-C
-Two scenarios, each with 3 platfrom.
+Two scenarios, each with 3 platfrom: AVR, MSP and ARM.<br>
+Four algorithms:<br>
+&nbsp;&nbsp;1)Simon 64/128;<br>
+&nbsp;&nbsp;2)Speck 64/128;<br>
+&nbsp;&nbsp;3)Pride 64/128;<br>
+&nbsp;&nbsp;4)Rectangle 128/128;<br>
 
 # References
 [1] <a href="https://eprint.iacr.org/2013/404.pdf">The Simon and Speck Families of Lightweight Block Ciphers.<a/><br>
