@@ -41,7 +41,7 @@ C(Carry); V(overflow); N(negative); and Z(zero)<br>
 7. <b>xor</b> is ^ in MSP. There is no <i>eor</i> instruction.<br>
 
 Refs<br>
-[1] <a href="http://mspgcc.sourceforge.net/manual/x214.html">mov.b rs, rd</a><br>
+[1] <a href="http://mspgcc.sourceforge.net/manual/x214.html" target="_blank">mov.b rs, rd</a><br>
 [2] <a href="http://mspgcc.sourceforge.net/manual/x223.html">bit rs, rd</a><br>
 [3] <a href="http://mspgcc.sourceforge.net/manual/x82.html">bit	#1,	r8</a><br>
 [4] <a href="http://www.ece.utep.edu/courses/web3376/Links_files/MSP430%20Quick%20Reference.pdf">mov(.b) @rs+, rd</a><br>
