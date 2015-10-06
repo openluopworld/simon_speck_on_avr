@@ -318,7 +318,7 @@ decAnotherBlock:
 	;sbiw r28, 1; y is just the start address of keys + 108. So it does not need sub 1.
 decLoop:
 	; get the sub key k
-	ld r11, -y ; store the 4 bytes of sub key to K = [r11, r10, r9, r8]
+/*	ld r11, -y ; store the 4 bytes of sub key to K = [r11, r10, r9, r8]
  	ld r10, -y ;
 	ld r9, -y ;
 	ld r8, -y ;
@@ -364,6 +364,52 @@ decLoop:
 	mov r5, r8;
 	mov r6, r9;
 	mov r7, r10;
+*/
+	; can reduce one instruction
+	ld r11, -y ;
+ 	ld r10, -y ;
+	ld r9, -y ;
+	ld r8, -y ;
+	; y = y eor x
+	eor r0, r4;
+	eor r1, r5;
+	eor r2, r6;
+	eor r3, r7;
+	; y = S(-3)y
+	lsr r3;
+	ror r2;
+	ror r1;
+	bst r0, 0;
+	ror r0;
+	bld r3, 7;
+	lsr r3;
+	ror r2;
+	ror r1;
+	bst r0, 0;
+	ror r0;
+	bld r3, 7;
+	lsr r3;
+	ror r2;
+	ror r1;
+	bst r0, 0;
+	ror r0;
+	bld r3, 7;
+	; x = x eor k
+	eor r4, r8;
+	eor r5, r9;
+	eor r6, r10;
+	eor r7, r11;
+	; x = x - y;
+	sub r4, r0;
+	sbc r5, r1;
+	sbc r6, r2;
+	sbc r7, r3;
+	; x = S(8)x
+	mov r8, r7;
+	mov r7, r6;
+	mov r6, r5;
+	mov r5, r4;
+	mov r4, r8;
 
 	inc currentRound;
 	cpi currentRound, ENC_DEC_ROUNDS;
