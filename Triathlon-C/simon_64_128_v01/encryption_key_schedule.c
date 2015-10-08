@@ -92,23 +92,24 @@ void RunEncryptionKeySchedule(uint8_t *key, uint8_t *roundKeys)
         "push 	r31;	\n"
 	/* ---------------------------------------------------- */
 	/* load master key 					*/
-	"ldi		r26,		low(roundKeys);		\n"
-	"ldi		r27, 		high(roundKeys);	\n"
-	"ldi 		r28,		low(key);		\n"
-	"ldi		r29,		high(key);		\n"
+/*	"ldi		r26,		lo8(roundKeys);		\n" */
+/*	"ldi		r27, 		hi8(roundKeys);		\n" */
+/*	"ldi 		r28,		lo8(key);		\n" */
+/*	"ldi		r29,		hi8(key);		\n" */
 	"clr		r24;					\n"
 "loadMasterKey:							\n"
 	"ld		r17,		y+;			\n"
 	"st 		x+, 		r17;			\n"
 	"inc 		r24;					\n"
-	"cpi 		r24, 		KEY_SIZE;		\n"
+	"cpi 		r24, 		16;			\n"
 	"brne loadMasterKey;					\n"
 	/* ---------------------------------------------------- */
 	/* prepare for the key schedule 			*/
-	"ldi 		r26, 		low(roundKeys);		\n"
-	"ldi 		r27, 		high(roundKeys);	\n"
-	"ldi 		r30, 		lo8(CONSTZ);		\n"
-	"ldi 		r31, 		hi8(CONSTZ);		\n"
+/*	"ldi 		r26, 		lo8(roundKeys);		\n" */
+/*	"ldi 		r27, 		hi8(roundKeys);		\n" */
+	"sbiw		r26,		16;			\n"
+/*	"ldi 		r30, 		lo8(CONSTZ);		\n" */
+/*	"ldi 		r31, 		hi8(CONSTZ);		\n" */
 	"lpm 		r19, 		z+;			\n"
 	"clr 		r18;					\n"
 	"ldi		r20,		0xfc;			\n"
@@ -228,7 +229,7 @@ void RunEncryptionKeySchedule(uint8_t *key, uint8_t *roundKeys)
         "pop  r2;        \n"
 	/* ---------------------------------------------------- */
     :
-    : [key] "x" (key), [roundKeys] "z" (roundKeys), [CONSTZ] "" (CONSTZ));
+    : [key] "y" (key), [roundKeys] "x" (roundKeys), [CONSTZ] "z" (CONSTZ));
 }
 
 #else
@@ -345,7 +346,7 @@ void RunEncryptionKeySchedule(uint8_t *key, uint8_t *roundKeys)
 	"pop    r4;                 \n"
         /*---------------------------------------------------------------*/
     :
-    : [key] "m" (key), [roundKeys] "m" (roundKeys), [Z_XOR_3] "" (Z_XOR_3)); 
+    : [key] "" (key), [roundKeys] "" (roundKeys), [Z_XOR_3] "" (Z_XOR_3)); 
 }
 
 #else
@@ -380,8 +381,22 @@ void RunEncryptionKeySchedule(uint8_t *key, uint8_t *roundKeys)
         "mov          		r7,  			%[roundKeys];           \n"
         "mov           		r8,           		#40;              	\n"
 	"mov			r3,			#0xfffffffc;		\n"
-	"mov			r4,			#0xdbac65e0;		\n"
-	"mov			r5,			#0x48a7343c;		\n"
+/*	"mov			r4,			#0xdbac65e0;		\n" */
+	"mov			r4,			#0xdb;			\n"
+	"lsl			r4,			#8;			\n"
+	"eor			r4,			r4,		#0xac;	\n"
+	"lsl			r4,			#8;			\n"
+	"eor			r4,			r4,		#0x65;	\n"
+	"lsl			r4,			#8;			\n"
+	"eor			r4,			r4,		#0xe0;	\n"
+/*	"mov			r5,			#0x48a7343c;		\n" */
+	"mov			r5,			#0x48;			\n"
+	"lsl			r5,			#8;			\n"
+	"eor			r5,			r5,		#0xa7;	\n"
+	"lsl			r5,			#8;			\n"
+	"eor			r5,			r5,		#0x34;	\n"
+	"lsl			r5,			#8;			\n"
+	"eor			r5,			r5,		#0x3c;	\n"
         /* memcpy(roundKeys, key, 16) 						*/
         "ldmia        		r6,      		{r9-r12};              	\n"
 	/* r7 is still the start address of round keys after the operation 	*/ 

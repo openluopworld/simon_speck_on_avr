@@ -81,11 +81,11 @@ void Encrypt(uint8_t *block, uint8_t *roundKeys)
         "push 	r31;	\n"
 	/* ---------------------------------------------------- */
 	/* start encyrption 					*/
-	"ldi 		r26, 		lo8(block);		\n"
-	"ldi 		r27, 		hi8(block);		\n"
+/*	"ldi 		r26, 		lo8(block);		\n" */
+/*	"ldi 		r27, 		hi8(block);		\n" */
 	"clr 		r24;					\n"
-	"ldi 		r28, 		lo8(roundKeys);		\n"
-	"ldi 		r29, 		hi8(roundKeys);		\n"
+/*	"ldi 		r28, 		lo8(roundKeys);		\n" */
+/*	"ldi 		r29, 		hi8(roundKeys);		\n" */
 	/* load the plaintext X = [r7, r6, r5, r4], Y = [r3, r2, r1, r0] */
 	"ld 		r7, 		x+;			\n"
 	"ld 		r6, 		x+ ;			\n"
@@ -144,7 +144,7 @@ void Encrypt(uint8_t *block, uint8_t *roundKeys)
 	/* ---------------------------------------------------- */
 	/* loop control						*/
 	"inc 		r24;					\n"
-	"cpi 		r24, NUMBER_OF_ROUNDS;			\n"
+	"cpi 		r24, 		44;			\n"
 	"brne 		encLoop;				\n"
 	/* ---------------------------------------------------- */
 	/* move cipher text back to plain text			*/
@@ -183,8 +183,7 @@ void Encrypt(uint8_t *block, uint8_t *roundKeys)
 	"pop  r0;	 \n"
 	/* ---------------------------------------------------- */
     :
-    : [block] "m" (block), [roundKeys] "m" (roundKeys)
-);
+    : [block] "x" (block), [roundKeys] "y" (roundKeys));
 }
 
 #else
@@ -289,8 +288,7 @@ void Encrypt(uint8_t *block, uint8_t *roundKeys)
 	"pop    r4;                 \n"
         /*---------------------------------------------------------------*/
     :
-    : [block] "m" (block), [roundKeys] "m" (roundKeys)
-); 
+    : [block] "" (block), [roundKeys] "" (roundKeys)); 
 }
 
 #else

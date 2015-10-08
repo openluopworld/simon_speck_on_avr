@@ -3,12 +3,6 @@ C(Carry); V(overflow); N(negative); and Z(zero)<br>
 <b>Problem</b><br>
 1. Test uses the C implementation???<br>
 2. What is the different between Debug mode and Release mode???<br>
-3. There are some errors when using "make avr" in release mode, but the AES_128_128_v07 is correct. Fix Simon_64_128_v01 according to AES.<br>
-&nbsp;&nbsp;In encryption_key_schedule.c<br>
-&nbsp;&nbsp;/tmp/ccKGVV6l.s: Assembler messages:<br>
-&nbsp;&nbsp;/tmp/ccKGVV6l.s:152: Error: garbage at end of line<br>
-&nbsp;&nbsp;/tmp/ccKGVV6l.s:153: Error: garbage at end of line<br>
-&nbsp;&nbsp;/tmp/ccKGVV6l.s:154: Error: garbage at end of line<br>
 
 # MSP430
 &nbsp;&nbsp;Brief Introduction: 16 16-bit register. Four of the registers are dedicated to program counter(r0 or pc), stack point(r1 or sp), status register(r2 or sr/cg1) and constant generator(r3 or cg2), while the remaining 12 registers(r4-r15) are general-purpose registers. There are 52 instructions in total.<br><br>
@@ -47,6 +41,25 @@ Refs<br>
 [4] <a href="http://www.ece.utep.edu/courses/web3376/Links_files/MSP430%20Quick%20Reference.pdf" target="_blank">mov(.b) @rs+, rd</a><br>
 
 # AVR
-&nbsp;&nbsp;Most of the 133 instructions require a single cycle to execute. The rich instruction set in combimed with the 32 8-bit general purpose registers(r0-r31) with single clock access time. Six of the 32 8-bit registers can be used as three 16-bit indirect register pointers(X, r26-r27; Y, r28-r29; and Z, r30-r31) for addressing the data space.
+&nbsp;&nbsp;Most of the 133 instructions require a single cycle to execute. The rich instruction set in combimed with the 32 8-bit general purpose registers(r0-r31) with single clock access time. Six of the 32 8-bit registers can be used as three 16-bit indirect register pointers(X, r26-r27; Y, r28-r29; and Z, r30-r31) for addressing the data space.<br><br>
+
+1. Instruction <b>ldi r26, low(key)</b> and <b>ldi r27, high(key)</b> can not be used in assemble c. It should be like this <b>ldi r26, lo8(key)</b> and <b>ldi r27, hi8(key)</b>.<br>
+
+2. Despite using <i>#include"constants.h"</i>, some const values, such as KEY_SIZE, NUMBER_OF_ROUNDS and so on, can still not be used directly. Therefore, immediate numbers are used.<br>
+
+3. The second operand of <b>adiw"</b> is [0, 63]. <br>
+Therefore, <b>adiw r18, 176</b> is wrong(operand is out of range). It can be replaced by:<br>
+&nbsp;&nbsp;<b>adiw r28, 63;&nbsp;&nbsp;<b>
+&nbsp;&nbsp;<b>adiw r28, 63;</b><br>
+&nbsp;&nbsp;<b>adiw r28, 50;</b><br>
 
 # ARM
+1. <b>mov r4, #0xdbac65e0</b> gives the error message "invalid constant (dbac65e0) after fieup"<br>
+The following instructions can implement it:<br>
+&nbsp;&nbsp;<b>mov r4, #0xdb</b><br>
+&nbsp;&nbsp;<b>lsl r4, #8</b><br>
+&nbsp;&nbsp;<b>eor r4, r4, #0xac</b><br>
+&nbsp;&nbsp;<b>lsl r4, #8</b><br>
+&nbsp;&nbsp;<b>eor r4, r4, #0x65</b><br>
+&nbsp;&nbsp;<b>lsl r4, #8</b><br>
+&nbsp;&nbsp;<b>eor r4, r4, #0xe0</b><br>
