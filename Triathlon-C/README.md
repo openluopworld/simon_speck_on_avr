@@ -1,8 +1,6 @@
 # Instruction Set
 C(Carry); V(overflow); N(negative); and Z(zero)<br>
-<b>Problem</b><br>
-1. Test uses the C implementation???<br>
-2. What is the different between Debug mode and Release mode???<br>
+1. Test Only uses the C implementation.<br>
 
 # MSP430
 &nbsp;&nbsp;Brief Introduction: 16 16-bit register. Four of the registers are dedicated to program counter(r0 or pc), stack point(r1 or sp), status register(r2 or sr/cg1) and constant generator(r3 or cg2), while the remaining 12 registers(r4-r15) are general-purpose registers. There are 52 instructions in total.<br><br>
@@ -54,7 +52,7 @@ Therefore, <b>adiw r18, 176</b> is wrong(operand is out of range). It can be rep
 &nbsp;&nbsp;<b>adiw r28, 50;</b><br>
 
 # ARM
-1. <b>mov r4, #0xdbac65e0</b> gives the error message "invalid constant (dbac65e0) after fieup"<br>
+1. <b>mov r4, #0xdbac65e0</b> gives the error message "<a href="http://stackoverflow.com/questions/10261300/invalid-constant-after-fixup" target="_blank">invalid constant (dbac65e0) after fieup</a>"<br>
 The following instructions can implement it:<br>
 &nbsp;&nbsp;<b>mov r4, #0xdb</b><br>
 &nbsp;&nbsp;<b>lsl r4, #8</b><br>
