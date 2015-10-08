@@ -76,11 +76,13 @@ void Decrypt(uint8_t *block, uint8_t *roundKeys)
         "push 	r29;	\n"
 	/* ---------------------------------------------------- */
 	/* decryption						*/
-	"ldi 		r26, 		lo8(block);		\n"
-	"ldi 		r27, 		hi8(block);		\n"
+/*	"ldi 		r26, 		lo8(block);		\n" */
+/*	"ldi 		r27, 		hi8(block);		\n" */
 	"clr 		r24;					\n"
-	"ldi 		r28, 		lo8(roundKeys+ROUND_KEYS_SIZE);\n"
-	"ldi 		r29, 		hi8(roundKeys+ROUND_KEYS_SIZE);\n"
+/*	"ldi 		r28, 		lo8(roundKeys+ROUND_KEYS_SIZE);\n" */
+/*	"ldi 		r29, 		hi8(roundKeys+ROUND_KEYS_SIZE);\n" */
+	"adiw		r28,		63;			\n"
+	"adiw		r28,		45;			\n"
 	/* load the plaintext from RAM to registers [r7,...,r0], X = [r7, r6, r5, r4], Y = [r3, r2, r1, r0] */
 	"ld 		r7, 		x+ ;			\n"
 	"ld 		r6, 		x+ ;			\n"
@@ -90,7 +92,7 @@ void Decrypt(uint8_t *block, uint8_t *roundKeys)
 	"ld 		r2, 		x+ ;			\n"
 	"ld 		r1, 		x+ ;			\n"
 	"ld 		r0, 		x+ ;			\n"
-"encLoop:							\n"
+"decLoop:							\n"
 	/* store the 4 bytes of sub key to K = [r11, r10, r9, r8] */
 	"ld 		r11, 		-y;			\n"
 	"ld 		r10, 		-y;			\n"
@@ -140,7 +142,7 @@ void Decrypt(uint8_t *block, uint8_t *roundKeys)
 	"mov 		r7, 		r10;			\n"
 	/* loop control						*/
 	"inc 		r24;					\n"
-	"cpi 		r24, 		NUMBER_OF_ROUNDS;	\n"
+	"cpi 		r24, 		27;			\n"
 	"brne 		decLoop;				\n"
 	/* ---------------------------------------------------- */
 	/* move cipher text back to plain text 			*/
@@ -172,8 +174,7 @@ void Decrypt(uint8_t *block, uint8_t *roundKeys)
         "pop  r1;        \n"
         "pop  r0;        \n"
     :
-    : [block] "m" (block), [roundKeys] "m" (roundKeys)
-); 
+    : [block] "x" (block), [roundKeys] "y" (roundKeys)); 
 }
 
 #else
@@ -220,7 +221,7 @@ void Decrypt(uint8_t *block, uint8_t *roundKeys)
         "mov    @r15+,       	r4;					\n"
         "mov    @r15+,       	r5;					\n"
         "mov    @r15+,       	r6;					\n"
-        "mov    @r15+,       	r7;					\n
+        "mov    @r15+,       	r7;					\n"
         /*---------------------------------------------------------------*/
         "mov    #27,            r13;					\n" /* 27 rounds */
 "round_loop:								\n"
@@ -228,8 +229,8 @@ void Decrypt(uint8_t *block, uint8_t *roundKeys)
         "mov	0(r14),       	r8;					\n"  
         "mov   	2(r14),        	r9;					\n"
 	/* y = y eor x 							*/
-	"eor	r6,		r4;					\n"
-	"eor	r7,		r5;					\n"
+	"xor	r6,		r4;					\n"
+	"xor	r7,		r5;					\n"
 	/* y = S(-3)(y eor x)						*/
 	"bit	#1,		r4;					\n"
 	"rrc	r5;							\n"
@@ -241,8 +242,8 @@ void Decrypt(uint8_t *block, uint8_t *roundKeys)
 	"rrc	r5;							\n"
 	"rrc	r4;							\n"
 	/* x = x eor k							*/
-	"eor	r8,		r6;					\n"
-	"eor	r9,		r7;					\n"
+	"xor	r8,		r6;					\n"
+	"xor	r9,		r7;					\n"
 	/* x = (x eor k) - S(-3)(y eor x) 				*/
 	"sub	r4,		r6;					\n"
 	"subc	r5,		r7;					\n"
@@ -276,7 +277,7 @@ void Decrypt(uint8_t *block, uint8_t *roundKeys)
 	"pop    r4;                 \n"
         /*---------------------------------------------------------------*/
     :
-    : [block] "m" (block), [roundKeys] "m" (roundKeys)
+    : [block] "" (block), [roundKeys] "" (roundKeys)
 );
 }
 
@@ -347,12 +348,6 @@ void Decrypt(uint8_t *block, uint8_t *roundKeys)
 /*----------------------------------------------------------------------------*/
 /* Decryption -- Default C Implementation				      */
 /*----------------------------------------------------------------------------*/
-#include <stdint.h>
-
-#include "cipher.h"
-#include "constants.h"
-#include "primitives.h"
-
 void Decrypt(uint8_t *block, uint8_t *roundKeys)
 {
 	uint32_t *rk = (uint32_t *)roundKeys;

@@ -32,7 +32,6 @@
 #include "constants.h"
 #include "primitives.h"
 
-
 /*
  * Speck_64_128_v01
  * Encryption
@@ -79,11 +78,11 @@ void Encrypt(uint8_t *block, uint8_t *roundKeys)
 	"push	r31;	\n"
         /* ---------------------------------------------------- */
 	/* encryption						*/
-	"ldi 		r26, 		lo8(block);		\n"
-	"ldi 		r27, 		hi8(block);		\n"
+/*	"ldi 		r26, 		lo8(block);		\n" */
+/*	"ldi 		r27, 		hi8(block);		\n" */
 	"clr 		r24;					\n"
-	"ldi 		r28, 		lo8(roundKeys);		\n"
-	"ldi 		r29, 		hi8(roundKeys);		\n"
+/*	"ldi 		r28, 		lo8(roundKeys);		\n" */
+/*	"ldi 		r29, 		hi8(roundKeys);		\n" */
 	/* load the plaintext from RAM to registers [r7,...,r0], X = [r7, r6, r5, r4], Y = [r3, r2, r1, r0] */
 	"ld 		r7, 		x+ ;			\n"
 	"ld 		r6, 		x+ ;			\n"
@@ -136,7 +135,7 @@ void Encrypt(uint8_t *block, uint8_t *roundKeys)
 	"movw 		r6, 		r14;			\n" /* r7:r6 = r15:r14 */
 	/* loop control 					*/
 	"inc 		r24;					\n"
-	"cpi 		r24, 		NUMBER_OF_ROUNDS;	\n"
+	"cpi 		r24, 		27;			\n"
 	"brne 		encLoop;				\n"
 	/* ---------------------------------------------------- */
 	/* move cipher text back to plain text 			*/
@@ -170,7 +169,7 @@ void Encrypt(uint8_t *block, uint8_t *roundKeys)
         "pop  r1;        \n"
         "pop  r0;        \n"
     :
-    : [block] "m" (block), [roundKeys] "m" (roundKeys)
+    : [block] "x" (block), [roundKeys] "y" (roundKeys)
 ); 
 }
 
@@ -209,53 +208,51 @@ void Encrypt(uint8_t *block, uint8_t *roundKeys)
         "push   r14;                \n"
         "push   r15;                \n"
         /*---------------------------------------------------------------*/
-        "mov    %[block],       r15;\n"
-        "mov    %[roundKeys],   r14;\n" 
+        "mov    %[block],       r15;	\n"
+        "mov    %[roundKeys],   r14;	\n" 
         /*---------------------------------------------------------------*/
         /* load plain text	                                         */
         /*---------------------------------------------------------------*/
-        "mov    @r15+,       	r4;\n"
-        "mov    @r15+,       	r5;\n"
-        "mov    @r15+,       	r6;\n"
-        "mov    @r15+,       	r7;\n
+        "mov    @r15+,       	r4;	\n"
+        "mov    @r15+,       	r5;	\n"
+        "mov    @r15+,       	r6;	\n"
+        "mov    @r15+,       	r7;	\n"
         /*---------------------------------------------------------------*/
-        "mov    #27,            r13;\n" /* 27 rounds                     */
-"round_loop:\n"
-        /* k = r9:r8;	*/ 
-        "mov	@r14+,       	r8;\n"  
-        "mov   	@r14+,        	r9;\n"
-	/* x = S(-8)(x) */
-	"mov.b	r6, 		r12;\n"
- 	"xor.b	r7, 		r12;\n"
-	"swpb	r6;\n"
-	"swpb	r7;\n"
-	"swpb	r12;\n"
-	"xor	r12,		r6;\n"
-	"xor	r12,		r7;\n"
-	/* x = S(-8)(x) + y */
-	"add	r4,		r6;\n"
-	"adc	r5,		r7;\n"
-	/* x = [S(-8)(x) + y] eor k */
-	"eor	r8,		r6;\n"
-	"eor	r9,		r7;\n"
-	
-	/* y = s(3)y */
-	"rla	r4;\n" /* S(-1) */
-	"rlc	r5;\n"
-	"adc	r4;\n"
-	"rla	r4;\n" /* S(-1) */
-	"rlc	r5;\n"
-	"adc	r4;\n"
-	"rla	r4;\n" /* S(-1) */
-	"rlc	r5;\n"
-	"adc	r4;\n"
+        "mov    #27,            r13;	\n" /* 27 rounds                 */
+"round_loop:				\n"
+        /* k = r9:r8;			*/ 
+        "mov	@r14+,       	r8;	\n"  
+        "mov   	@r14+,        	r9;	\n"
+	/* x = S(-8)(x) 		*/
+	"mov.b	r6, 		r12;	\n"
+ 	"xor.b	r7, 		r12;	\n"
+	"swpb	r6;			\n"
+	"swpb	r7;			\n"
+	"swpb	r12;			\n"
+	"xor	r12,		r6;	\n"
+	"xor	r12,		r7;	\n"
+	/* x = S(-8)(x) + y 		*/
+	"add	r4,		r6;	\n"
+	"adc	r5,		r7;	\n"
+	/* x = [S(-8)(x) + y] eor k 	*/
+	"xor	r8,		r6;	\n"
+	"xor	r9,		r7;	\n"
+	/* y = s(3)y 			*/
+	"rla	r4;			\n" /* S(-1) */
+	"rlc	r5;			\n"
+	"adc	r4;			\n"
+	"rla	r4;			\n" /* S(-1) */
+	"rlc	r5;			\n"
+	"adc	r4;			\n"
+	"rla	r4;			\n" /* S(-1) */
+	"rlc	r5;			\n"
+	"adc	r4;			\n"
 	/* y = s(3)y eor [S(-8)(x) + y] eor k */
-	"eor	r6,		r4;\n"
-	"eor	r7,		r5;\n"
-
-	/* loop control */
-        "dec	r13;\n"
-	"jne	round_loop;\n"
+	"xor	r6,		r4;	\n"
+	"xor	r7,		r5;	\n"
+	/* loop control 		*/
+        "dec	r13;			\n"
+	"jne	round_loop;		\n"
         /*---------------------------------------------------------------*/
         /* Restore registers                                             */
         /*---------------------------------------------------------------*/
@@ -271,7 +268,7 @@ void Encrypt(uint8_t *block, uint8_t *roundKeys)
 	"pop    r4;                 \n"
         /*---------------------------------------------------------------*/
     :
-    : [block] "m" (block), [roundKeys] "m" (roundKeys)
+    : [block] "" (block), [roundKeys] "" (roundKeys)
 ); 
 }
 
@@ -338,12 +335,6 @@ void Encrypt(uint8_t *block, uint8_t *roundKeys)
 /*----------------------------------------------------------------------------*/
 /* Encryption -- Default C Implementation				      */
 /*----------------------------------------------------------------------------*/
-#include <stdint.h>
-
-#include "cipher.h"
-#include "constants.h"
-#include "primitives.h"
-
 void Encrypt(uint8_t *block, uint8_t *roundKeys)
 {
 	uint32_t *rk = (uint32_t *)roundKeys;

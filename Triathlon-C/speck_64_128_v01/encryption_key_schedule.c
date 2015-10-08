@@ -32,7 +32,6 @@
 #include "constants.h"
 #include "primitives.h"
 
-
 /*
  * Speck_64_128_v01
  * Key Schedule
@@ -56,8 +55,8 @@ void RunEncryptionKeySchedule(uint8_t *key, uint8_t *roundKeys)
         /* r24     : currentRound				*/
         /* r25     : 						*/
         /* r26:r27 : X roundKeys				*/
-        /* r28:r29 : Y key					*/
-        /* r30:r31 :						*/
+        /* r28:r29 : Y L					*/
+        /* r30:r31 : Z key					*/
         /* ---------------------------------------------------- */
         /* Store all modified registers				*/
         /* ---------------------------------------------------- */
@@ -76,26 +75,28 @@ void RunEncryptionKeySchedule(uint8_t *key, uint8_t *roundKeys)
         "push 	r27;	\n" 
         "push 	r28;	\n"
         "push 	r29;	\n"
+	"push 	r30;	\n"
+        "push 	r31;	\n"
 	/*---------------------------------------------------------------*/
 	/* store master key						 */
-	"ldi 		r26, 		lo8(roundKeys);			\n"
-	"ldi 		r27, 		hi8(roundKeys);			\n"
-	"ldi 		r28, 		lo8(key);			\n"
-	"ldi 		r29, 		hi8(key);			\n"
-	"ld 		r22, 		y+;				\n"
+/*	"ldi 		r26, 		lo8(roundKeys);			\n" */
+/*	"ldi 		r27, 		hi8(roundKeys);			\n" */
+/*	"ldi 		r30, 		lo8(key);			\n" */
+/*	"ldi 		r31, 		hi8(key);			\n" */
+	"ld 		r22, 		z+;				\n"
 	"st 		x+, 		r22;				\n"
-	"ld 		r22, 		y+;				\n"
+	"ld 		r22, 		z+;				\n"
 	"st 		x+, 		r22;				\n"
-	"ld 		r22, 		y+;				\n"
+	"ld 		r22, 		z+;				\n"
 	"st 		x+, 		r22;				\n"
-	"ld 		r22, 		y+;				\n"
+	"ld 		r22, 		z+;				\n"
 	"st 		x+, 		r22;				\n"
-	"ldi 		r26, 		lo8(L);				\n"
-	"ldi 		r27, 		hi8(L);				\n"
+/*	"ldi 		r28, 		lo8(L);				\n" */
+/*	"ldi 		r29, 		hi8(L);				\n" */
 	"clr 		r24;						\n"
 "loadL:									\n"
-	"ld 		r22, 		y+;				\n"
-	"st 		x+, 		r22;				\n"
+	"ld 		r22, 		z+;				\n"
+	"st 		y+, 		r22;				\n"
 	"inc 		r24;						\n"
 	"cpi 		r24, 		12;				\n"
 	"brne 		loadL;						\n"
@@ -103,10 +104,12 @@ void RunEncryptionKeySchedule(uint8_t *key, uint8_t *roundKeys)
 	/* key schedule							 */
 	"clr 		r24;						\n"
 	"clr 		r21;						\n" /* store 0 */
-	"ldi 		r26, 		lo8(roundKeys);			\n"
-	"ldi 		r27, 		hi8(roundKeys);			\n"
-	"ldi 		r28, 		lo8(L);				\n"
-	"ldi 		r29, 		hi8(L);				\n"
+/*	"ldi 		r26, 		lo8(roundKeys);			\n" */
+/*	"ldi 		r27, 		hi8(roundKeys);			\n" */
+	"sbiw		r26,		4;				\n"
+/*	"ldi 		r28, 		lo8(L);				\n" */
+/*	"ldi 		r29, 		hi8(L);				\n" */
+	"sbiw		r28,		12;				\n"
 "subkey:								\n"
 	/* [r3,r2,r1,r0] to store ki 					*/
 	"ld 		r0, 		x+;				\n"
@@ -154,18 +157,20 @@ void RunEncryptionKeySchedule(uint8_t *key, uint8_t *roundKeys)
 	/* set x to k(i+1) 						*/
 	"sbiw 		r26, 		4;				\n"
 	/* store l(i+3) 						*/
-	"adiw 		y, 		8;				\n"
+	"adiw 		r28, 		8;				\n"
 	"st 		y+, 		r5;				\n"
 	"st 		y+, 		r6;				\n"
 	"st 		y+, 		r7;				\n"
 	"st 		y+, 		r4;				\n"
-	"sbiw 		y, 		12;				\n"
+	"sbiw 		r28, 		12;				\n"
 	/* loop control 						*/
 	"inc 		r24;						\n"
 	"cpi 		r24, 		26;				\n"
 	"brne 		subkey;						\n"
 	/* ---------------------------------------------------- */
 	/* Restore all modified registers			*/
+	"pop  r31;       \n"
+        "pop  r30;       \n"
         "pop  r29;       \n"
         "pop  r28;       \n"
         "pop  r27;       \n" 
@@ -183,7 +188,7 @@ void RunEncryptionKeySchedule(uint8_t *key, uint8_t *roundKeys)
         "pop  r0;        \n"
 	/* ---------------------------------------------------- */
     :
-    : [key] "m" (key), [roundKeys] "m" (roundKeys), [L] "" (L)); 
+    : [key] "z" (key), [roundKeys] "x" (roundKeys), [L] "y" (L)); 
 }
 
 #else
@@ -222,70 +227,68 @@ void RunEncryptionKeySchedule(uint8_t *key, uint8_t *roundKeys)
         "push   r14;                \n"
         "push   r15;                \n"
         /*--------------------------------------------------------------*/
-        "mov    %[key],         r15;\n"
-        "mov    %[roundKeys],   r14;\n" 
+        "mov    %[key],         r15;	\n"
+        "mov    %[roundKeys],   r14;	\n" 
         /*--------------------------------------------------------------*/
         /* load master key						*/
         /*--------------------------------------------------------------*/
-        "mov    @r15+,       	0(r14);\n" 
-        "mov    @r15+,       	2(r14);\n"
-        "mov    @r15+,       	r6;\n"
-        "mov    @r15+,       	r7;\n"
-        "mov    @r15+,       	r8;\n"
-        "mov    @r15+,      	r9;\n"
-        "mov    @r15+,      	r10;\n"
-        "mov    @r15+,      	r11;\n"
+        "mov    @r15+,       	0(r14);	\n" 
+        "mov    @r15+,       	2(r14);	\n"
+        "mov    @r15+,       	r6;	\n"
+        "mov    @r15+,       	r7;	\n"
+        "mov    @r15+,       	r8;	\n"
+        "mov    @r15+,      	r9;	\n"
+        "mov    @r15+,      	r10;	\n"
+        "mov    @r15+,      	r11;	\n"
         /*---------------------------------------------------------------*/
-        "mov    #0,            r13;\n"
-"round_loop:\n"
+        "mov    #0,            	r13;	\n"
+"round_loop:				\n"
 	/* S(-8)(li), ki is not used now */
-	"mov.b	r6, 		r4;\n"
- 	"xor.b	r7, 		r4;\n"
-	"swpb	r6;\n"
-	"swpb	r7;\n"
-	"swpb	r4;\n"
-	"xor	r4,		r6;\n"
-	"xor	r4,		r7;\n"
-        /* ki = r5:r4;	*/ 
-        "mov	@r14+,       	r4;\n"  
-        "mov   	@r14+,        	r5;\n" 
+	"mov.b	r6, 		r4;	\n"
+ 	"xor.b	r7, 		r4;	\n"
+	"swpb	r6;			\n"
+	"swpb	r7;			\n"
+	"swpb	r4;			\n"
+	"xor	r4,		r6;	\n"
+	"xor	r4,		r7;	\n"
+        /* ki = r5:r4;			*/ 
+        "mov	@r14+,       	r4;	\n"  
+        "mov   	@r14+,        	r5;	\n" 
         /* li = ki + S(-8)(li);	*/
-        "add	r4,		r6;\n"
-	"adc	r5,		r7;\n"
-	/* li = [ki + S(-8)(li)] eor i */
-        "eor   	r13,       	r6;\n"
-
-	/* ki = S(3)ki */
-	"rla	r4;\n" /* S(-1) */
-	"rlc	r5;\n"
-	"adc	r4;\n"
-	"rla	r4;\n" /* S(-1) */
-	"rlc	r5;\n"
-	"adc	r4;\n"
-	"rla	r4;\n" /* S(-1) */
-	"rlc	r5;\n"
-	"adc	r4;\n"
+        "add	r4,		r6;	\n"
+	"adc	r5,		r7;	\n"
+	/* li = [ki + S(-8)(li)] eor i 	*/
+        "xor   	r13,       	r6;	\n"
+	/* ki = S(3)ki 			*/
+	"rla	r4;			\n" /* S(-1) */
+	"rlc	r5;			\n"
+	"adc	r4;			\n"
+	"rla	r4;			\n" /* S(-1) */
+	"rlc	r5;			\n"
+	"adc	r4;			\n"
+	"rla	r4;			\n" /* S(-1) */
+	"rlc	r5;			\n"
+	"adc	r4;			\n"
 	/* ki = S(3)ki eor [[ki + S(-8)(li)] eor i] */
-	"eor	r6,		r4;\n"
-	"eor	r7,		r5;\n"
-
+	"xor	r6,		r4;	\n"
+	"xor	r7,		r5;	\n"
 	/* store ki+1. r14 has pointed to the address of ki+1 by instruction "@r14+" */
-	"mov	r4,		0(r14);\n"
-	"mov	r5,		2(r14);\n"
-	/* update l */
-	"mov	r6,		r4;\n" /* store li+3 */
-	"mov	r7,		r5;\n"
-	"mov	r8,		r6;\n" /* update li, covered by li+1 */
-	"mov	r9,		r7;\n"
-	"mov	r10,		r8;\n" /* update li+1, covered by li+2 */
-	"mov	r11,		r9;\n"
-	"mov	r4,		r10;\n" /* update li+2, covered by li+3 */
-	"mov	r5,		r11;\n"
-
-	/* loop control */
-        "inc	r13;\n"
-	"cmp	#26,		r13" /* r13-26, sets status only; the destination is not written */
-	"jne	round_loop;\n"
+	"mov	r4,		0(r14);	\n"
+	"mov	r5,		2(r14);	\n"
+	/* update l 			*/
+	"mov	r6,		r4;	\n" /* store li+3 */
+	"mov	r7,		r5;	\n"
+	"mov	r8,		r6;	\n" /* update li, covered by li+1 */
+	"mov	r9,		r7;	\n"
+	"mov	r10,		r8;	\n" /* update li+1, covered by li+2 */
+	"mov	r11,		r9;	\n"
+	"mov	r4,		r10;	\n" /* update li+2, covered by li+3 */
+	"mov	r5,		r11;	\n"
+	/*---------------------------------------------------------------*/
+	/* loop control 		*/
+        "inc	r13;			\n"
+	"cmp	#26,		r13;	\n" /* r13-26, sets status only; the destination is not written */
+	"jne	round_loop;		\n"
         /*---------------------------------------------------------------*/
         /* Restore registers                                             */
         /*---------------------------------------------------------------*/
@@ -302,7 +305,7 @@ void RunEncryptionKeySchedule(uint8_t *key, uint8_t *roundKeys)
 	"pop    r4;                 \n"
         /*---------------------------------------------------------------*/
     :
-    : [key] "m" (key), [roundKeys] "m" (roundKeys)); 
+    : [key] "" (key), [roundKeys] "" (roundKeys)); 
 }
 
 #else
@@ -363,7 +366,7 @@ void RunEncryptionKeySchedule(uint8_t *key, uint8_t *roundKeys)
         /* loop control */
         "add          		r8,            		r8,          	#1;	\n"
 	"cmp			r8,			#26;			\n" /* key schedule rounds is just 26(not 27) */
-        "bne           	key_schedule_loop;              			\n" 
+        "bne           		key_schedule_loop;              		\n" 
         /*--------------------------------------------------------------------*/
         /* Restore registers                                                  */
         /*--------------------------------------------------------------------*/
@@ -378,12 +381,6 @@ void RunEncryptionKeySchedule(uint8_t *key, uint8_t *roundKeys)
 /*----------------------------------------------------------------------------*/
 /* Key Schedule -- Default C Implementation				      */
 /*----------------------------------------------------------------------------*/
-#include <stdint.h>
-
-#include "cipher.h"
-#include "constants.h"
-#include "primitives.h"
-
 void RunEncryptionKeySchedule(uint8_t *key, uint8_t *roundKeys)
 {
 	uint8_t i;
@@ -401,7 +398,7 @@ void RunEncryptionKeySchedule(uint8_t *key, uint8_t *roundKeys)
         	{
           		lp0 = mk[1];
           		lp1 = mk[2];
-			lp2 = mk[3]
+			lp2 = mk[3];
        	 	}
        	 	else
         	{

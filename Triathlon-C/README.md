@@ -52,7 +52,7 @@ Therefore, <b>adiw r18, 176</b> is wrong(operand is out of range). It can be rep
 &nbsp;&nbsp;<b>adiw r28, 50;</b><br>
 
 # ARM
-1. <b>mov r4, #0xdbac65e0</b> gives the error message "<a href="http://stackoverflow.com/questions/10261300/invalid-constant-after-fixup" target="_blank">invalid constant (dbac65e0) after fieup</a>"<br>
+1. <b>mov r4, #0xdbac65e0</b> gives the error message "<a href="http://stackoverflow.com/questions/10261300/invalid-constant-after-fixup" target="_blank">invalid constant (dbac65e0) after fieup</a>".<br>
 The following instructions can implement it:<br>
 &nbsp;&nbsp;<b>mov r4, #0xdb</b><br>
 &nbsp;&nbsp;<b>lsl r4, #8</b><br>
