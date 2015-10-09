@@ -1,9 +1,11 @@
 #include<iostream>
 #include<time.h>
+#include"const.h"
 #include"keys.h"
 #include"enDecryption.h"
 using namespace std;
 
+/*
 int SIMON_BLOCK_SIZE;       // block size
 int SIMON_KEY_SIZE;         // key size
 int SIMON_WORD_SIZE;        // word size ( = SIMON_BLOCK_SIZE/2 )
@@ -18,6 +20,7 @@ int SPECK_KEY_WORDS;        // the words of input key ( = SPECK_KEY_SIZE/SPECK_W
 int SPECK_ROT_A;            // the rotate shift parameter a
 int SPECK_ROT_B;            // the rotate shift parameter b
 int SPECK_ROUNDS;           // encryption and decryption rounds
+*/
 
 void simon();
 void speck();
