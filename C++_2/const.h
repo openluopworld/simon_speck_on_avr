@@ -1,6 +1,10 @@
 #ifndef CONST_H
 #define CONST_H
 
+/*
+ * 外部变量的声明
+ * 声明并没有建立变量或者为它们分配存储空间
+ */
 extern int SIMON_BLOCK_SIZE;
 extern int SIMON_KEY_SIZE;
 extern int SIMON_WORD_SIZE;

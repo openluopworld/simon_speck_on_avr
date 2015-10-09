@@ -1,6 +1,11 @@
 
 #include"const.h"
 
+/*
+ * 外部变量的定义
+ * 变量定义才分配存储空间
+ * 外部变量的初始化只能出现在其定义中
+ */
 int SIMON_BLOCK_SIZE;       // block size
 int SIMON_KEY_SIZE;         // key size
 int SIMON_WORD_SIZE;        // word size ( = SIMON_BLOCK_SIZE/2 )
