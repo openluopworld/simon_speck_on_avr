@@ -61,3 +61,34 @@ The following instructions can implement it:<br>
 &nbsp;&nbsp;<b>eor r4, r4, #0x65</b><br>
 &nbsp;&nbsp;<b>lsl r4, #8</b><br>
 &nbsp;&nbsp;<b>eor r4, r4, #0xe0</b><br>
+
+#INSTALL TOOLS
+&nbsp;&nbsp;Install all the tools according to <a href="https://www.cryptolux.org/index.php/FELICS_Prerequisites" target="_blank">https://www.cryptolux.org/index.php/FELICS_Prerequisites</a>.<br><br>
+1. download, compile and <a href=" https://github.com/buserror-uk/simavr/blob/master/doc/manual/manual.pdf?raw=true" target="_blank">install</a> simavr<br>
+&nbsp;&nbsp;In directory <b>/home/luopeng/github</b>.<br>
+&nbsp;&nbsp;a) git clone https://github.com/buserror/simavr.git<br>
+&nbsp;&nbsp;b) cd simavr<br>
+&nbsp;&nbsp;c) make<br>
+&nbsp;&nbsp;d) sudo su<br>
+&nbsp;&nbsp;e) make install<br><br>
+
+2. <a href="https://www.cryptolux.org/index.php/FELICS_Avrora_patch" target="_blank">download, compile and install AVRORA</a><br>
+&nbsp;&nbsp;In directory <b>/home/luopeng/Downloads</b>.<br><br>
+
+3. download install JLINK<br>
+&nbsp;&nbsp;In directory <b>/home/luopeng/Downloads</b>.<br>
+&nbsp;&nbsp;a) <a href="https://www.segger.com/jlink-software.html" target="_blank">Download</a><br>
+&nbsp;&nbsp;b) tar xvzf JLink_Linux_V502f_i386.tgz<br>
+&nbsp;&nbsp;c) cd JLink_Linux_V502f_i386<br>
+&nbsp;&nbsp;d) cp 99-jlink.rules /etc/udev/rules.d/<br>
+&nbsp;&nbsp;e) - Restart your system<br>
+&nbsp;&nbsp;<b>RAM on ARM can not be test because it needs some hardware.<b><br><br>
+
+4. configuration<br>
+1) in "block_ciphers/scripts/config/config.sh" and "stream_ciphers/scripts/config/config.sh"<br>
+&nbsp;&nbsp;a) SIMAVR_SIMULATOR=/home/luopeng/github/simavr/simavr/run_avr<br>
+&nbsp;&nbsp;b) MSPDEBUG_SIMULATOR=/usr/local/bin/mspdebug<br>
+&nbsp;&nbsp;c) JLINK_GDB_SERVER=/home/luopeng/Downloads/JLink_Linux_V502f_i386/JLinkGDBServer<br><br>
+&nbsp;&nbsp;d) AVRORA_SIMULATOR='java -jar /home/luopeng/Downloads/avrora/jars/avrora-beta-1.7.117-patched.jar'<br>	
+2) in "block_ciphers/source/architecture/avr.mk" and "stream_ciphers/source/architecture/avr.mk"<br>
+&nbsp;&nbsp;INCLUDE_DIR=/home/luopeng/github/simavr/simavr/sim/avr<br>
