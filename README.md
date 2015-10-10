@@ -16,6 +16,7 @@ Implement on ATmega128, IDE is Atmel Studio 6.2.<br>
 Two Scenarios<sup>[3,4]</sup>:<br>
 &nbsp;&nbsp;1)128 bytes in CBC mode;<br>
 &nbsp;&nbsp;2)128 bits in CTR mode<br>
+&nbsp;&nbsp;<b>r0-r7 stores the cipher text after encryption, so there is no need to MOV cipher text to r16-r23. The next block can just be loaded to r16-r23, then eor r0-r7, r17-r23. Encrypt r0-r7 again.</b>
 
 # Triathlon-C
 Two scenarios, each with 3 platfrom: AVR, MSP and ARM.<br>
