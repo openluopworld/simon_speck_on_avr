@@ -82,7 +82,7 @@ The following instructions can implement it:<br>
 &nbsp;&nbsp;c) cd JLink_Linux_V502f_i386<br>
 &nbsp;&nbsp;d) cp 99-jlink.rules /etc/udev/rules.d/<br>
 &nbsp;&nbsp;e) - Restart your system<br>
-&nbsp;&nbsp;<b>RAM on ARM can not be test because it needs some hardware.<b><br><br>
+&nbsp;&nbsp;<b>RAM on ARM can not be test because it needs some hardware.</b><br><br>
 
 4. configuration<br>
 1) in "block_ciphers/scripts/config/config.sh" and "stream_ciphers/scripts/config/config.sh"<br>
