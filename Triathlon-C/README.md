@@ -47,7 +47,7 @@ Refs<br>
 
 3. The second operand of <b>adiw"</b> is [0, 63]. <br>
 Therefore, <b>adiw r18, 176</b> is wrong(operand is out of range). It can be replaced by:<br>
-&nbsp;&nbsp;<b>adiw r28, 63;&nbsp;&nbsp;<b>
+&nbsp;&nbsp;<b>adiw r28, 63;&nbsp;&nbsp;</b>
 &nbsp;&nbsp;<b>adiw r28, 63;</b><br>
 &nbsp;&nbsp;<b>adiw r28, 50;</b><br>
 
