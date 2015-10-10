@@ -84,7 +84,7 @@ void RunEncryptionKeySchedule(uint8_t *key, uint8_t *roundKeys)
         "push 	r19;	\n"
         "push 	r20;	\n"
         "push 	r24;	\n"
-        "push 	r26;	\n" 
+        "push 	r26;	\n"
         "push 	r27;	\n" 
         "push 	r28;	\n"
         "push 	r29;	\n"
