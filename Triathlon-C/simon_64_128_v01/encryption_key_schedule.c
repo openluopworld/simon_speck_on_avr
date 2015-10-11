@@ -256,81 +256,80 @@ void RunEncryptionKeySchedule(uint8_t *key, uint8_t *roundKeys)
         /*---------------------------------------------------------------*/
         /* Store all modified registers                                  */
         /*---------------------------------------------------------------*/
-	"push   r4;                 \n"
-        "push   r5;                 \n"
-        "push   r6;                 \n"
-        "push   r7;                 \n"
-        "push   r8;                 \n"
-        "push   r9;                 \n"
-        "push   r12;                \n"
-        "push   r13;                \n"
-        "push   r14;                \n"
-        "push   r15;                \n"
+	"push   	r4;                 	\n"
+        "push   	r5;                 	\n"
+        "push   	r6;                 	\n"
+        "push   	r7;                 	\n"
+        "push   	r8;                 	\n"
+        "push   	r9;                 	\n"
+        "push   	r12;                	\n"
+        "push   	r13;                	\n"
+        "push  	 	r14;                	\n"
+        "push   	r15;                	\n"
         /*--------------------------------------------------------------*/
-        "mov    %[key],         r15;\n"
-        "mov    %[roundKeys],   r14;\n" 
-	"mov	%[Z_XOR_3],	r12;\n"
+        "mov    	%[key],         r15;	\n"
+        "mov    	%[roundKeys],   r14;	\n" 
+	"mov		%[Z_XOR_3],	r12;	\n"
         /*--------------------------------------------------------------*/
         /* load master key						*/
         /*--------------------------------------------------------------*/
-        "mov    @r15+,       	0(r14);\n" /* r15 will add two, r14 unchanged. */ 
-        "mov    @r15+,       	2(r14);\n"
-        "mov    @r15+,       	4(r14);\n"
-        "mov    @r15+,       	6(r14);\n"
-        "mov    @r15+,       	8(r14);\n"
-        "mov    @r15+,      	10(r14);\n"
-        "mov    @r15+,      	12(r14);\n"
-        "mov    @r15+,      	14(r14);\n"
+        "mov    	@r15+,       	0(r14);	\n" /* r15 will add two, r14 unchanged. */ 
+        "mov    	@r15+,       	2(r14);	\n"
+        "mov    	@r15+,       	4(r14);	\n"
+        "mov    	@r15+,       	6(r14);	\n"
+        "mov    	@r15+,       	8(r14);	\n"
+        "mov    	@r15+,      	10(r14);\n"
+        "mov    	@r15+,      	12(r14);\n"
+        "mov    	@r15+,      	14(r14);\n"
         /*---------------------------------------------------------------*/
-        "mov    #40,            r13;\n" /* 40 rounds                     */
-"round_loop:\n"
-        /* ki = r5:r4;	*/ 
-        "mov	0(r14),       	r4;\n"  
-        "mov   	2(r14),        	r5;\n" 
-        /* k(i+1) = r7:r6;	*/
-        "mov   	4(r14),        	r6;\n"  
-        "mov   	6(r14),        	r7;\n"
-	/* k(i+3) = r9:r8							*/
-        "mov   	12(r14),       	r8;\n"  
-        "mov   	14(r14),       	r9;\n"
-	/* S(-3)(k(i+3)) */
-	"bit	#1,		r8;\n" /* S(-1) */
-	"rrc	r9;\n"
-	"rrc	r8;\n"
-	"bit	#1,		r8;\n" /* S(-2) */
-	"rrc	r9;\n"
-	"rrc	r8;\n"
-	"bit	#1,		r8;\n" /* S(-3) */
-	"rrc	r9;\n"
-	"rrc	r8;\n"
-	/* S(-3)(k(i+3)) eor k(i+1) */
-	"xor	r6, 		r8;\n" /* result is in r9:r8 */
-	"xor	r7,		r9;\n"
-	/* move r8:r9 to r6:r7 */
-	"mov	r8,		r6;\n"
-	"mov	r9,		r7;\n"
-	/* S(-1)[S(-3)(k(i+3)) eor k(i+1)] */
-	"bit	#1,		r8;\n"
-	"rrc	r9;\n"
-	"rrc	r8;\n"
+        "mov    	#40,            r13;	\n" /* 40 rounds  */
+"round_loop:					\n"
+        /* ki = r5:r4;				*/ 
+        "mov		0(r14),       	r4;	\n"  
+        "mov   		2(r14),        	r5;	\n" 
+        /* k(i+1) = r7:r6;			*/
+        "mov   		4(r14),        	r6;	\n"  
+        "mov   		6(r14),        	r7;	\n"
+	/* k(i+3) = r9:r8			*/
+        "mov   		12(r14),       	r8;	\n"  
+        "mov   		14(r14),       	r9;	\n"
+	/* S(-3)(k(i+3)) 			*/
+	"bit		#1,		r8;	\n" /* S(-1) */
+	"rrc		r9;			\n"
+	"rrc		r8;			\n"
+	"bit		#1,		r8;	\n" /* S(-2) */
+	"rrc		r9;			\n"
+	"rrc		r8;			\n"
+	"bit		#1,		r8;	\n" /* S(-3) */
+	"rrc		r9;			\n"
+	"rrc		r8;			\n"
+	/* S(-3)(k(i+3)) eor k(i+1) 		*/
+	"xor		r6, 		r8;	\n" /* result is in r9:r8 */
+	"xor		r7,		r9;	\n"
+	/* move r8:r9 to r6:r7 			*/
+	"mov		r8,		r6;	\n"
+	"mov		r9,		r7;	\n"
+	/* S(-1)[S(-3)(k(i+3)) eor k(i+1)] 	*/
+	"bit		#1,		r8;	\n"
+	"rrc		r9;			\n"
+	"rrc		r8;			\n"
 	/* [I eor S(-1)][S(-3)(k(i+3)) eor k(i+1)] */
-	"xor	r6,		r8;\n"
-	"xor	r7,		r9;\n"
+	"xor		r6,		r8;	\n"
+	"xor		r7,		r9;	\n"
 	/* ki eor [I eor S(-1)][S(-3)(k(i+3)) eor k(i+1)] */
-	"xor	r4,		r8;\n"
-	"xor	r5,		r9;\n"
-	/* load Z eor C */
-	"mov.b	@r12+,       	r4;\n" /* 0                          */
-	"xor.b	r4,		r8;\n"
-	"mov	r8,		16(r14);\n"
-	"mov	r9,		18(r14);\n"
-
-	/* points to ki+1 */
-	"add	#4,		r14;\n"
-
-	/* loop control */
-        "dec	r13;\n"
-	"jne	round_loop;\n"
+	"xor		r4,		r8;	\n"
+	"xor		r5,		r9;	\n"
+	/* load Z eor C 			*/
+	"mov.b		@r12+,       	r4;	\n"
+	"xor.b		r4,		r8;	\n"
+	"mov		r8,		16(r14);\n"
+	"mov		r9,		18(r14);\n"
+	/* points to ki+1 			*/
+	"add		#4,		r14;	\n"
+	/*---------------------------------------------------------------*/
+	/* loop control 			*/
+        "dec		r13;			\n"
+	"jne		round_loop;		\n"
         /*---------------------------------------------------------------*/
         /* Restore registers                                             */
         /*---------------------------------------------------------------*/
@@ -445,7 +444,7 @@ void RunEncryptionKeySchedule(uint8_t *key, uint8_t *roundKeys)
         "ldmia        		sp!,      		{r0-r12,lr};           	\n"
         /*----------------------------------------------------------------------*/
     :
-    : [key] "r" (key), [roundKeys] "r" (roundKeys) 
+    : [key] "" (key), [roundKeys] "" (roundKeys) 
 	); 
 }
 

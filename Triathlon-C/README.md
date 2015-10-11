@@ -1,6 +1,6 @@
 # Instruction Set
 C(Carry); V(overflow); N(negative); and Z(zero)<br>
-1. Test Only uses the C implementation.<br>
+<b>More attention should be paid to the order of input data. For example, is the byte of higher address stored in the higher 8 bits of register which is 16 bits or 32 bits?</b><br>
 
 # MSP430
 &nbsp;&nbsp;Brief Introduction: 16 16-bit register. Four of the registers are dedicated to program counter(r0 or pc), stack point(r1 or sp), status register(r2 or sr/cg1) and constant generator(r3 or cg2), while the remaining 12 registers(r4-r15) are general-purpose registers. There are 52 instructions in total.<br><br>
@@ -28,9 +28,7 @@ C(Carry); V(overflow); N(negative); and Z(zero)<br>
 &nbsp;&nbsp;<b>The first register is the source, the second is the destination.</b>
 &nbsp;&nbsp;For example, <b>"mov r5, r4"</b> means moving r5 to r4.
 
-6. The byte of higher address is stored in the higher 8 bits of register.(???)<br>
-
-7. ^ is <b>xor</b> in MSP, but <i>eor</i> is AVR.<br>
+6. ^ is <b>xor</b> in MSP, but <i>eor</i> is AVR.<br>
 
 Refs<br>
 [1] <a href="http://mspgcc.sourceforge.net/manual/x214.html" target="_blank">mov.b rs, rd</a><br>

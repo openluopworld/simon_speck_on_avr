@@ -368,7 +368,7 @@ void Decrypt(uint8_t *block, uint8_t *roundKeys)
         "ldmia			sp!,      		{r0-r12,lr};           \n"
         /*--------------------------------------------------------------------*/
     :
-    : [block] "r" (block), [roundKeys] "r" (roundKeys) 
+    : [block] "" (block), [roundKeys] "" (roundKeys) 
 	); 
 }
 

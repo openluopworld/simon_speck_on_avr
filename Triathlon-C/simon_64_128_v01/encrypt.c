@@ -221,58 +221,57 @@ void Encrypt(uint8_t *block, uint8_t *roundKeys)
         "push   r14;                \n"
         "push   r15;                \n"
         /*---------------------------------------------------------------*/
-        "mov    %[block],       r15;\n"
-        "mov    %[roundKeys],   r14;\n" 
+        "mov    	%[block],       r15;				\n"
+        "mov    	%[roundKeys],   r14;				\n" 
         /*---------------------------------------------------------------*/
         /* load plain text	                                         */
         /*---------------------------------------------------------------*/
-        "mov    @r15+,       	r4;\n"
-        "mov    @r15+,       	r5;\n"
-        "mov    @r15+,       	r6;\n"
-        "mov    @r15+,       	r7;\n"
+        "mov    	@r15+,       	r4;				\n"
+        "mov    	@r15+,       	r5;				\n"
+        "mov    	@r15+,       	r6;				\n"
+        "mov    	@r15+,       	r7;				\n"
         /*---------------------------------------------------------------*/
-        "mov    #44,            r13;\n" /* 44 rounds                     */
-"round_loop:\n"
-        /* k = r9:r8;	*/ 
-        "mov	@r14+,       	r8;\n"  
-        "mov   	@r14+,        	r9;\n"
-	/* k = k eor x */
-        "xor	r6, 		r8;\n"
-	"xor	r7,		r9;\n"
-	/* x = y */
-	"mov	r4,       	r6;\n"  
-        "mov   	r5,        	r7;\n"
-	/* S(8)(y) */
+        "mov    	#44,            r13;				\n" /* 44 rounds */
+"round_loop:								\n"
+        /* k = r9:r8;							*/ 
+        "mov		@r14+,       	r8;				\n"  
+        "mov   		@r14+,        	r9;				\n"
+	/* k = k eor x 							*/
+        "xor		r6, 		r8;				\n"
+	"xor		r7,		r9;				\n"
+	/* x = y 							*/
+	"mov		r4,       	r6;				\n"  
+        "mov   		r5,        	r7;				\n"
+	/* S(8)(y) 							*/
 	/* A byte instruction with a register destination clears the high 8 bits of the register to 0. */
-	/* [http://mspgcc.sourceforge.net/manual/x214.html] */
-	/* I think the it means the destination regiser. */
-  	"swpb r4;\n"
-  	"swpb r5;\n"
-	"mov.b r4, r12;\n"
-  	"xor.b r5, r12;\n"
-  	"xor  r12, r4;\n"
-  	"xor  r12, r5;\n"
-	/* S(1)x, This time x is store in y, so the operation is on y */
-	"rla r4;\n"
-	"rlc r5;\n"
-	"adc r4;\n"
-	/* Sx & S(8)x */
-	"and	r4,		r6;\n"
-	"and	r5,		r7;\n"
-	/* S(2)x, again rotate shift left y with 1 bit*/
-	"rla r4;\n"
-	"rlc r5;\n"
-	"adc r4;\n"
-	/* [Sx & S(8)x] eor S(2)x */
-	"xor	r4,		r6;\n"
-	"xor	r5,		r7;\n"
-	/* (y eor k) eor [Sx & S(8)x] eor S(2)x */
-	"xor	r8,		r6;\n"
-	"xor	r9,		r7;\n"
-
-	/* loop control */
-        "dec	r13;\n"
-	"jne	round_loop;\n"
+	/* [http://mspgcc.sourceforge.net/manual/x214.html] 		*/
+	/* I think the it means the destination regiser. 		*/
+  	"swpb 		r4;						\n"
+  	"swpb 		r5;						\n"
+	"mov.b 		r4, r12;					\n"
+  	"xor.b 		r5, r12;					\n"
+  	"xor  		r12, r4;					\n"
+  	"xor  		r12, r5;					\n"
+	/* S(1)x, This time x is store in y, so the operation is on y 	*/
+	"rla 		r4;						\n"
+	"rlc 		r5;						\n"
+	"adc 		r4;						\n"
+	/* Sx & S(8)x 							*/
+	"and		r4,		r6;				\n"
+	"and		r5,		r7;				\n"
+	/* S(2)x, again rotate shift left y with 1 bit			*/
+	"rla 		r4;						\n"
+	"rlc 		r5;						\n"
+	"adc 		r4;						\n"
+	/* [Sx & S(8)x] eor S(2)x 					*/
+	"xor		r4,		r6;				\n"
+	"xor		r5,		r7;				\n"
+	/* (y eor k) eor [Sx & S(8)x] eor S(2)x 			*/
+	"xor		r8,		r6;				\n"
+	"xor		r9,		r7;				\n"
+	/* loop control 						*/
+        "dec		r13;						\n"
+	"jne		round_loop;					\n"
         /*---------------------------------------------------------------*/
         /* Restore registers                                             */
         /*---------------------------------------------------------------*/
@@ -368,8 +367,7 @@ void Encrypt(uint8_t *block, uint8_t *roundKeys)
         "ldmia        sp!,      {r0-r12,lr};           \n" /*                 */
         /*--------------------------------------------------------------------*/
 	:
-    : [block] "r" (block), [roundKeys] "r" (roundKeys) 
-	);
+    : [block] "" (block), [roundKeys] "" (roundKeys));
 }
 
 #else
