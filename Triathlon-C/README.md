@@ -1,6 +1,9 @@
 # Instruction Set
 C(Carry); V(overflow); N(negative); and Z(zero)<br>
 <b>More attention should be paid to the order of input data. For example, is the byte of higher address stored in the higher 8 bits of register which is 16 bits or 32 bits?</b><br>
+<a href="" target="_blank">MSP Instruction Set</a><br>
+<a href="" target="_blank">AVR Instruction Set</a><br>
+<a href="" target="_blank">ARM Instruction Set</a><br>
 
 # MSP430
 &nbsp;&nbsp;Brief Introduction: 16 16-bit register. Four of the registers are dedicated to program counter(r0 or pc), stack point(r1 or sp), status register(r2 or sr/cg1) and constant generator(r3 or cg2), while the remaining 12 registers(r4-r15) are general-purpose registers. There are 52 instructions in total.<br><br>
@@ -37,11 +40,12 @@ Refs<br>
 [4] <a href="http://www.ece.utep.edu/courses/web3376/Links_files/MSP430%20Quick%20Reference.pdf" target="_blank">mov(.b) @rs+, rd</a><br>
 
 # AVR
-&nbsp;&nbsp;Most of the 133 instructions require a single cycle to execute. The rich instruction set in combimed with the 32 8-bit general purpose registers(r0-r31) with single clock access time. Six of the 32 8-bit registers can be used as three 16-bit indirect register pointers(X, r26-r27; Y, r28-r29; and Z, r30-r31) for addressing the data space.<br><br>
+&nbsp;&nbsp;Most of the 133 instructions require a single cycle to execute. The rich instruction set in combimed with the 32 8-bit general purpose registers(r0-r31) with single clock access time. Six of the 32 8-bit registers can be used as three 16-bit indirect register pointers(X, r26-r27; Y, r28-r29; and Z, r30-r31) for addressing the data space.<br>
+&nbsp;&nbsp;The instructions are described in details in the <a href="" target="_blank">instruction set</a>. It's very easy to understand.<br><br>
 
 1. Instruction <b>ldi r26, low(key)</b> and <b>ldi r27, high(key)</b> can not be used in assemble c. It should be like this <b>ldi r26, lo8(key)</b> and <b>ldi r27, hi8(key)</b>.<br>
 
-2. Despite using <i>#include"constants.h"</i>, some const values, such as KEY_SIZE, NUMBER_OF_ROUNDS and so on, can still not be used directly. Therefore, immediate numbers are used.<br>
+2. Despite using <i>#include"constants.h"</i>, some const values, such as KEY_SIZE, NUMBER_OF_ROUNDS and so on, can still not be used directly. Therefore, immediate numbers are used. Maybe the values in the C file are not visible to assemble codes.<br>
 
 3. The second operand of <b>adiw"</b> is [0, 63]. <br>
 Therefore, <b>adiw r18, 176</b> is wrong(operand is out of range). It can be replaced by:<br>
