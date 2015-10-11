@@ -373,7 +373,7 @@ void RunEncryptionKeySchedule(uint8_t *key, uint8_t *roundKeys)
         "ldmia        	sp!,      		{r0-r12,lr};           		\n"
         /*--------------------------------------------------------------------*/
     :
-    : [key] "r" (key), [roundKeys] "r" (roundKeys) 
+    : [key] "" (key), [roundKeys] "" (roundKeys) 
 	); 
 }
 

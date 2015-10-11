@@ -452,10 +452,6 @@ void RunEncryptionKeySchedule(uint8_t *key, uint8_t *roundKeys)
 /*----------------------------------------------------------------------------*/
 /* Key Schedule -- Default c implementation                                   */
 /*----------------------------------------------------------------------------*/
-#include <stdint.h>
-
-#include "cipher.h"
-#include "constants.h"
 #include "primitives.h"
 
 void RunEncryptionKeySchedule(uint8_t *key, uint8_t *roundKeys)

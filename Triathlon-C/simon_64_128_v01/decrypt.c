@@ -376,10 +376,6 @@ void Decrypt(uint8_t *block, uint8_t *roundKeys)
 /*----------------------------------------------------------------------------*/
 /* decryption -- Default c implementation                                     */
 /*----------------------------------------------------------------------------*/
-#include <stdint.h>
-
-#include "cipher.h"
-#include "constants.h"
 #include "primitives.h"
 
 void Decrypt(uint8_t *block, uint8_t *roundKeys)
