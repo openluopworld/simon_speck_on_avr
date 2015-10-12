@@ -84,14 +84,14 @@ void Decrypt(uint8_t *block, uint8_t *roundKeys)
 	"adiw		r28,		63;			\n"
 	"adiw		r28,		45;			\n"
 	/* load the plaintext from RAM to registers [r7,...,r0], X = [r7, r6, r5, r4], Y = [r3, r2, r1, r0] */
-	"ld 		r7, 		x+ ;			\n"
-	"ld 		r6, 		x+ ;			\n"
-	"ld 		r5, 		x+ ;			\n"
-	"ld 		r4, 		x+ ;			\n"
-	"ld 		r3, 		x+ ;			\n"
-	"ld 		r2, 		x+ ;			\n"
-	"ld 		r1, 		x+ ;			\n"
 	"ld 		r0, 		x+ ;			\n"
+	"ld 		r1, 		x+ ;			\n"
+	"ld 		r2, 		x+ ;			\n"
+	"ld 		r3, 		x+ ;			\n"
+	"ld 		r4, 		x+ ;			\n"
+	"ld 		r5, 		x+ ;			\n"
+	"ld 		r6, 		x+ ;			\n"
+	"ld 		r7, 		x+ ;			\n"
 "decLoop:							\n"
 	/* store the 4 bytes of sub key to K = [r11, r10, r9, r8] */
 	"ld 		r11, 		-y;			\n"
@@ -146,14 +146,14 @@ void Decrypt(uint8_t *block, uint8_t *roundKeys)
 	"brne 		decLoop;				\n"
 	/* ---------------------------------------------------- */
 	/* move cipher text back to plain text 			*/
-	"st 		-x, 		r0;			\n"
-	"st 		-x, 		r1;			\n"
-	"st 		-x, 		r2;			\n"
-	"st 		-x, 		r3;			\n"
-	"st 		-x, 		r4;			\n"
-	"st 		-x, 		r5;			\n"
-	"st 		-x, 		r6;			\n"
 	"st 		-x, 		r7;			\n"
+	"st 		-x, 		r6;			\n"
+	"st 		-x, 		r5;			\n"
+	"st 		-x, 		r4;			\n"
+	"st 		-x, 		r3;			\n"
+	"st 		-x, 		r2;			\n"
+	"st 		-x, 		r1;			\n"
+	"st 		-x, 		r0;			\n"
 	/* ---------------------------------------------------- */
 	/* Restore all modified registers			*/
         "pop  r29;       \n"
@@ -262,6 +262,12 @@ void Decrypt(uint8_t *block, uint8_t *roundKeys)
 	/* loop control 						*/
         "dec	r13;							\n"
 	"jne	round_loop;						\n"
+	/*---------------------------------------------------------------*/
+        /* store plain text                                              */
+	"mov    r4,       	-8(r15);\n"
+        "mov    r5,       	-6(r15);\n"
+        "mov    r6,       	-4(r15);\n"
+        "mov    r7,       	-2(r15);\n"
         /*---------------------------------------------------------------*/
         /* Restore registers                                             */
         /*---------------------------------------------------------------*/
@@ -290,8 +296,8 @@ void Decrypt(uint8_t *block, uint8_t *roundKeys)
 {
     asm volatile (\
         /*--------------------------------------------------------------------*/
-        /* r0  - X high byte to low byte                                      */
-        /* r1  - Y high byte to low byte                                      */
+        /* r0  - Y high byte to low byte                                      */
+        /* r1  - X high byte to low byte                                      */
         /* r2  - Temporary use                                                */
         /* r3  - Temporary use                                                */
         /* r6  - point of block                                               */
@@ -313,19 +319,19 @@ void Decrypt(uint8_t *block, uint8_t *roundKeys)
         /* AddRoundKey 								*/
         "ldmdb			r7!,			{r9};             	\n"
 	/* k = k eor x 								*/
-        "eor			r9,			r9, 		r0;	\n"
+        "eor			r9,			r9, 		r1;	\n"
 	/* x = x eor y 								*/
-        "eor			r0,			r0, 		r1;	\n"
+        "eor			r1,			r1, 		r0;	\n"
 	/* x = S(-3)x 								*/
-	"ror			r0,			#3;			\n"
+	"ror			r1,			#3;			\n"
 	/* y = x 								*/
-	"mov			r1,			r0;			\n"
+	"mov			r0,			r1;			\n"
 	/* x = k - x 								*/
-	"sub			r0,			r9,		r0;	\n"
+	"sub			r1,			r9,		r1;	\n"
 	/* x = S(8)(k) 								*/
-	"mov			r2,			r9,		lsl#8;	\n"
-	"mov			r3,			r9,		lsr#24;	\n"
-	"eor			r0, 			r2,		r3;	\n"
+	"mov			r2,			r1,		lsl#8;	\n"
+	"mov			r3,			r1,		lsr#24;	\n"
+	"eor			r1, 			r2,		r3;	\n"
 	/* loop control 							*/
 	"subs          		r8,           		r8,		#1;	\n"
         "bne     	    	decrypt_round_loop;				\n" 

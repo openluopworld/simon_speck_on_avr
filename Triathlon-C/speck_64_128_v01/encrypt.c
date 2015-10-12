@@ -84,14 +84,14 @@ void Encrypt(uint8_t *block, uint8_t *roundKeys)
 /*	"ldi 		r28, 		lo8(roundKeys);		\n" */
 /*	"ldi 		r29, 		hi8(roundKeys);		\n" */
 	/* load the plaintext from RAM to registers [r7,...,r0], X = [r7, r6, r5, r4], Y = [r3, r2, r1, r0] */
-	"ld 		r7, 		x+ ;			\n"
-	"ld 		r6, 		x+ ;			\n"
-	"ld 		r5, 		x+ ;			\n"
-	"ld 		r4, 		x+ ;			\n"
-	"ld 		r3, 		x+ ;			\n"
-	"ld 		r2, 		x+ ;			\n"
-	"ld 		r1, 		x+ ;			\n"
-	"ld 		r0, 		x+ ;			\n"
+	"ld 		r0, 		x+;			\n"
+	"ld 		r1, 		x+;			\n"
+	"ld 		r2, 		x+;			\n"
+	"ld 		r3, 		x+;			\n"
+	"ld 		r4, 		x+;			\n"
+	"ld 		r5, 		x+;			\n"
+	"ld 		r6, 		x+;			\n"
+	"ld 		r7, 		x+;			\n"
 	"clr 		r30;					\n"
 "encLoop:							\n"
 	/* load k: [r15, r14, r13, r12], r12 is the lowest byte */
@@ -139,14 +139,14 @@ void Encrypt(uint8_t *block, uint8_t *roundKeys)
 	"brne 		encLoop;				\n"
 	/* ---------------------------------------------------- */
 	/* move cipher text back to plain text 			*/
-	"st 		-x, 		r0;			\n"
-	"st 		-x, 		r1;			\n"
-	"st 		-x, 		r2;			\n"
-	"st 		-x, 		r3;			\n"
-	"st 		-x, 		r4;			\n"
-	"st 		-x, 		r5;			\n"
-	"st 		-x, 		r6;			\n"
 	"st 		-x, 		r7;			\n"
+	"st 		-x, 		r6;			\n"
+	"st 		-x, 		r5;			\n"
+	"st 		-x, 		r4;			\n"
+	"st 		-x, 		r3;			\n"
+	"st 		-x, 		r2;			\n"
+	"st 		-x, 		r1;			\n"
+	"st 		-x, 		r0;			\n"
 	/* ---------------------------------------------------- */
 	/* Restore all modified registers			*/
 	"pop  r31;	 \n"
@@ -253,6 +253,12 @@ void Encrypt(uint8_t *block, uint8_t *roundKeys)
 	/* loop control 		*/
         "dec	r13;			\n"
 	"jne	round_loop;		\n"
+	/*---------------------------------------------------------------*/
+        /* store cipher text                                             */
+	"mov    r4,       	-8(r15);\n"
+        "mov    r5,       	-6(r15);\n"
+        "mov    r6,       	-4(r15);\n"
+        "mov    r7,       	-2(r15);\n"
         /*---------------------------------------------------------------*/
         /* Restore registers                                             */
         /*---------------------------------------------------------------*/
@@ -281,8 +287,8 @@ void Encrypt(uint8_t *block, uint8_t *roundKeys)
 {
     asm volatile (\
 	/*--------------------------------------------------------------------*/
-        /* r0  - X high byte to low byte                                      */
-        /* r1  - Y high byte to low byte                                      */
+        /* r0  - Y high byte to low byte                                      */
+        /* r1  - X high byte to low byte                                      */
         /* r2  - Temporary use                                                */
         /* r3  - Temporary use                                                */
         /* r6  - point of block                                               */
@@ -303,16 +309,16 @@ void Encrypt(uint8_t *block, uint8_t *roundKeys)
 	/* load k 								*/
 	"ldmia			r7!, 			{r9}; 			\n" /* r7 will add 4 after the instruction */
 	/* x = S(-8)(x) + y 							*/
-	"ror			r0,			#8;			\n"
-	"add			r0,			r0,		r1; 	\n"
+	"ror			r1,			#8;			\n"
+	"add			r1,			r1,		r0; 	\n"
 	/* x = k eor (S(-8)(x) + y) 						*/
-	"eor			r0,			r9, 		r0;	\n"
+	"eor			r1,			r9, 		r1;	\n"
 	/* y = S(3)(y) 								*/
-	"mov			r2,			r1,		lsl#3;	\n"
-	"mov			r3,			r1,		lsr#29;	\n"
-	"eor			r1, 			r2,		r3;	\n"
+	"mov			r2,			r0,		lsl#3;	\n"
+	"mov			r3,			r0,		lsr#29;	\n"
+	"eor			r0, 			r2,		r3;	\n"
 	/* y = S(3)(y) eor ( S(-8)(x) + y ) eor k 				*/
-	"eor			r1, 			r1,		r0;	\n"
+	"eor			r0, 			r0,		r1;	\n"
 	/* loop control 							*/
 	"subs			r8, 			r8, 		#1;	\n"
 	"bne			encrypt_round_loop;				\n"
