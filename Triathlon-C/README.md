@@ -1,8 +1,8 @@
 # Instruction Set
 C(Carry); V(overflow); N(negative); and Z(zero)<br>
-<a href="" target="_blank">MSP Instruction Set</a><br>
-<a href="" target="_blank">AVR Instruction Set</a><br>
-<a href="" target="_blank">ARM Instruction Set</a><br><br>
+<a href="http://mspgcc.sourceforge.net/manual/book1.html" target="_blank">MSP Instruction Set</a><br>
+<a href="http://www.atmel.com/images/atmel-0856-avr-instruction-set-manual.pdf" target="_blank">AVR Instruction Set</a><br>
+<a href="https://www.ic.unicamp.br/~ranido/mc404/arm/arm-instructionset.pdf" target="_blank">ARM Instruction Set</a><br><br>
 <b>1. More attention should be paid to the order of input data. For example, is the byte of higher address stored in the higher 8 bits of register which is 16 bits or 32 bits?</b><br>
 2. Can "push" and "pop" instructions be deleted?<br>
 3. How to verify the correctness?<br>
@@ -46,7 +46,7 @@ Refs<br>
 
 # AVR
 &nbsp;&nbsp;Most of the 133 instructions require a single cycle to execute. The rich instruction set in combimed with the 32 8-bit general purpose registers(r0-r31) with single clock access time. Six of the 32 8-bit registers can be used as three 16-bit indirect register pointers(X, r26-r27; Y, r28-r29; and Z, r30-r31) for addressing the data space.<br>
-&nbsp;&nbsp;The instructions are described in details in the <a href="" target="_blank">instruction set</a>. It's very easy to understand.<br><br>
+&nbsp;&nbsp;The instructions are described in details in the <a href="http://www.atmel.com/images/atmel-0856-avr-instruction-set-manual.pdf" target="_blank">instruction set</a>. It's very easy to understand.<br><br>
 
 1. Instruction <b>ldi r26, low(key)</b> and <b>ldi r27, high(key)</b> can not be used in assemble c. It should be like this <b>ldi r26, lo8(key)</b> and <b>ldi r27, hi8(key)</b>.<br>
 
