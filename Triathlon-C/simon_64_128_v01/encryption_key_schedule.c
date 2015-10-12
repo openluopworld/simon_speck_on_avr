@@ -300,7 +300,7 @@ void RunEncryptionKeySchedule(uint8_t *key, uint8_t *roundKeys)
         "mov   		12(r14),       	r8;	\n"  
         "mov   		14(r14),       	r9;	\n"
 	/* S(-3)(k(i+3)) 			*/
-	"bit		#1,		r8;	\n" /* S(-1) */
+	"bit		#1,		r8;	\n" /* S(-1): 1 & r8; Sets status only, the destination is not written */
 	"rrc		r9;			\n"
 	"rrc		r8;			\n"
 	"bit		#1,		r8;	\n" /* S(-2) */
@@ -325,9 +325,12 @@ void RunEncryptionKeySchedule(uint8_t *key, uint8_t *roundKeys)
 	/* ki eor [I eor S(-1)][S(-3)(k(i+3)) eor k(i+1)] */
 	"xor		r4,		r8;	\n"
 	"xor		r5,		r9;	\n"
+	/*---------------------------------------------------------------*/
 	/* load Z eor C 			*/
-	"mov.b		@r12+,       	r4;	\n"
-	"xor.b		r4,		r8;	\n"
+	"mov.b		@r12+,       	r4;	\n" /* high byte of r8 is 0, low byte if Z_XOR_3 */
+	"xor		r4,		r8;	\n"
+	"inv		r9;			\n"
+	"inv		r8;			\n"
 	"mov		r8,		16(r14);\n"
 	"mov		r9,		18(r14);\n"
 	/* points to ki+1 			*/
@@ -435,7 +438,7 @@ void RunEncryptionKeySchedule(uint8_t *key, uint8_t *roundKeys)
 	"ands			r9,			r5,		0x80000000;	\n"
 	"lsl			r5,			#1;			\n"
 "loop_control:"
-	/* eor 1 if the Z flag( the result of lsls) is 0(means the bit is 1) 	*/
+	/* eor 1 if the Z flag( the result of ands) is 0(means the bit is 1) 	*/
 	"eorne			r0,			r0,		#0x1;	\n"
 	/* store k[i+4] 							*/
 	"stmia			r7!,			{r0};			\n" /* r7 is the address of k[i+5] */
@@ -450,8 +453,7 @@ void RunEncryptionKeySchedule(uint8_t *key, uint8_t *roundKeys)
         "ldmia        		sp!,      		{r0-r12,lr};           	\n"
         /*----------------------------------------------------------------------*/
     :
-    : [key] "" (key), [roundKeys] "" (roundKeys) 
-	); 
+    : [key] "" (key), [roundKeys] "" (roundKeys) ); 
 }
 
 #else

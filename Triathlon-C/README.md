@@ -1,14 +1,17 @@
 # Instruction Set
 C(Carry); V(overflow); N(negative); and Z(zero)<br>
-<b>More attention should be paid to the order of input data. For example, is the byte of higher address stored in the higher 8 bits of register which is 16 bits or 32 bits?</b><br>
 <a href="" target="_blank">MSP Instruction Set</a><br>
 <a href="" target="_blank">AVR Instruction Set</a><br>
-<a href="" target="_blank">ARM Instruction Set</a><br>
+<a href="" target="_blank">ARM Instruction Set</a><br><br>
+<b>1. More attention should be paid to the order of input data. For example, is the byte of higher address stored in the higher 8 bits of register which is 16 bits or 32 bits?</b><br>
+2. Can "push" and "pop" instructions be deleted?<br>
+3. How to verify the correctness?<br>
+4. The Encrypt and Decrypt are just for one block?<br>
 
 # MSP430
 &nbsp;&nbsp;Brief Introduction: 16 16-bit register. Four of the registers are dedicated to program counter(r0 or pc), stack point(r1 or sp), status register(r2 or sr/cg1) and constant generator(r3 or cg2), while the remaining 12 registers(r4-r15) are general-purpose registers. There are 52 instructions in total.<br><br>
 
-1. A byte instruction with a register destination clears the high 8 bits of the register to 0.<sup>[1]</sup><br>
+1. <b>A byte instruction with a register destination clears the high 8 bits of the register to 0</b>.<sup>[1]</sup><br>
 &nbsp;&nbsp;For example, <b>"mov.b r6, r12"</b> means move the lower 8 bits of r6 to r12,<br>
 &nbsp;&nbsp;and the higher 8 bits of r12 is set to 0.<br>
 
@@ -32,6 +35,8 @@ C(Carry); V(overflow); N(negative); and Z(zero)<br>
 &nbsp;&nbsp;For example, <b>"mov r5, r4"</b> means moving r5 to r4.
 
 6. ^ is <b>xor</b> in MSP, but <i>eor</i> is AVR.<br>
+
+7. <b>inv</b> means "!".<br>
 
 Refs<br>
 [1] <a href="http://mspgcc.sourceforge.net/manual/x214.html" target="_blank">mov.b rs, rd</a><br>
