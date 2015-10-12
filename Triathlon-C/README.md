@@ -3,10 +3,12 @@ C(Carry); V(overflow); N(negative); and Z(zero)<br>
 <a href="http://mspgcc.sourceforge.net/manual/book1.html" target="_blank">MSP Instruction Set</a><br>
 <a href="http://www.atmel.com/images/atmel-0856-avr-instruction-set-manual.pdf" target="_blank">AVR Instruction Set</a><br>
 <a href="https://www.ic.unicamp.br/~ranido/mc404/arm/arm-instructionset.pdf" target="_blank">ARM Instruction Set</a><br><br>
-<b>1. More attention should be paid to the order of input data. For example, is the byte of higher address stored in the higher 8 bits of register which is 16 bits or 32 bits?</b><br>
+1. On my machine, the higher byte of a variable is stored in higher address of RAM. In MSP and ARM, the value of higher address is loaded to the higher byte of register. Therefore, the order of test values is opposite to the paper.<br>
 2. Can "push" and "pop" instructions be deleted?<br>
 3. How to verify the correctness?<br>
+&nbsp;&nbsp;The result of key schedule, encryption and decryption can be outputted. Then compare with the correct result.<br>
 4. The Encrypt and Decrypt are just for one block?<br>
+&nbsp;&nbsp;Yes. The funcion Encrypt and Decrypt are called 16 times in scenario1 and 2 times in scenario2.<br>
 
 # MSP430
 &nbsp;&nbsp;Brief Introduction: 16 16-bit register. Four of the registers are dedicated to program counter(r0 or pc), stack point(r1 or sp), status register(r2 or sr/cg1) and constant generator(r3 or cg2), while the remaining 12 registers(r4-r15) are general-purpose registers. There are 52 instructions in total.<br><br>
