@@ -100,8 +100,14 @@ void RunEncryptionKeySchedule(uint8_t *key, uint8_t *roundKeys)
 "loadMasterKey:							\n"
 	"ld		r17,		y+;			\n"
 	"st 		x+, 		r17;			\n"
+	"ld		r17,		y+;			\n"
+	"st 		x+, 		r17;			\n"
+	"ld		r17,		y+;			\n"
+	"st 		x+, 		r17;			\n"
+	"ld		r17,		y+;			\n"
+	"st 		x+, 		r17;			\n"
 	"inc 		r24;					\n"
-	"cpi 		r24, 		16;			\n"
+	"cpi 		r24, 		4;			\n"
 	"brne loadMasterKey;					\n"
 	/* ---------------------------------------------------- */
 	/* prepare for the key schedule 			*/
