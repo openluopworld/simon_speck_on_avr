@@ -1,8 +1,8 @@
 # Instruction Set
 C(Carry); V(overflow); N(negative); and Z(zero)<br>
-<a href="http://mspgcc.sourceforge.net/manual/book1.html" target="_blank">MSP Instruction Set</a><br>
+<a href="http://www.ece.utep.edu/courses/web3376/Links_files/MSP430%20Quick%20Reference.pdf" target="_blank">MSP430 Quick Reference(*)</a>, <a href="http://mspgcc.sourceforge.net/manual/book1.html" target="_blank">More Details</a><br>
 <a href="http://www.atmel.com/images/atmel-0856-avr-instruction-set-manual.pdf" target="_blank">AVR Instruction Set</a><br>
-<a href="https://www.ic.unicamp.br/~ranido/mc404/arm/arm-instructionset.pdf" target="_blank">ARM Instruction Set</a><br><br>
+<a href="http://infocenter.arm.com/help/topic/com.arm.doc.qrc0001m/QRC0001_UAL.pdf" target="_blank">ARM Instruction Set</a><br><br>
 1. On my machine, the higher byte of a variable is stored in higher address of RAM. In MSP and ARM, the value of higher address is loaded to the higher byte of register. Therefore, the order of test values is opposite to the paper.<br>
 2. Can "push" and "pop" instructions be deleted?<br>
 3. How to verify the correctness?<br>
