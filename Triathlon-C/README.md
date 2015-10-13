@@ -3,11 +3,10 @@ C(Carry); V(overflow); N(negative); and Z(zero)<br>
 <a href="http://www.ece.utep.edu/courses/web3376/Links_files/MSP430%20Quick%20Reference.pdf" target="_blank">MSP430 Quick Reference(*)</a>, <a href="http://mspgcc.sourceforge.net/manual/book1.html" target="_blank">More Details</a><br>
 <a href="http://www.atmel.com/images/atmel-0856-avr-instruction-set-manual.pdf" target="_blank">AVR Instruction Set</a><br>
 <a href="http://infocenter.arm.com/help/topic/com.arm.doc.qrc0001m/QRC0001_UAL.pdf" target="_blank">ARM Instruction Set</a><br><br>
-1. On my machine, the higher byte of a variable is stored in higher address of RAM. In MSP and ARM, the value of higher address is loaded to the higher byte of register. Therefore, the order of test values is opposite to the paper.<br>
-2. Can "push" and "pop" instructions be deleted?<br>
-3. How to verify the correctness?<br>
-&nbsp;&nbsp;The result of key schedule, encryption and decryption can be outputted. Then compare with the correct result.<br>
-4. The Encrypt and Decrypt are just for one block?<br>
+1. On my machine, the higher byte of a variable is stored in higher address of RAM. In MSP and ARM, the value of higher address is loaded to the higher byte of register. Therefore, the order of test values is opposite to the paper.<br><br>
+2. How to verify the correctness?<br>
+&nbsp;&nbsp;FELICS only verify the correctness of PC implementation before test, but not for AVR, MSP and ARM. Therefore, if you want to verify. You have to output the result of key schedule, encryption and decryption, and then compare with the correct result.<br><br>
+3. The Encrypt and Decrypt are just for one block?<br>
 &nbsp;&nbsp;Yes. The funcion Encrypt and Decrypt are called 16 times in scenario1 and 2 times in scenario2.<br>
 
 # MSP430
@@ -40,6 +39,10 @@ C(Carry); V(overflow); N(negative); and Z(zero)<br>
 
 7. <b>inv</b> means "!".<br>
 
+8. <a href="http://www.ti.com/lit/an/slaa664/slaa664.pdf" target="_blank">Calling Convention and ABI Changes in MSP GCC</a><br>
+&nbsp;&nbsp;[r15-r12]: In MSPGCC, registers are passed starting with R15 and descending to R12. For example, if two integers are passed, the first is passed in R15 and the second is passed in R14.<br>
+&nbsp;&nbsp;[r11-r4]: r11-r4 must be pushed if used.<br>
+
 Refs<br>
 [1] <a href="http://mspgcc.sourceforge.net/manual/x214.html" target="_blank">mov.b rs, rd</a><br>
 [2] <a href="http://mspgcc.sourceforge.net/manual/x223.html" target="_blank">bit rs, rd</a><br>
@@ -59,6 +62,12 @@ Therefore, <b>adiw r18, 176</b> is wrong(operand is out of range). It can be rep
 &nbsp;&nbsp;<b>adiw r28, 63;&nbsp;&nbsp;</b>
 &nbsp;&nbsp;<b>adiw r28, 63;</b><br>
 &nbsp;&nbsp;<b>adiw r28, 50;</b><br>
+
+4. [**]<a href="http://www.atmel.com/webdoc/AVRLibcReferenceManual/FAQ_1faq_reg_usage.html" target="_blank">What registers are used by the C compiler?</a><br>
+&nbsp;&nbsp;GCC AVR passes arguments from left to right in r25-r8. All arguments are aligned to start in even-numbered registers (odd-sized arguments, including char, have one free register above them). This allows making better use of the movw instruction on the enhanced core.<br>
+&nbsp;&nbsp;[r18-r27, r30-r31]: You may use them freely in assembler subroutines. Calling C subroutines can clobber any of them - the caller is responsible for saving and restoring. There is no need to use push and pop for these registers.<br>
+&nbsp;&nbsp;[r2-r17, r28-r29]: Calling C subroutines leaves them unchanged. Assembler subroutines are responsible for saving and restoring these registers. Therefore, <b>Push</b> and <b>pop</b> instructions should be used to leave the value unchanged if the registers were used.<br>
+&nbsp;&nbsp;[r0, r1]: Fixed registers. Never allocated by gcc for local data, but often used for fixed purposes<br>
 
 # ARM
 1. <b>mov r4, #0xdbac65e0</b> gives the error message "<a href="http://stackoverflow.com/questions/10261300/invalid-constant-after-fixup" target="_blank">invalid constant (dbac65e0) after fieup</a>".<br>
