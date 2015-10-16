@@ -43,6 +43,8 @@ C(Carry); V(overflow); N(negative); and Z(zero)<br>
 &nbsp;&nbsp;[r15-r12]: In MSPGCC, registers are passed starting with R15 and descending to R12. For example, if two integers are passed, the first is passed in R15 and the second is passed in R14.<br>
 &nbsp;&nbsp;[r11-r4]: r11-r4 must be pushed if used.<br>
 
+9. <a href="http://www.phas.ubc.ca/~michal/phys319/MSP430Reference-RyansEdit.pdf" target="_blank"><b>bit</b> means "|"(or)</a>.<br>
+
 Refs<br>
 [1] <a href="http://mspgcc.sourceforge.net/manual/x214.html" target="_blank">mov.b rs, rd</a><br>
 [2] <a href="http://mspgcc.sourceforge.net/manual/x223.html" target="_blank">bit rs, rd</a><br>
