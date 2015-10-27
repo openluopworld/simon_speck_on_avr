@@ -3,7 +3,7 @@
 # C++
 Implement on VS2010<br>
 C++_2: Uses "<<" and ">>" operation to implement rotate shift left and rotate shift right.<br>
-For example, we can use "(X<<n)|(X>>(32-n))" to implement 'rotate shift left X with n bits' on the assumption that X is an unsigned int.<br>
+For example, we can use "(X << n) | (X >> (32-n))" to implement 'rotate shift left X with n bits' on the assumption that X is an unsigned int.<br>
 C++_3: More efficient and simpler implementation of Simon. Speck has not been implemented yet. <i>Although the type of input parameters are different, they can be put together, such as setSimonKey32 and setSimonKey64.</i><br>
 
 # AVR
