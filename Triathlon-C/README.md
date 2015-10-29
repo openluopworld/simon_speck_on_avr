@@ -82,6 +82,16 @@ The following instructions can implement it:<br>
 &nbsp;&nbsp;<b>lsl r4, #8</b><br>
 &nbsp;&nbsp;<b>eor r4, r4, #0xe0</b><br>
 
+2. <b>stmia(stmib), stmdb(stmda), ldmia(ldmib), ldmdb(ldmda)</b><br>
+&nbsp;&nbsp;ia ----> increase after<br>
+&nbsp;&nbsp;db ----> decrease before<br>
+&nbsp;&nbsp;ib ----> increase before<br>
+&nbsp;&nbsp;da ----> decrease after<br>
+
+3. <b>LDRH</b> and <b>STRH</b><br>
+&nbsp;&nbsp;<b>LDRH Rd, [Rn, #<imm>]</b> ----> Rd := ZeroExtend([Rn + imm][15:0]). Only two bytes will be loaded. The higher part[31:16] of register Rd will be set to 0.<br>
+&nbsp;&nbsp;<b>STRH Rd, [Rn, #<imm>]</b> ----> [Rn + imm][15:0] := Rd[15:0]. The lower part[15:0] of register Rd will be stored with the higher part unchanged.<br>
+
 #INSTALL TOOLS
 &nbsp;&nbsp;Install all the tools according to <a href="https://www.cryptolux.org/index.php/FELICS_Prerequisites" target="_blank">https://www.cryptolux.org/index.php/FELICS_Prerequisites</a>.<br><br>
 1. download, compile and <a href=" https://github.com/buserror-uk/simavr/blob/master/doc/manual/manual.pdf?raw=true" target="_blank">install</a> simavr<br>
