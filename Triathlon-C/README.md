@@ -1,4 +1,4 @@
-# Instruction Set
+i # Instruction Set
 C(Carry); V(overflow); N(negative); and Z(zero)<br>
 <a href="http://www.ece.utep.edu/courses/web3376/Links_files/MSP430%20Quick%20Reference.pdf" target="_blank">MSP430 Quick Reference(*)</a>, <a href="http://mspgcc.sourceforge.net/manual/book1.html" target="_blank">More Details</a><br>
 <a href="http://www.atmel.com/images/atmel-0856-avr-instruction-set-manual.pdf" target="_blank">AVR Instruction Set</a><br>
@@ -43,7 +43,7 @@ C(Carry); V(overflow); N(negative); and Z(zero)<br>
 &nbsp;&nbsp;[r15-r12]: In MSPGCC, registers are passed starting with R15 and descending to R12. For example, if two integers are passed, the first is passed in R15 and the second is passed in R14.<br>
 &nbsp;&nbsp;[r11-r4]: r11-r4 must be pushed if used.<br>
 
-9. <a href="http://www.phas.ubc.ca/~michal/phys319/MSP430Reference-RyansEdit.pdf" target="_blank"><b>bit</b> means "|"(or)</a>.<br>
+9. <a href="http://www.phas.ubc.ca/~michal/phys319/MSP430Reference-RyansEdit.pdf" target="_blank"><b>bit</b> means "|"(or)</a>.<br>(???)
 
 Refs<br>
 [1] <a href="http://mspgcc.sourceforge.net/manual/x214.html" target="_blank">mov.b rs, rd</a><br>
