@@ -74,13 +74,13 @@ Therefore, <b>adiw r18, 176</b> is wrong(operand is out of range). It can be rep
 &nbsp;&nbsp;[r0, r1]: Fixed registers. Never allocated by gcc for local data, but often used for fixed purposes<br>
 
 5. Implementation problems:<br>
-[Problem1] 1)AVR: relocation truncated to fit: R_AVR_7_PCREL against `no symbol'; 2)MSP: '#' is not followed by a macro parameter compilation terminated due to -Wfatal-errors.<br>
+[Problem1] 1)AVR: relocation truncated to fit: R_AVR_7_PCREL against 'no symbol'; 2)MSP: '#' is not followed by a macro parameter compilation terminated due to -Wfatal-errors.<br>
 [Reason] In avr_basic_asm_macros.h and msp_basic_asm_macros.h, some const values can not be used in instructions directly.<br>
 [Solution] Therefore, "#define DFDZero #0xff00" (in msp) and "#define CONST_F0 0xf0"(in avr) are used.<br>
 [Problem2]AVR: Error: register r24, r26, r28 or r30 required<br>
 [Solution]Change sbiw z, 16 to sbiw r30, 16 of dec_keyxor_flash_ in avr_basic_asm_macros.h<br>
 [Reference]<a href="http://www.nongnu.org/avr-libc/user-manual/inline_asm.html" target="_blank">AVR-GCC Inline Assembler Cookbook</a><br>
-[Problem3]AVR: decrypt.c:52:(.text.Decrypt+0xae): relocation truncated to fit: R_AVR_7_PCREL against `no symbol'<br>
+[Problem3]AVR: decrypt.c:52:(.text.Decrypt+0xae): relocation truncated to fit: R_AVR_7_PCREL against 'no symbol'<br>
 [Reason] <b>brne</b> can NOT be used when the address is beyond [-63, 64]<br>
 [Solution] <b>rjmp</b> is used instead of <b>brne</b><br>
 
