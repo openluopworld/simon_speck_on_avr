@@ -1,4 +1,4 @@
-i # Instruction Set
+# Instruction Set
 C(Carry); V(overflow); N(negative); and Z(zero)<br>
 <a href="http://www.ece.utep.edu/courses/web3376/Links_files/MSP430%20Quick%20Reference.pdf" target="_blank">MSP430 Quick Reference(*)</a>, <a href="http://mspgcc.sourceforge.net/manual/book1.html" target="_blank">More Details</a><br>
 <a href="http://www.atmel.com/images/atmel-0856-avr-instruction-set-manual.pdf" target="_blank">AVR Instruction Set</a><br>
@@ -12,9 +12,9 @@ C(Carry); V(overflow); N(negative); and Z(zero)<br>
 # MSP430
 &nbsp;&nbsp;Brief Introduction: 16 16-bit register. Four of the registers are dedicated to program counter(r0 or pc), stack point(r1 or sp), status register(r2 or sr/cg1) and constant generator(r3 or cg2), while the remaining 12 registers(r4-r15) are general-purpose registers. There are 52 instructions in total.<br><br>
 
-1. <b>A byte instruction with a register destination clears the high 8 bits of the register to 0</b>.<sup>[1]</sup><br>
-&nbsp;&nbsp;For example, <b>"mov.b r6, r12"</b> means move the lower 8 bits of r6 to r12,<br>
-&nbsp;&nbsp;and the higher 8 bits of r12 is set to 0.<br>
+1. Instructions in MSP is different with other microcontrollers.<br>
+&nbsp;&nbsp;<b>The first register is the source, the second is the destination.</b>
+&nbsp;&nbsp;For example, <b>"mov r5, r4"</b> means moving r5 to r4.
 
 2. <b>"bit src, dest"</b> : src & dest; Sets status only, the destination is not written.<sup>[2]</sup><br>
 
@@ -24,26 +24,28 @@ C(Carry); V(overflow); N(negative); and Z(zero)<br>
 &nbsp;&nbsp;<b>rrc	r9;</b><br>
 &nbsp;&nbsp;<b>rrc	r8;</b><br>
 
-4. <b>mov(.b) @rs+, rd</b> : Indirect autoincrement. The operand is in memory at the address held in rs, then the register rs is incremented by 1(operation in byte) or 2(operation in word).<sup>[4]</sup><br>
+4. <b>A byte instruction with a register destination clears the high 8 bits of the register to 0</b>.<sup>[1]</sup><br>
+&nbsp;&nbsp;For example, <b>"mov.b r6, r12"</b> means move the lower 8 bits of r6 to r12,<br>
+&nbsp;&nbsp;and the higher 8 bits of r12 is set to 0.<br>
+
+5. <b>mov(.b) @rs+, rd</b> : Indirect autoincrement. The operand is in memory at the address held in rs, then the register rs is incremented by 1(operation in byte) or 2(operation in word).<sup>[4]</sup><br>
 &nbsp;&nbsp;For example: load the plain text from RAM(r15 stores the start address) to register[r7,r6,r5,r4]<br>
 &nbsp;&nbsp;<b>mov    @r15+,    r4;</b><br>
 &nbsp;&nbsp;<b>mov    @r15+,    r5;</b><br>
 &nbsp;&nbsp;<b>mov    @r15+,    r6;</b><br>
 &nbsp;&nbsp;<b>mov    @r15+,    r7;</b><br>
 
-5. Instructions in MSP is different with other microcontrollers.<br>
-&nbsp;&nbsp;<b>The first register is the source, the second is the destination.</b>
-&nbsp;&nbsp;For example, <b>"mov r5, r4"</b> means moving r5 to r4.
-
 6. ^ is <b>xor</b> in MSP, but <i>eor</i> is AVR.<br>
 
 7. <b>inv</b> means "!".<br>
 
-8. <a href="http://www.ti.com/lit/an/slaa664/slaa664.pdf" target="_blank">Calling Convention and ABI Changes in MSP GCC</a><br>
+8. <b>bis</b> means "|"(or).<br>
+
+9. <a href="http://www.ti.com/lit/an/slaa664/slaa664.pdf" target="_blank">Calling Convention and ABI Changes in MSP GCC</a><br>
 &nbsp;&nbsp;[r15-r12]: In MSPGCC, registers are passed starting with R15 and descending to R12. For example, if two integers are passed, the first is passed in R15 and the second is passed in R14.<br>
 &nbsp;&nbsp;[r11-r4]: r11-r4 must be pushed if used.<br>
 
-9. <b>bis</b> means "|"(or).<br>
+10. The stack pointer is always even. So <b>pop</b> and <b>pop.b</b> instructions will all increase SP by 2. And <b>push</b> and <b>push.b</b> instructions will all decrease SP by 2.<br>
 
 Refs<br>
 [1] <a href="http://mspgcc.sourceforge.net/manual/x214.html" target="_blank">mov.b rs, rd</a><br>
@@ -70,6 +72,19 @@ Therefore, <b>adiw r18, 176</b> is wrong(operand is out of range). It can be rep
 &nbsp;&nbsp;[r18-r27, r30-r31]: You may use them freely in assembler subroutines. Calling C subroutines can clobber any of them - the caller is responsible for saving and restoring. There is no need to use push and pop for these registers.<br>
 &nbsp;&nbsp;[r2-r17, r28-r29]: Calling C subroutines leaves them unchanged. Assembler subroutines are responsible for saving and restoring these registers. Therefore, <b>Push</b> and <b>pop</b> instructions should be used to leave the value unchanged if the registers were used.<br>
 &nbsp;&nbsp;[r0, r1]: Fixed registers. Never allocated by gcc for local data, but often used for fixed purposes<br>
+
+5. Implementation problems:<br>
+[Problem] 1)AVR: relocation truncated to fit: R_AVR_7_PCREL against `no symbol'; 2)MSP: '#' is not followed by a macro parameter compilation terminated due to -Wfatal-errors.<br>
+[Reason] In avr_basic_asm_macros.h and msp_basic_asm_macros.h, some const values can not be used in instructions directly.<br>
+[Solution] Therefore, "#define DFDZero #0xff00" (in msp) and "#define CONST_F0 0xf0"(in avr) are used.<br><br>
+
+[Problem]AVR: Error: register r24, r26, r28 or r30 required<br>
+[Solution]Change sbiw z, 16 to sbiw r30, 16 of dec_keyxor_flash_ in avr_basic_asm_macros.h<br>
+[Reference]<a href="http://www.nongnu.org/avr-libc/user-manual/inline_asm.html" target="_blank">AVR-GCC Inline Assembler Cookbook</a><br><br>
+
+[Problem]AVR: decrypt.c:52:(.text.Decrypt+0xae): relocation truncated to fit: R_AVR_7_PCREL against `no symbol'<br>
+[Reason] <b>brne</b> can NOT be used when the address is beyond [-63, 64]<br>
+[Solution] <b>rjmp</b> is used instead of <b>brne</b><br>
 
 # ARM
 1. <b>mov r4, #0xdbac65e0</b> gives the error message "<a href="http://stackoverflow.com/questions/10261300/invalid-constant-after-fixup" target="_blank">invalid constant (dbac65e0) after fieup</a>".<br>
