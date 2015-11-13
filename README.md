@@ -11,12 +11,6 @@ Implement on ATmega128, IDE is Atmel Studio 6.2.<br>
 Simon64/128 and Speck64/128 are implemented for Minimal RAM and High-Throughput.<sup>[2]</sup>.<br>
 Some instructions such as <b>adiw</b> and <b>cpi</b> can be used to reduce the number of code.<br>
 
-# Triathlon-Only-AVR
-Implement on ATmega128, IDE is Atmel Studio 6.2.<br>
-Two Scenarios<sup>[3,4]</sup>:<br>
-&nbsp;&nbsp;1)128 bytes in CBC mode;<br>
-&nbsp;&nbsp;2)128 bits in CTR mode<br>
-
 # Triathlon-C
 Two scenarios, each with 3 platfrom: AVR, MSP and ARM.<br>
 Four algorithms:<br>
