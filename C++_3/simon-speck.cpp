@@ -4,7 +4,7 @@
 using namespace std;
 
 /*
- * Simon and Speck Algorithm
+ * Simon and Speck Algorithm. Speck has not been implemented.
  * Time:2015-7-19
  *
  */

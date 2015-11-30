@@ -28,7 +28,7 @@ int simonChoose ();
 int speckChoose ();
 
 /*
- * Simon and Speck Algorithm
+ * Simon and Speck Algorithms
  * Version:2.0
  * Time:2015-1-10
  *
