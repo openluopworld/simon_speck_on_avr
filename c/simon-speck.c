@@ -19,13 +19,13 @@ void encryptKeySchedule(const u8 * inputKey, u8 * keys ) {
 
 	u32 temp;
 	for ( i = SIMON_KEY_WORDS; i < SIMON_ROUNDS; i++ ) {
-		temp = ror(keys[i-1], 3);
-		#if defined(SIMON) && (SIMON_KEY_WORDS==4)
+		temp = ror(rk[i-1], 3);
+		#if defined(SIMON_KEY_WORDS) && (SIMON_KEY_WORDS==4)
 			temp ^= rk[i-3];
 		#endif
 		temp ^= ror(temp, 1);
 		rk[i] = SIMON_CONST_C ^ rk[i-SIMON_KEY_WORDS] ^ temp;
-		if ( z[SIMON_SEQUENCE_NUMBER][i%62] == 1 ) {
+		if ( z[SIMON_SEQUENCE_NUMBER][(i-SIMON_KEY_WORDS)%62] == 1 ) {
 			rk[i] ^=  0x1;
 		}
 	}
@@ -39,7 +39,7 @@ void encryptKeySchedule(const u8 * inputKey, u8 * keys ) {
  */
 void encrypt(u8 * plainText, const u8 * keys ) {
 
-	r32 *plain = (u32*)plainText;
+	u32 *plain = (u32*)plainText;
 	const u32 *rk = (const u32*)keys;
 
 	int i;
@@ -55,14 +55,14 @@ void encrypt(u8 * plainText, const u8 * keys ) {
  *             cipherText has just one block.
  * keys: round keys
  */
-void decrypt(u32 * cipherText, const u32 * keys ) {
+void decrypt(u8 * cipherText, const u8 * keys ) {
 
 	u32 *cipher = (u32*)cipherText;
 	const u32 *rk = (const u32*)keys;    
 	
 	int i;
 	for ( i = SIMON_ROUNDS-1; i >= 0; i-=2 ) {
-		plain[1] = plain[1] ^ rk[i] ^ f(plain[0]);
-		plain[0] = plain[0] ^ rk[i-1] ^ f(plain[1]);
+		cipher[1] = cipher[1] ^ rk[i] ^ f(cipher[0]);
+		cipher[0] = cipher[0] ^ rk[i-1] ^ f(cipher[1]);
 	}
 }
