@@ -1,6 +1,6 @@
 
-#ifndef PRIMITIVES
-#define PRIMITIVES
+#ifndef MACROS
+#define MACROS
 
 #include "constants.h"
 
