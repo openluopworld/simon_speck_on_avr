@@ -1,5 +1,5 @@
 
-#include "simon-speck.h"
+#include "simon.h"
 #include "primitives.h"
 
 /*
