@@ -1,4 +1,8 @@
 
+/*
+ * inline is used to modify the function. But the compiler may ignore it.
+ */
+
 #ifndef PRIMITIVES
 #define PRIMITIVES
 

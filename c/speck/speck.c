@@ -1,6 +1,7 @@
 
 #include "speck.h"
-#include "primitives.h"
+//#include "primitives.h"
+#include "speck_macro.h"
 
 /*
  * key schedule
@@ -39,9 +40,7 @@ void encrypt(u8 * plainText, const u8 * keys ) {
 	
 	int i;
 	for ( i = 0; i < SPECK_ROUNDS; i++ ) {
-		roundFunction(plain+1, plain, rk+i);
-		//plain[1] = (ror(plain[1], SPECK_A) + plain[0]) ^ rk[i];
-		//plain[0] = rol(plain[0], SPECK_B) ^ plain[1];
+		roundFunction(plain[1], plain[0], rk[i]);
 	}
 }
 
@@ -57,8 +56,6 @@ void decrypt(u8 * cipherText, const u8 * keys ) {
 	
 	int i;
 	for ( i = SPECK_ROUNDS-1; i >= 0; i-- ) {
-		invertRoundFunction(cipher+1, cipher, rk+i);
-		//cipher[0] = ror(cipher[1] ^ cipher[0], SPECK_B);
-		//cipher[1] = rol((cipher[1] ^ rk[i] - cipher[0]), SPECK_A);
+		invertRoundFunction(cipher[1], cipher[0], rk[i]);
 	}
 }

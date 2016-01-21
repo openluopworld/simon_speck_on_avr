@@ -23,11 +23,13 @@ int main () {
 		printf("After encryption: %x, %x, %x, %x, %x, %x, %x, %x\n", 
 			plainText[0], plainText[1], plainText[2], plainText[3], 
 			plainText[4], plainText[5], plainText[6], plainText[7]);
-
+		
 		decrypt(plainText, keys);
 		printf("After decryption: %x, %x, %x, %x, %x, %x, %x, %x\n", 
 			plainText[0], plainText[1], plainText[2], plainText[3], 
 			plainText[4], plainText[5], plainText[6], plainText[7]);
+
+		printf("%x\n", z[0][1]);
 	#else
 	#if defined(SIMON_KEY_WORDS) && (SIMON_KEY_WORDS==4)
 		/*
