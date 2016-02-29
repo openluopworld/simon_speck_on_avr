@@ -117,7 +117,7 @@ The following instructions can implement it:<br>
 2. <a href="https://www.cryptolux.org/index.php/FELICS_Avrora_patch" target="_blank">download, compile and install AVRORA</a><br>
 
 3. download and install JLINK<br>
-&nbsp;&nbsp;In directory <i>/home/felics/software</b>.<br>
+&nbsp;&nbsp;In directory <i>/home/felics/software</i>.<br>
 &nbsp;&nbsp;a) <a href="https://www.segger.com/jlink-software.html" target="_blank">Download</a><br>
 &nbsp;&nbsp;b) tar xvzf JLink_Linux_V502f_i386.tgz<br>
 &nbsp;&nbsp;c) cd JLink_Linux_V502f_i386<br>
